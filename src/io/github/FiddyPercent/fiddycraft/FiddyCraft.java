@@ -4,12 +4,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class FiddyCraft extends JavaPlugin {
 	
-    @Override
+
     public void onEnable(){
         this.getLogger().info("FiddyCraft is Enabled");
+        getServer().getPluginManager().registerEvents(new FiddyCraftListener(), this);
     }
  
-    @Override
+
     public void onDisable() {
         this.getLogger().info("FiddyCraft is Disabled");
     }
