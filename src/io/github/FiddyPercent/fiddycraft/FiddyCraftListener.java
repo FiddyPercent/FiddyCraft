@@ -18,13 +18,10 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	
 	@EventHandler(priority = EventPriority.HIGH)
 	public void attack(EntityDamageEvent event) {
-
 		if(event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK && event.getEntityType() 
 				== EntityType.PLAYER){
 			Player player = (Player) event.getEntity();
 			String name = player.getName();
-			
-			
 			if(!Attacked.containsKey(name) || Attacked.get(name) == 0){
 				Attacked.put(name, 1);
 				player.sendMessage(ChatColor.RED + "Run fool!");
@@ -32,14 +29,11 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 				int numberAttacked = Attacked.get(name);
 				int total = numberAttacked +1;
 				Attacked.put(name, total);
-				
 	  }else{
 		  	Attacked.put(name, 0);
 		  	player.sendMessage(ChatColor.YELLOW + "DODGE!!");
 				
 			}
-			
-			
 		}
 		
 		
