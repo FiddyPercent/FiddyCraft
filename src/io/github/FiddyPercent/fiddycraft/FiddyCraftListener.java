@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -54,14 +53,17 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	@EventHandler
 	public void EntityDeath(EntityDeathEvent event){
 		String entityName = event.getEntityType().getName();
-		
-		Bukkit.broadcastMessage(ChatColor.RED + entityName + " died!");
-		
 		if(entityName.equalsIgnoreCase("Villager")){
 			ArrayList<String> witness = new ArrayList<String>();
+			ArrayList<String> killer = new ArrayList<String>();
 			Location loc = event.getEntity().getLocation();
 			List<Entity> witnesses = event.getEntity().getNearbyEntities(10, 10, 10);
-			String killer = event.getEntity().getKiller().getName();
+			if(!(event.getEntity().getKiller() == null)){
+			String k = event.getEntity().getKiller().getName();
+			killer.add(k);
+			}else{
+				 killer.add("Unknown");
+			}
 			String causeOfDeath = event.getEntity().getLastDamageCause().getCause().name();
 			World world = Bukkit.getWorld("world");
 			ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
@@ -73,9 +75,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					String name = ((HumanEntity) y).getName();
 					witness.add(name);
 				}
-			}
-				
-				
+			}	
 			if(witness.isEmpty()){
 				witness.add("none");
 			}
