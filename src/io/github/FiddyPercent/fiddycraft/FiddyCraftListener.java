@@ -2,9 +2,11 @@ package io.github.FiddyPercent.fiddycraft;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -17,6 +19,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
@@ -92,6 +96,31 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			witness.clear();
 			
 		}
+		
+		
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void VillagerSpawn(CreatureSpawnEvent event){
+		List<String> firstNames = Arrays.asList("Bill", "Tom", "Bullet", "WolfGang", "Stein", "Rango", "Wiggens");
+		List<String> lastNames = Arrays.asList("WaterButt", "Wolf", "Sir", "Ender", "Smith", "Jackson", "Walter");
+		
+		if(event.getEntityType().getName().equalsIgnoreCase("Villager")){
+		  
+			if(!(event.getSpawnReason() == SpawnReason.BREEDING)){
+				int fnl = firstNames.size();
+				int lnl = lastNames.size();
+				
+				int rFnl =  1 + (int) (Math.random() * fnl ); 
+				int Llnl =   1 +  (int) (Math.random() * lnl );
+				
+				
+				event.getEntity().setCustomName(firstNames.get(rFnl) + " " + lastNames.get(Llnl) );
+				event.getEntity().setCustomNameVisible(true);
+			}
+		}
+		
 	}
 	
 }

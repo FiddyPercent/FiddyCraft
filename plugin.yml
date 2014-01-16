@@ -1,10 +1,16 @@
 name: FiddyCraft
 main: io.github.FiddyPercent.fiddycraft.FiddyCraft
-version: 1.0
+version: 1.1
 
 commands:
-    Test:
-      description: This is a demo command.
-      usage: /<command>
+    vfname:
+      description: Adds a first name to the Villager name pool.
+      usage: /addVname <name>
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+      
+    vlname:
+      description: Adds a last name to the Villager name pool.
+      usage: /addVname <name>
       permission: FiddyCraft.test
       permission-message: You don't have permission fool
