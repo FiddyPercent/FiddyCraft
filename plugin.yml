@@ -14,3 +14,8 @@ commands:
       usage: /addVname <name>
       permission: FiddyCraft.test
       permission-message: You don't have permission fool
+    test:
+      description: Adds a last name to the Villager name pool.
+      usage: /addVname <name>
+      permission: FiddyCraft.test
+      permission-message: You don't have permission f
