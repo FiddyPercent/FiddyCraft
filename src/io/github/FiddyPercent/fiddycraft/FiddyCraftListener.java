@@ -28,8 +28,18 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 
 
@@ -42,6 +52,8 @@ public class FiddyCraftListener implements Listener{
 	public FiddyCraftListener(FiddyCraft plugin){
 	this.plugin = plugin;
 	}
+	
+	
 	
 HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	
@@ -76,29 +88,48 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
                         				&& armor[3].getType().name().equalsIgnoreCase("air")){
                 					player.sendMessage(ChatColor.RED +"What! you don't have enough for taxes? Its Jail time for you buddy");
                 					
+                					double x =  (double) plugin.getConfig().get("Jail.X");
+                					double y =  (double) plugin.getConfig().get("Jail.y");
+                					double z =  (double) plugin.getConfig().get("Jail.z");
+                					 Location loc = new Location(Bukkit.getServer().getWorld("world"),x, y, z);
+                				
+                					player.teleport(loc);
+                					plugin.getConfig().set("Jailed."+ player.getName(), 250);
+                					plugin.saveConfig();
                 					
+                					player.setScoreboard(plugin.manager.getNewScoreboard());
+                					Scoreboard board = plugin.manager.getNewScoreboard();
+                					Team team = board.registerNewTeam("teamname");
+                					team.addPlayer(player);
+                					team.setDisplayName("Jailed");
+                					Objective objective = board.registerNewObjective("test", "trigger");
+                					objective.setDisplayName("Jailed");
+                					Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Labor:")); //Get a fake offline player
+                					score.setScore(250);
+                					objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+                					player.setScoreboard(board);
                 				}else{
                 					
-                					if (!(armor[0].equals(Material.AIR))){
+                					if (!(armor[3].getType().equals(Material.AIR))){
                						 // player is wearing a helmet
                						
-               						ItemStack helmet = armor[0].clone();
+               						ItemStack helmet = player.getInventory().getHelmet().clone();
                						((LivingEntity) damager).getEquipment().setHelmet(helmet);
                					
                						}
-               						if (!(armor[1].equals(Material.AIR))) {
+               						if (!(armor[2].getType().equals(Material.AIR))) {
                						 // player is wearing a chestplate
-               						ItemStack chestplate = armor[1].clone();
+               						ItemStack chestplate =  player.getInventory().getChestplate().clone();
                						((LivingEntity) damager).getEquipment().setChestplate(chestplate);
                					
                						}
-               						if (!(armor[2].equals(Material.AIR))) {
+               						if (!(armor[1].getType().equals(Material.AIR))) {
                						 // player is wearing  leggings
-               						ItemStack leggings = armor[2].clone();
+               						ItemStack leggings =  player.getInventory().getLeggings().clone();
                						((LivingEntity) damager).getEquipment().setLeggings(leggings);
                						}
-               						if (!(armor[3].equals(Material.AIR))) {
-               						ItemStack boots = armor[3].clone();
+               						if (!(armor[0].getType().equals(Material.AIR))) {
+               						ItemStack boots = armor[0].clone();
                						((LivingEntity) damager).getEquipment().setBoots(boots);
                						 // player is wearing  boots
                						}
@@ -108,11 +139,16 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
                     				Attacked.put(name, total);
                						player.getInventory().setArmorContents(null);
                						
-               						player.sendMessage("No money to give huh? This armor looks pretty nice Ill take that");
-               						((Zombie) damager).getTarget().shootArrow();
+               						player.sendMessage("No money to give huh? This armor looks pretty nice I'll take that");
+               						
+               						((Zombie) damager).getTarget().addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 500, 3));
+               						((Zombie) damager).getTarget().addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 500, 3));
                						((Zombie) damager).setHealth(20);
+               						
                						((Zombie) damager).setCustomName(ChatColor.RED + "Thug Zombie");
-	
+               						
+               						
+               						
                 				}
                 				
                 				
@@ -150,7 +186,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 }
 	
 	
-	
+
 	@EventHandler
 	public void EntityDeath(EntityDeathEvent event){
 		String entityName = event.getEntityType().toString();
@@ -193,11 +229,41 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			world.dropItem(loc, book);
 			witness.clear();
 			
-		}
+		}else if(event.getEntityType().toString().equalsIgnoreCase("Zombie")){
 		
+			
+			if(event.getEntity().getCustomName().equalsIgnoreCase( ChatColor.RED+"Thug Zombie")){
+				ItemStack b =  event.getEntity().getEquipment().getBoots().clone();
+				ItemStack c =  event.getEntity().getEquipment().getChestplate().clone();
+				ItemStack p =  event.getEntity().getEquipment().getLeggings().clone();
+				ItemStack l =  event.getEntity().getEquipment().getHelmet().clone();
+				
+				World world = Bukkit.getWorld("world");
+				
+				
+				Location loc = event.getEntity().getLocation();
+				
+				if(!b.getType().toString().equalsIgnoreCase("air")){
+				world.dropItem(loc, b);
+				}
+				if(!c.getType().toString().equalsIgnoreCase("air")){
+				world.dropItem(loc, c);
+				}
+			if(!p.getType().toString().equalsIgnoreCase("air")){	
+				world.dropItem(loc, p);
+			}
+			if(!l.getType().toString().equalsIgnoreCase("air")){
+				world.dropItem(loc, l);
+			}
+			}else{
+				
+			}
+	}else{
+	
 		
 	}
 	
+	}
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void VillagerSpawn(CreatureSpawnEvent event){
@@ -220,11 +286,64 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		}else if(event.getEntityType().getName().equalsIgnoreCase("Zombie")){
 			event.getEntity().setCustomName("Tax Zombie");
 			
-			if(event.getEntity().getCustomName().equalsIgnoreCase("Thug Zombie")){
-				
+			
 			}
 		}
 		
-	}
+	@EventHandler
+	public void playerDeath(PlayerRespawnEvent event){
+		Player p = event.getPlayer();
 
+	
+		if(plugin.getConfig().contains("Jailed." + p.getName())){
+			
+			double x =  (double) plugin.getConfig().get("Jail.X");
+			double y =  (double) plugin.getConfig().get("Jail.y");
+			double z =  (double) plugin.getConfig().get("Jail.z");
+			Location loc = new Location(p.getWorld(), x,y,z);
+			p.teleport(loc);
+			event.setRespawnLocation(loc);
+		}
+	}
+	
+	@EventHandler
+	public void logout(PlayerQuitEvent event){
+		Player p = event.getPlayer();
+		
+		if(plugin.getConfig().contains("Jailed."+p.getName())){
+			Objective objective = p.getScoreboard().getObjective("Jailed");
+			Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
+			int s = score.getScore();
+			plugin.getConfig().set("Jailed."+p.getName(), s);
+			plugin.saveConfig();
+			plugin.manager.getNewScoreboard();
+		}
+	}
+	
+	@EventHandler
+	public void ojJoin(PlayerJoinEvent event ){
+		Player p = event.getPlayer();
+		if(plugin.getConfig().contains("Jailed."+p.getName())){
+			
+
+			Scoreboard board = plugin.manager.getNewScoreboard();
+			Objective objective = board.registerNewObjective("Jailed", "trigger");
+			objective.setDisplayName("Jailed");
+			int labor = plugin.getConfig().getInt("Jailed."+p.getName());
+			Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
+			score.setScore(labor);
+			objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+			p.setScoreboard(board);
+			
+			
+			
+			
+			}
+		
+		}
+	@EventHandler
+	public void signSetUp(Player.)
 }
+
+	
+
