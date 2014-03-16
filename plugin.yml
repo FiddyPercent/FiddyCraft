@@ -23,3 +23,8 @@ commands:
       usage: /fcreload 
       permission: FiddyCraft.op
       permission-message: You don't have permission
+    setRelease:
+      description: uses your location as the Release area for inmates.
+      usage: /setRelease 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool

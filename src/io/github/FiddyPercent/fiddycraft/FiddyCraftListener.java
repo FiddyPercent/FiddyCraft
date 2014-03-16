@@ -2,7 +2,6 @@ package io.github.FiddyPercent.fiddycraft;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +11,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
@@ -22,12 +24,14 @@ import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -229,7 +233,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			world.dropItem(loc, book);
 			witness.clear();
 			
-		}else if(event.getEntityType().toString().equalsIgnoreCase("Zombie")){
+		}else if(event.getEntityType().toString().equalsIgnoreCase("Zombie") && !(event.getEntity().getCustomName() == null)){
 		
 			
 			if(event.getEntity().getCustomName().equalsIgnoreCase( ChatColor.RED+"Thug Zombie")){
@@ -267,24 +271,25 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void VillagerSpawn(CreatureSpawnEvent event){
-		List<String> firstNames = Arrays.asList("Bill", "Tom", "Bullet", "WolfGang", "Stein", "Rango", "Wiggens", "Pete", "Sue", "Mary",
-				"Texas", "Sandy", "Lary", "Thigh", "Booner", "Link", "Fish", "Basil", "Ann", "Stan", "Chuck", "Nuns", "Rocko", "Ippo", "FiddyFive");
-		
+		ArrayList<String> firstNames = new ArrayList<String>();
+		OfflinePlayer[] oln = Bukkit.getOfflinePlayers();
 		if(event.getEntityType().getName().equalsIgnoreCase("Villager")){
-		  
-			if(!(event.getSpawnReason() == SpawnReason.BREEDING)){
+		  for(OfflinePlayer y  : oln){
+			  firstNames.add(y.getName());
+		  }
+			
 				int fnl = firstNames.size();
 				
 				
-				int rFnl =  1 + (int) (Math.random() * fnl ); 
+				int rFnl =  (int) (Math.random() * fnl ); 
 				
 				
 				event.getEntity().setCustomName(firstNames.get(rFnl) );
 				event.getEntity().setCustomNameVisible(false);
 				
-			}
+			
 		}else if(event.getEntityType().getName().equalsIgnoreCase("Zombie")){
-			event.getEntity().setCustomName("Tax Zombie");
+			
 			
 			
 			}
@@ -293,8 +298,6 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	@EventHandler
 	public void playerDeath(PlayerRespawnEvent event){
 		Player p = event.getPlayer();
-
-	
 		if(plugin.getConfig().contains("Jailed." + p.getName())){
 			
 			double x =  (double) plugin.getConfig().get("Jail.X");
@@ -306,6 +309,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		}
 	}
 	
+	
 	@EventHandler
 	public void logout(PlayerQuitEvent event){
 		Player p = event.getPlayer();
@@ -316,7 +320,10 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			int s = score.getScore();
 			plugin.getConfig().set("Jailed."+p.getName(), s);
 			plugin.saveConfig();
-			plugin.manager.getNewScoreboard();
+			p.setScoreboard(plugin.manager.getNewScoreboard());
+			Bukkit.getServer().getLogger().info(ChatColor.RED + " in config quit");
+		}else{
+			Bukkit.getServer().getLogger().info(ChatColor.RED + "not in config quit");
 		}
 	}
 	
@@ -324,26 +331,138 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	public void ojJoin(PlayerJoinEvent event ){
 		Player p = event.getPlayer();
 		if(plugin.getConfig().contains("Jailed."+p.getName())){
-			
-
-			Scoreboard board = plugin.manager.getNewScoreboard();
-			Objective objective = board.registerNewObjective("Jailed", "trigger");
-			objective.setDisplayName("Jailed");
+			p.setScoreboard(plugin.manager.getNewScoreboard());
+			plugin.getJailScoreBoard(p);
+			Scoreboard board = p.getScoreboard();
+			Objective objective = p.getScoreboard().getObjective("Jailed");
 			int labor = plugin.getConfig().getInt("Jailed."+p.getName());
 			Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
 			score.setScore(labor);
 			objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 			p.setScoreboard(board);
-			
-			
-			
-			
+			Bukkit.getServer().getLogger().info(ChatColor.RED + " in config join");
+			}else{
+				Bukkit.getServer().getLogger().info(ChatColor.RED + "not in config join");
 			}
-		
 		}
-	@EventHandler
-	public void signSetUp(Player.)
-}
-
 	
+	@EventHandler
+	public void signSetUp(SignChangeEvent event){
+		Player p = event.getPlayer();
+		if(p.isOp()){
+			if(event.getLine(0).equalsIgnoreCase("[Labor]")){
+				event.setLine(0, ChatColor.DARK_RED + "[Labor]" );
+				
+			  int x  = event.getBlock().getLocation().getBlockX();
+			  int y  = event.getBlock().getLocation().getBlockY();
+			  int z  = event.getBlock().getLocation().getBlockZ();
+			  
+			  plugin.getSignLocation().set("SignLocation.X."+x, p.getName());
+			  plugin.getSignLocation().set("SignLocation.Y."+y, p.getName());
+			  plugin.getSignLocation().set("SignLocation.Z."+z, p.getName());
+			  plugin.saveSignLocation();
+			  p.sendMessage(ChatColor.GREEN + "Labor shop created");
+			}
+		}
+	}
+	
+    @EventHandler
+    public void rightClicks(PlayerInteractEvent e){
+        Player p = e.getPlayer();
+
+        if(e.getAction() == Action.RIGHT_CLICK_BLOCK || e.getAction() == Action.LEFT_CLICK_BLOCK){
+        	 Block block = e.getClickedBlock();
+        	 
+        	if(block.getType() == Material.SIGN || block.getType() == Material.SIGN_POST || block.getType() == Material.WALL_SIGN) {
+        	    Sign sign = (Sign) e.getClickedBlock().getState();
+        	    
+        	   if(sign.getLine(0).contains(ChatColor.DARK_RED + "[Labor]")) {
+        		   
+        	   if(plugin.getConfig().contains("Jailed." + p.getName())){
+        	    Material have = p.getItemInHand().getType();
+        	  
+        	    ItemStack log = new ItemStack(Material.LOG);
+				ItemStack cookedFish = new ItemStack(Material.COOKED_FISH);
+        	    ItemStack rawFish = new ItemStack(Material.RAW_FISH);
+        	    ItemStack coal = new ItemStack(Material.COAL);
+        	    ItemStack ironIngot = new ItemStack(Material.IRON_INGOT);
+        	    ItemStack coalblock = new ItemStack(Material.COAL_BLOCK);
+        	    ItemStack redstone = new ItemStack(Material.REDSTONE);
+        	    ItemStack diamond = new ItemStack(Material.DIAMOND);
+        	    ItemStack gold = new ItemStack(Material.GOLD_INGOT);
+        	        if(have.equals(rawFish.getType())){
+        	        	int itemvalue = 10;
+        	        	plugin.takeOne(p, rawFish);
+        	        	plugin.newJailScore(p, itemvalue);
+        	        }else if(have.equals(log.getType())){
+        	        	int itemvalue = 2;
+        	        	plugin.takeOne(p, log);
+             	        plugin.newJailScore(p, itemvalue);
+        	        }else if(have.equals(cookedFish.getType())){
+        	        	int itemvalue = 15;
+        	        	plugin.newJailScore(p, itemvalue);
+        	        	plugin.takeOne(p, cookedFish); 
+        	        }else if(have.equals(coal.getType())){
+        	        	int itemvalue = 1;
+        	        	plugin.newJailScore(p, itemvalue);
+        	        	plugin.takeOne(p, coal);
+        	        }else if(have.equals(ironIngot.getType())){
+        	        	int itemvalue = 9;
+        	        	plugin.newJailScore(p, itemvalue);
+        	        	plugin.takeOne(p, ironIngot);	
+        	        }else if(have.equals(coalblock.getType())){
+        	        	int itemvalue = 30;
+        	        	plugin.newJailScore(p, itemvalue);
+        	        	plugin.takeOne(p, coalblock);
+        	        }else if(have.equals(redstone.getType())){
+        	        	int itemvalue = 5;
+        	        	plugin.newJailScore(p, itemvalue);
+        	        	plugin.takeOne(p, redstone);
+        	        }else if(have.equals(diamond.getType())){
+        	        	int itemvalue = 100;
+        	        	plugin.newJailScore(p, itemvalue);
+        	        	plugin.takeOne(p, diamond);
+        	        }else if(have.equals(gold.getType())){
+        	        	int itemvalue = 30;
+        	        	plugin.newJailScore(p, itemvalue);
+        	        	plugin.takeOne(p, gold);
+        	        }else{
+        	        		p.sendMessage("you have nothing");
+        	        	}
+        	        	Objective ob =  p.getScoreboard().getObjective("Jailed");
+        	        	String sb = (ChatColor.GRAY + "Labor:");
+        	        	 if(plugin.getScore(p, ob, sb) <= 0 ){
+        	        		 p.sendMessage(ChatColor.YELLOW + "You have paid for you Crimes You are free to go");
+        	        		 Bukkit.broadcastMessage(p.getName() + " has been released from jail");
+        	        		 
+        	        		 p.getServer().getWorld("world").setSpawnLocation(-1459, 74, -236);
+        	        		 if(plugin.getConfig().contains("Release")){
+        	        			double x =  (double) plugin.getConfig().get("Release.X");
+        	     				double y =  (double) plugin.getConfig().get("Release.Y");
+        	     				double z =  (double) plugin.getConfig().get("Release.Z");
+        	     				Location loc = new Location(Bukkit.getServer().getWorld("world"),x, y, z);
+        	     				p.getInventory().clear();
+        	     				p.teleport(loc);
+        	     				plugin.getConfig().set("Jailed." + p.getName(), null);
+        	     				
+        	     				p.setScoreboard(plugin.manager.getNewScoreboard());
+        	     				 plugin.saveConfig();
+        	     				 plugin.reloadConfig();
+        	        		 }else{
+        	        			 Location loc = new Location(p.getWorld(), -1305, 72, -329);
+        	        			 p.getInventory().clear();
+        	        			 p.teleport(loc);
+        	        			 plugin.getConfig().set("Jailed." + p.getName(), null);
+        	        			 p.setScoreboard(plugin.manager.getNewScoreboard());
+        	        			 plugin.saveConfig();
+        	        			 plugin.reloadConfig();
+        	        		 }
+        	        		 
+        	        	 }
+        	   		}
+        	   }
+        	}
+        }    
+    }
+}
 
