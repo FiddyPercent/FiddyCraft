@@ -9,11 +9,11 @@ import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -29,7 +29,12 @@ public class FiddyCraft extends JavaPlugin {
 	  private  FileConfiguration SignLocation;
 	  private File SignLocationFile;
 	  public final FiddyCraftListener fcl = new FiddyCraftListener(this);
-	  ScoreboardManager manager = Bukkit.getScoreboardManager();
+	  public ArrayList<Boolean> TrialStart;
+	  public ArrayList<String> defendant;
+	  public ArrayList<String> Prosecutor;
+	  public ArrayList<String> Defence;
+	  public ArrayList<String> Judge;
+	  public ArrayList<String> Jury;
 	  BOSEconomy economy = null;
 	  
 	  
@@ -48,11 +53,15 @@ public class FiddyCraft extends JavaPlugin {
         getCommand("setJail").setExecutor(new FiddyCraftCommands(this));
         getCommand("Jail").setExecutor(new FiddyCraftCommands(this));
         getCommand("fcreload").setExecutor(new FiddyCraftCommands(this));
-        getCommand("setRelease").setExecutor(new FiddyCraftCommands(this));
+        getCommand("trial").setExecutor(new FiddyCraftCommands(this));
+        getCommand("Lawyer").setExecutor(new FiddyCraftCommands(this));
+        getCommand("setdefense").setExecutor(new FiddyCraftCommands(this));
+        getCommand("setdefendant").setExecutor(new FiddyCraftCommands(this));
+        getCommand("setprosecutor").setExecutor(new FiddyCraftCommands(this));
         this.loadBOSEconomy();
         for(Player target: Bukkit.getOnlinePlayers()){
         this.getJailScoreBoard(target);
-        }
+       }
     	new BukkitRunnable(){
 			@Override
 			public void run() {
@@ -122,36 +131,67 @@ public class FiddyCraft extends JavaPlugin {
         return true;
     }
     
-    public void setJailScoreBoard(Player target, String sentence){	
-    	target.setScoreboard(manager.getNewScoreboard());
-    	Scoreboard board = this.manager.getNewScoreboard();
-		Objective objective = board.registerNewObjective("Jailed", "trigger");
-		objective.setDisplayName("Jailed");
+    public void setJailScoreBoard(Player target, String sentence){
+		ScoreboardManager manager = Bukkit.getScoreboardManager();
+   		if(manager.getMainScoreboard().getObjective("Jailed") == null){
+    	Scoreboard board = manager.getMainScoreboard();
+		Objective objective = board.registerNewObjective("Jailed", "dummy");
+		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 		int labor = Integer.parseInt(sentence);
 		Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
 		score.setScore(labor);
-		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 		target.setScoreboard(board);
+}
+   		if(target.getScoreboard().getObjective("Jailed") == null){
+   			Scoreboard board = manager.getMainScoreboard();
+   			Objective objective = board.getObjective("Jailed");
+   			objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+   			int labor =  Integer.parseInt(sentence);
+   			Score score = target.getScoreboard().getObjective("Jailed").getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:"));
+    		score.setScore(labor);
+    		target.setScoreboard(board);
+    		
+    		
+   		}else{
+   			target.sendMessage("else");
+   			Objective objective = target.getScoreboard().getObjective("Jailed");
+   			Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
+   			int labor =  Integer.parseInt(sentence);
+    		score.setScore(labor);
+    		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+    		;
+   		}
 	}
 	
 
     
-    public void getJailScoreBoard(Player target){
-    	if(this.getConfig().contains("Jailed." + target.getName())){
-    		target.setScoreboard(manager.getNewScoreboard());
-    		Scoreboard board = this.manager.getNewScoreboard();
-    		Objective objective = board.registerNewObjective("Jailed", "trigger");
-    		objective.setDisplayName("Jailed");
+   public void getJailScoreBoard(Player target){
+   	if(this.getConfig().contains("Jailed." + target.getName())){
+   		
+   			ScoreboardManager manager = Bukkit.getScoreboardManager();
+   		if(manager.getMainScoreboard().getObjective("Jailed") == null){
+   			Scoreboard board = manager.getMainScoreboard();
+   			Objective objective = board.registerNewObjective("Jailed", "dummy");
+   			objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     		int labor = this.getConfig().getInt("Jailed." + target.getName());
     		Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
     		score.setScore(labor);
     		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+    		target.setScoreboard(target.getScoreboard());
+   		}else if(target.getScoreboard().getObjective("Jailed") == null){
+   			Scoreboard board = manager.getMainScoreboard();
+   			Objective objective = board.getObjective("Jailed");
+   			Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
+   			int labor = this.getConfig().getInt("Jailed." + target.getName());
+    		score.setScore(labor);
+    		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     		target.setScoreboard(board);
+   		}
+   	}
+   }
     		
-    	}else{
-    		Bukkit.getServer().getLogger().info(ChatColor.RED + "get Jailed not have name");
-    	}
-    }
+    	
+    
     	
     public void newJailScore(Player p, int itemvalue){
      	Objective objective = p.getScoreboard().getObjective("Jailed");
@@ -192,36 +232,43 @@ public class FiddyCraft extends JavaPlugin {
     	}
     	
     }
-    @SuppressWarnings("deprecation")
+   
+	@SuppressWarnings("deprecation")
 	public void takeOne(Player p, ItemStack i){
-    	ArrayList<Integer> amount = new ArrayList<Integer>();
-    	p.sendMessage(ChatColor.RED + "" + i.getAmount());
-    	PlayerInventory stuff = p.getInventory();
-    	for(ItemStack pp : stuff){
-    		if(pp == i){
-    			int d = amount.get(0) + 1;
-    			amount.set(0, d);
-    		}
-    	}
-    	
-    	
-    	  if(amount.get(0) <= 1){
-    		  p.sendMessage(i.getAmount()  +"");
-    	    p.getInventory().removeItem(i);
-    	    p.updateInventory();
-    	  }else{
-    		  
-    	  if(amount.get(0) > 1){
-    	    i.setAmount(i.getAmount() - 1);
-    	    p.sendMessage(" - 1 :" + i.getAmount());
-    	    p.updateInventory();
-    	    
-    	    //if it doesnt work, try updating the item in the inventory.
-    	  }
-    	}
-     amount.clear();
-    }
-  
+		p.updateInventory();
+    	if(p.getInventory().contains(i.getType())){
+    		ItemStack[] s = p.getInventory().getContents();
+    		p.sendMessage("Yes you have raw fish");
+    		p.sendMessage("I have " +s.length + " " + i.getType().toString());
+    		
+    		
+    		
+    	}else{
+    p.sendMessage("No");
+	}
+	}
+	
+	public boolean hasArmor(Player p, Material h, Material c, Material l, Material b){
+		ItemStack ht = p.getEquipment().getHelmet();
+		ItemStack ct = p.getEquipment().getChestplate();
+		ItemStack ls = p.getEquipment().getLeggings();
+		ItemStack bs = p.getEquipment().getBoots();
+		if(ht != null && ct != null && ls != null && bs != null){
+		
+		Material helmet = p.getEquipment().getHelmet().getType();
+		Material chest = p.getEquipment().getChestplate().getType();
+		Material legs = p.getEquipment().getLeggings().getType();
+		Material boots = p.getEquipment().getBoots().getType();
+		if(helmet == h && chest == c && legs == l && boots == b){
+			return true;
+		}else{
+			return false;
+		}
+		}else{
+			return false;
+		}
+		
+	}
 }
 
 

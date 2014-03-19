@@ -1,6 +1,6 @@
 name: FiddyCraft
 main: io.github.FiddyPercent.fiddycraft.FiddyCraft
-version: 1.1
+version: 1.6
 
 commands:
     vfname:
@@ -26,5 +26,29 @@ commands:
     setRelease:
       description: uses your location as the Release area for inmates.
       usage: /setRelease 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    trial:
+      description: Begins the Trial setup 
+      usage: /trial <defendant> <prosecutor>
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    Lawyer:
+      description: pick your lawyer who will represent you in trial
+      usage: /Lawyer <Name>
+      permission-message: You don't have permission fool
+    setdefense:
+      description: uses your location as the defense location in court.
+      usage: /setdefense 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    setdefendant:
+      description: uses your location as the defendant area for court.
+      usage: /setdefendant 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    setprosecutor:
+      description: uses your location as the spot for prosecutors area for inmates.
+      usage: /setprosecutor 
       permission: FiddyCraft.test
       permission-message: You don't have permission fool

@@ -12,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
@@ -33,17 +34,13 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
+import org.bukkit.scoreboard.ScoreboardManager;
 
 
 
@@ -101,17 +98,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
                 					plugin.getConfig().set("Jailed."+ player.getName(), 250);
                 					plugin.saveConfig();
                 					
-                					player.setScoreboard(plugin.manager.getNewScoreboard());
-                					Scoreboard board = plugin.manager.getNewScoreboard();
-                					Team team = board.registerNewTeam("teamname");
-                					team.addPlayer(player);
-                					team.setDisplayName("Jailed");
-                					Objective objective = board.registerNewObjective("test", "trigger");
-                					objective.setDisplayName("Jailed");
-                					Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GREEN + "Labor:")); //Get a fake offline player
-                					score.setScore(250);
-                					objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-                					player.setScoreboard(board);
+                					plugin.setJailScoreBoard(player,"250");
                 				}else{
                 					
                 					if (!(armor[3].getType().equals(Material.AIR))){
@@ -182,12 +169,62 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
                 	
                 		}
      
+                	}else if(damager instanceof Player){
+                	boolean goldArmor = plugin.hasArmor(player, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
+                	boolean goldArmorAttacker = plugin.hasArmor((Player)damager, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
+                		if(goldArmor){
+                			((Player) damager).sendMessage(ChatColor.YELLOW + "This player is wearing anti pvp armor");
+                			event.setCancelled(true);
+                			Bukkit.getWorld("world").playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                			
                 	}
-          
-                 }
-			
-			 }
-}
+                		
+                	
+                	   if(goldArmorAttacker){
+                			((Player) damager).sendMessage(ChatColor.YELLOW + "You are wearing anti-PVP armor");
+                			event.setCancelled(true);
+                			Bukkit.getWorld("world").playSound(player.getLocation(), Sound.STEP_GRAVEL, 1, 1);
+                	   		}
+                		}
+                
+                	}
+                }
+		
+		 if(event.getCause() ==  DamageCause.PROJECTILE){
+			 EntityDamageByEntityEvent evnt = (EntityDamageByEntityEvent) event;
+             org.bukkit.entity.Projectile damager = (org.bukkit.entity.Projectile) evnt.getDamager();
+             Entity shooter = damager.getShooter();
+             Entity victim = event.getEntity();
+ 			if(shooter instanceof Player && victim instanceof Player){
+ 				Player attacker = (Player) shooter;
+ 				Player shot = (Player) victim;
+ 				
+ 				
+ 				boolean goldArmor = plugin.hasArmor(shot, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
+            	boolean goldArmorAttacker = plugin.hasArmor(attacker, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
+            		if(goldArmor){
+            			attacker.sendMessage(ChatColor.YELLOW + "This player is wearing anti pvp armor");
+            			event.setDamage(0);
+            			Bukkit.getWorld("world").playSound(attacker.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            			
+            	}
+            		
+            	
+            	   if(goldArmorAttacker){
+            		   attacker.sendMessage(ChatColor.YELLOW + "You are wearing Anti-PVP armor");
+            			event.setDamage(0);
+            			Bukkit.getWorld("world").playSound(shot.getLocation(), Sound.STEP_GRAVEL, 1, 1);
+            	   		}
+            		}
+            
+            	}
+ 				
+ 			}
+   
+        
+    
+
+
 	
 	
 
@@ -198,8 +235,14 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 ;		if(entityName.equalsIgnoreCase("Villager")){
 			ArrayList<String> witness = new ArrayList<String>();
 			ArrayList<String> killer = new ArrayList<String>();
+			ArrayList<String> villagerName = new ArrayList<String>();
 			Location loc = event.getEntity().getLocation();
 			List<Entity> witnesses = event.getEntity().getNearbyEntities(10, 10, 10);
+			if(event.getEntity().getCustomName() != null){
+				villagerName.add(event.getEntity().getCustomName());
+			}else{
+				villagerName.add("Unknown");
+			}
 			if(!(event.getEntity().getKiller() == null)){
 			String k = event.getEntity().getKiller().getName();
 			killer.add(k);
@@ -224,7 +267,8 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			bm.setAuthor("?????");
 			bm.setTitle("Evidence");
 			bm.addPage(">_>");
-			bm.setPage(1, ChatColor.RED+ "Killer: " + ChatColor.BLACK + killer + "\n" +"\n"
+			bm.setPage(1, ChatColor.RED+ "Villager Name: " + ChatColor.BLACK + villagerName  + "\n" +
+			ChatColor.RED+ "Killer: " + ChatColor.BLACK + killer + "\n" +"\n"
 					   + ChatColor.RED+ "Cause of death: "+ChatColor.BLACK + causeOfDeath + 
 					   "\n" +"\n"+ ChatColor.RED+"Time of Death: " +ChatColor.BLACK +timeStamp
 					   +"\n" + "\n" +ChatColor.GREEN+"People near by: " +ChatColor.BLACK + witness.toString());
@@ -277,21 +321,11 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		  for(OfflinePlayer y  : oln){
 			  firstNames.add(y.getName());
 		  }
-			
 				int fnl = firstNames.size();
-				
-				
 				int rFnl =  (int) (Math.random() * fnl ); 
-				
-				
 				event.getEntity().setCustomName(firstNames.get(rFnl) );
 				event.getEntity().setCustomNameVisible(false);
-				
-			
 		}else if(event.getEntityType().getName().equalsIgnoreCase("Zombie")){
-			
-			
-			
 			}
 		}
 		
@@ -299,7 +333,6 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	public void playerDeath(PlayerRespawnEvent event){
 		Player p = event.getPlayer();
 		if(plugin.getConfig().contains("Jailed." + p.getName())){
-			
 			double x =  (double) plugin.getConfig().get("Jail.X");
 			double y =  (double) plugin.getConfig().get("Jail.y");
 			double z =  (double) plugin.getConfig().get("Jail.z");
@@ -310,39 +343,33 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	}
 	
 	
-	@EventHandler
-	public void logout(PlayerQuitEvent event){
-		Player p = event.getPlayer();
-		
-		if(plugin.getConfig().contains("Jailed."+p.getName())){
-			Objective objective = p.getScoreboard().getObjective("Jailed");
-			Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
-			int s = score.getScore();
-			plugin.getConfig().set("Jailed."+p.getName(), s);
-			plugin.saveConfig();
-			p.setScoreboard(plugin.manager.getNewScoreboard());
-			Bukkit.getServer().getLogger().info(ChatColor.RED + " in config quit");
-		}else{
-			Bukkit.getServer().getLogger().info(ChatColor.RED + "not in config quit");
-		}
-	}
+	//@EventHandler
+	//public void logout(PlayerQuitEvent event){
+		//Player p = event.getPlayer();
+		//if(plugin.getConfig().contains("Jailed."+p.getName())){
+			//Objective objective = p.getScoreboard().getObjective("Jailed");
+			//Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:"));
+			//int s = score.getScore();
+		//	plugin.getConfig().set("Jailed."+p.getName(), s);
+			//plugin.saveConfig();
+			//p.setScoreboard(plugin.manager.getNewScoreboard());
+		//	Bukkit.getServer().getLogger().info(ChatColor.RED + " in config quit");
+	//	}
+	
 	
 	@EventHandler
 	public void ojJoin(PlayerJoinEvent event ){
 		Player p = event.getPlayer();
 		if(plugin.getConfig().contains("Jailed."+p.getName())){
-			p.setScoreboard(plugin.manager.getNewScoreboard());
-			plugin.getJailScoreBoard(p);
-			Scoreboard board = p.getScoreboard();
-			Objective objective = p.getScoreboard().getObjective("Jailed");
-			int labor = plugin.getConfig().getInt("Jailed."+p.getName());
-			Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
-			score.setScore(labor);
-			objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-			p.setScoreboard(board);
-			Bukkit.getServer().getLogger().info(ChatColor.RED + " in config join");
-			}else{
-				Bukkit.getServer().getLogger().info(ChatColor.RED + "not in config join");
+			//plugin.getJailScoreBoard(p);
+			//Scoreboard board = p.getScoreboard();
+			//Objective objective = p.getScoreboard().getObjective("Jailed");
+			//int labor = plugin.getConfig().getInt("Jailed."+p.getName());
+			//Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
+			//score.setScore(labor);
+			//objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+			//p.setScoreboard(p.getScoreboard());
+			
 			}
 		}
 	
@@ -365,6 +392,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			}
 		}
 	}
+	
 	
     @EventHandler
     public void rightClicks(PlayerInteractEvent e){
@@ -430,6 +458,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	        		p.sendMessage("you have nothing");
         	        	}
         	        	Objective ob =  p.getScoreboard().getObjective("Jailed");
+        	        	 ScoreboardManager manager = Bukkit.getScoreboardManager();
         	        	String sb = (ChatColor.GRAY + "Labor:");
         	        	 if(plugin.getScore(p, ob, sb) <= 0 ){
         	        		 p.sendMessage(ChatColor.YELLOW + "You have paid for you Crimes You are free to go");
@@ -445,7 +474,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	     				p.teleport(loc);
         	     				plugin.getConfig().set("Jailed." + p.getName(), null);
         	     				
-        	     				p.setScoreboard(plugin.manager.getNewScoreboard());
+        	     				p.setScoreboard(manager.getNewScoreboard());
         	     				 plugin.saveConfig();
         	     				 plugin.reloadConfig();
         	        		 }else{
@@ -453,7 +482,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	        			 p.getInventory().clear();
         	        			 p.teleport(loc);
         	        			 plugin.getConfig().set("Jailed." + p.getName(), null);
-        	        			 p.setScoreboard(plugin.manager.getNewScoreboard());
+        	        			 p.setScoreboard(manager.getNewScoreboard());
         	        			 plugin.saveConfig();
         	        			 plugin.reloadConfig();
         	        		 }
