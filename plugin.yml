@@ -52,3 +52,53 @@ commands:
       usage: /setprosecutor 
       permission: FiddyCraft.test
       permission-message: You don't have permission fool
+    addPolice:
+      description: adds a police to the force
+      usage: /addPolice <name> 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    removePolice:
+      description: removes a police officer from the force
+      usage: /removePolice <name> 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    patrol:
+      description: toggles patrol mode 
+      usage: /patrol 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    rTest:
+      description: toggles patrol mode 
+      usage: /patrol 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    setRegion1:
+      description: sets the region
+      usage: /setRegion1 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    setRegion2:
+      description: sets the second region
+      usage: /setRegion2 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    JoinJury:
+      description: lets you join the Jury
+      usage: /JoinJury 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    LeaveJury:
+      description: Releases you from Jury.
+      usage: /LeaveJury 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    setLocation:
+      description: Releases you from Jury.
+      usage: /LeaveJury 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool
+    lawyer:
+      description: selects your lawyer
+      usage: /LeaveJury 
+      permission: FiddyCraft.test
+      permission-message: You don't have permission fool

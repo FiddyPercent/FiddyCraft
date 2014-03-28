@@ -28,10 +28,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -39,8 +41,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
 
 
 
@@ -70,6 +72,8 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
                  EntityDamageByEntityEvent evnt = (EntityDamageByEntityEvent) event;
                  Entity damager = evnt.getDamager();
                  if(damager instanceof Zombie) {
+                	 LivingEntity zb = (LivingEntity) damager;
+                	 if(!(zb.getCustomName() == null)){
                 	String b =  (((LivingEntity) damager).getCustomName()); 
                 	if(b.equalsIgnoreCase("Tax Zombie")){
                 		
@@ -168,6 +172,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
             			}
                 	
                 		}
+                	}
      
                 	}else if(damager instanceof Player){
                 	boolean goldArmor = plugin.hasArmor(player, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
@@ -267,8 +272,8 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			bm.setAuthor("?????");
 			bm.setTitle("Evidence");
 			bm.addPage(">_>");
-			bm.setPage(1, ChatColor.RED+ "Villager Name: " + ChatColor.BLACK + villagerName  + "\n" +
-			ChatColor.RED+ "Killer: " + ChatColor.BLACK + killer + "\n" +"\n"
+			bm.setPage(1, ChatColor.RED+ "Villager Name: " + ChatColor.BLACK + villagerName  + "\n" + "\n" +
+			ChatColor.RED+ "Killer: " +"\n"+ ChatColor.BLACK + killer + "\n" +"\n"
 					   + ChatColor.RED+ "Cause of death: "+ChatColor.BLACK + causeOfDeath + 
 					   "\n" +"\n"+ ChatColor.RED+"Time of Death: " +ChatColor.BLACK +timeStamp
 					   +"\n" + "\n" +ChatColor.GREEN+"People near by: " +ChatColor.BLACK + witness.toString());
@@ -330,7 +335,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		}
 		
 	@EventHandler
-	public void playerDeath(PlayerRespawnEvent event){
+	public void respawn(PlayerRespawnEvent event){
 		Player p = event.getPlayer();
 		if(plugin.getConfig().contains("Jailed." + p.getName())){
 			double x =  (double) plugin.getConfig().get("Jail.X");
@@ -342,7 +347,71 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		}
 	}
 	
-	
+	@EventHandler
+	public void onDeath(PlayerDeathEvent event){
+		Player p = event.getEntity();
+		
+		if(p.getLastDamageCause().getEntity() instanceof Player){
+			Bukkit.broadcastMessage("Player attack");
+			
+			Player attacker = event.getEntity().getKiller();
+			if(plugin.getConfig().contains("Police." + attacker.getName())){
+				Bukkit.broadcastMessage("On the force");
+				if(plugin.patrol.containsKey(attacker.getName())){
+					Bukkit.broadcastMessage("on patrol");
+				if(plugin.patrol.get(attacker.getName())){
+					plugin.getConfig().set("PendingTrial." + p.getName(), attacker.getName());
+					plugin.saveConfig();
+					
+					p.sendMessage(ChatColor.RED + "You have been charged with a crime you will be put on trial shortly");
+					p.sendMessage(ChatColor.RED + "If you are unsure what you have done speak to the officer, It would be wise to look for a lawyer.");
+					attacker.sendMessage(ChatColor.BLUE + "You have charged " + p.getName() + " with a crime he will be put on trial shortly if convicted you will get paid");
+					plugin.getItems(p);
+					String causeOfDeath = event.getEntity().getLastDamageCause().getCause().name();
+					World world = Bukkit.getWorld("world");
+					ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+					BookMeta bm = (BookMeta) book.getItemMeta();
+					String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
+					ArrayList<String> witness = new ArrayList<String>();
+					
+					
+					List<Entity> witnesses = event.getEntity().getNearbyEntities(10, 10, 10);
+					
+					for(Entity y : witnesses){
+						if(y instanceof HumanEntity){
+							String name = ((HumanEntity) y).getName();
+							witness.add(name);
+						}
+					}	
+					if(witness.isEmpty()){
+						witness.add("none");
+					}
+					
+					
+					bm.setAuthor(attacker.getName());
+					bm.setTitle("Police Report");
+					bm.addPage("");
+					bm.addPage("");
+					bm.addPage("");
+					bm.addPage("");
+					bm.setPage(1, ChatColor.RED+ "Suspect: " + ChatColor.BLACK + p.getName()  + "\n" + "\n" +
+					ChatColor.RED+ "Officer: " +"\n"+ ChatColor.BLACK + attacker.getName() + "\n" +"\n"
+							   + ChatColor.RED+ "Cause of death: "+ChatColor.BLACK + causeOfDeath + 
+							   "\n" +"\n"+ ChatColor.RED+"Time of Death: " +ChatColor.BLACK +timeStamp
+							   +"\n" + "\n" +ChatColor.GREEN+"People near by: " +ChatColor.BLACK + witness.toString());
+					bm.setPage(2, plugin.items.toString());
+					book.getItemMeta().setDisplayName(ChatColor.RED+ "Police Report");
+					book.setItemMeta(bm);
+					world.dropItem(attacker.getLocation(), book);
+					witness.clear();
+					plugin.items.clear();
+					
+					}
+				}
+			}
+		}
+		
+	}
 	//@EventHandler
 	//public void logout(PlayerQuitEvent event){
 		//Player p = event.getPlayer();
@@ -393,6 +462,23 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		}
 	}
 	
+	
+	@EventHandler
+	public void mobSpawn(CreatureSpawnEvent  event){
+		LivingEntity creature = event.getEntity();
+		if(creature.getCustomName() == null){
+			Location loc = creature.getLocation();
+			
+			if(plugin.isInRegion("Town", loc)){
+				
+			if(event.getSpawnReason() == SpawnReason.NATURAL){
+				event.setCancelled(true);
+				}
+			}
+		}
+	}
+
+
 	
     @EventHandler
     public void rightClicks(PlayerInteractEvent e){
@@ -457,8 +543,9 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	        }else{
         	        		p.sendMessage("you have nothing");
         	        	}
-        	        	Objective ob =  p.getScoreboard().getObjective("Jailed");
+        	        	String ob =  "Jailed";
         	        	 ScoreboardManager manager = Bukkit.getScoreboardManager();
+        	        	 Team team = p.getScoreboard().getTeam(p.getName());
         	        	String sb = (ChatColor.GRAY + "Labor:");
         	        	 if(plugin.getScore(p, ob, sb) <= 0 ){
         	        		 p.sendMessage(ChatColor.YELLOW + "You have paid for you Crimes You are free to go");
@@ -475,6 +562,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	     				plugin.getConfig().set("Jailed." + p.getName(), null);
         	     				
         	     				p.setScoreboard(manager.getNewScoreboard());
+        	     				team.unregister();
         	     				 plugin.saveConfig();
         	     				 plugin.reloadConfig();
         	        		 }else{
@@ -485,6 +573,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	        			 p.setScoreboard(manager.getNewScoreboard());
         	        			 plugin.saveConfig();
         	        			 plugin.reloadConfig();
+        	        			 team.unregister();
         	        		 }
         	        		 
         	        	 }

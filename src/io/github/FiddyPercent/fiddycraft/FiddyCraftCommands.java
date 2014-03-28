@@ -36,12 +36,12 @@ public class FiddyCraftCommands implements CommandExecutor {
 				}
 				String defendant = args[0];
 				String Prosecutor = args[1];
-				if(!Bukkit.getPlayer(defendant).isOnline()){
+				if(plugin.isPlayer(defendant) == false){
 					p.sendMessage(ChatColor.RED + "The defendant is not online, make sure you spelled the name correctly");
 					return false;
 				}
 				
-				if(!Bukkit.getPlayer(Prosecutor).isOnline()){
+				if(plugin.isPlayer(Prosecutor) == false){
 					p.sendMessage(ChatColor.RED +  "The Prosecutor is not online, make sure you spelled the name correctly");
 					return false;
 				}
@@ -60,13 +60,13 @@ public class FiddyCraftCommands implements CommandExecutor {
 					p.sendMessage(ChatColor.RED + "You need to set the prosecutor location with " + ChatColor.DARK_GREEN + " /setprosecutor");
 					return false;
 				}
-				
+				p.sendMessage("defendant = " + defendant + "Prosecutor =" + Prosecutor );
 				plugin.defendant.add(defendant);
 				plugin.Prosecutor.add(Prosecutor);
 				plugin.Judge.add(p.getName());
 				
-				Bukkit.broadcastMessage(ChatColor.GRAY + " The trial for " + defendant + "will start soon");
-				Bukkit.broadcastMessage(ChatColor.GRAY + "If you would like to be a jury use "+ ChatColor.AQUA + " /Jury " +ChatColor.GRAY+ "no one who takes place in the trial can hear chat outside of /msg");
+				Bukkit.broadcastMessage(ChatColor.GOLD + " The trial for " + defendant + "will start soon");
+				Bukkit.broadcastMessage(ChatColor.GOLD + "If you would like to be a jury use "+ ChatColor.AQUA + " /JoinJury " +ChatColor.GOLD+ "no one who takes place in the trial can hear chat outside of /msg");
 				
 				
 				Player d = Bukkit.getPlayer(defendant);
@@ -85,7 +85,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 				d.teleport(dloc);
 				P.teleport(Ploc);
 				d.sendMessage(ChatColor.GREEN + "You can now select a lawyer by doing " + ChatColor.RED + "/Lawyer <name of Laywer>");
-				d.sendMessage(ChatColor.GREEN + "You can get rid of your lawyer by doing " +  ChatColor.RED + "/Remove Laywer");
+				d.sendMessage(ChatColor.GREEN + "You can get rid of your lawyer by doing " +  ChatColor.RED + "/RemoveLaywer");
 				P.sendMessage(ChatColor.GREEN + "We are waiting for the Jury and Defence Attorney, if you need help or tips use " + ChatColor.RED + "/Pro tips");
 				plugin.TrialStart.add(true);
 				
@@ -95,10 +95,31 @@ public class FiddyCraftCommands implements CommandExecutor {
 			return true;
 		}
 		
+		if(cmd.getName().equalsIgnoreCase("StartTrial")){
+			
+			Player p = (Player) sender;
+			
+			String defense = plugin.Defence.get(0);
+			String prosecutor = plugin.Prosecutor.get(0);
+		
+			if(Bukkit.getPlayer(defense)== null ){
+				p.sendMessage(ChatColor.RED + "Defense is not set");
+			}
+			
+			if(Bukkit.getPlayer(prosecutor)== null ){
+				p.sendMessage(ChatColor.RED + "prosecutor is not set");
+			}
+			
+			p.getNearbyEntities(15, 20, 15);
+			
+			
+			
+		}
+		
 		if(cmd.getName().equalsIgnoreCase("Lawyer")){
 			Player p = (Player) sender;
 			
-			if(plugin.getConfig().contains("TrialPending." + p.getName()) && plugin.TrialStart.contains(true)){
+			if(plugin.getConfig().contains("PendingTrial." + p.getName()) && plugin.TrialStart.get(0) == true){
 				if(!(args.length == 1)){
 					p.sendMessage(ChatColor.RED + "Not enough arguments");
 					return false;
@@ -117,18 +138,18 @@ public class FiddyCraftCommands implements CommandExecutor {
 				}
 				
 				plugin.Defence.add(Lawyer);
-				p.sendMessage(ChatColor.GREEN + "You have selected " + Lawyer + " as your Laywer");
-				p.sendMessage(ChatColor.GREEN + "If you would like to fire your lawyer use " + ChatColor.RED + "/RemoveLaywer");
+				p.sendMessage(ChatColor.GOLD + "You have selected " + Lawyer + " as your Laywer");
+				p.sendMessage(ChatColor.GOLD + "If you would like to fire your lawyer use " + ChatColor.RED + "/RemoveLaywer");
 				String judge = plugin.Judge.get(0);
 				if(Bukkit.getPlayer(judge) == null){
 					p.sendMessage(ChatColor.RED + "The Judge is not online right now");
 				}else{
 					Player j = Bukkit.getPlayer(plugin.Judge.get(0));
-					j.sendMessage("The Defense has been selected");
-					double dx = plugin.getConfig().getDouble("defense.X");
-					double dy = plugin.getConfig().getDouble("defense.Y");
-					double dz = plugin.getConfig().getDouble("defense.Z");
-					Location dloc = new Location(p.getWorld(), dx, dy, dz);
+					j.sendMessage(ChatColor.GOLD +"The Defense has been selected");
+					int x = (int) plugin.getConfig().getDouble("Location." + "Defense" +".X");
+					int y = (int) plugin.getConfig().getDouble("Location." + "Defense" +".Y");
+					int z = (int) plugin.getConfig().getDouble("Location." + "Defense" +".Z");
+					Location dloc = new Location(p.getWorld(), x, y, z);
 					L.teleport(dloc);
 					
 					
@@ -161,6 +182,8 @@ public class FiddyCraftCommands implements CommandExecutor {
 			}
 			return true;
 		}
+		
+		
 		if(cmd.getName().equalsIgnoreCase("setRelease")){
 			Player p = (Player) sender;
 			if(p.isOp()){
@@ -179,6 +202,138 @@ public class FiddyCraftCommands implements CommandExecutor {
 			}
 			return true;
 		}
+		
+		
+		if(cmd.getName().equalsIgnoreCase("addPolice")){
+			Player p = (Player) sender;
+			
+			if(args.length != 1){
+				p.sendMessage(ChatColor.RED+ "Not enough arguments");
+				return false;
+			}
+			
+			if(plugin.isPlayer(args[0]) == false){
+				p.sendMessage(ChatColor.RED +  args[0] + " is not a player");
+				return true;
+			}
+			
+			if(p.isOp() || plugin.getConfig().contains("Judge." + args[0])){
+				p.sendMessage(ChatColor.GREEN + "You have added " + args[0]);
+				Player nc = Bukkit.getPlayer(args[0]);
+				nc.sendMessage(ChatColor.BLUE + "Welcome to the police force " + nc.getName());
+				plugin.getConfig().set("Police." + nc.getName()+"." + "Arrests", 0);
+				plugin.getConfig().set("Police." + nc.getName()+"." + "Convicted", 0);
+				plugin.saveConfig();
+			}
+			return true;
+		}
+		
+		
+		
+		if(cmd.getName().equalsIgnoreCase("joinJury")){
+			Player p = (Player) sender;
+			Location loc = p.getLocation();
+			
+			if(plugin.TrialStart.isEmpty()){
+				p.sendMessage(ChatColor.GOLD + "No trial is currently started");
+				return true;
+			}
+			
+			
+			if( plugin.TrialStart.get(0) == false){
+				p.sendMessage(ChatColor.GOLD + "No trial is currently started");
+				return true;
+			}
+			
+			if(!plugin.getConfig().contains("Location.JuryLocation")){
+				p.sendMessage(ChatColor.DARK_RED + "Jury Location is not set properly please notify admin");
+				return false;
+			}
+			
+			if(p.getName().equalsIgnoreCase(plugin.defendant.get(0)) || p.getName().equalsIgnoreCase(plugin.Prosecutor.get(0))){
+			p.sendMessage(ChatColor.RED + "You cannot join a jury if you are part of the trial");
+			return false;
+			}
+			
+			
+			if(plugin.isInRegion("Town", loc) == false){
+				p.sendMessage(ChatColor.RED + "You must be in city to join the Jury");
+				return false;
+			}
+			
+			 
+			double x = plugin.getConfig().getDouble("JuryLocation.X");
+			double y = plugin.getConfig().getDouble("JuryLocation.Y");
+			double z = plugin.getConfig().getDouble("JuryLocation.Z");
+			
+			Location tp = new Location(p.getWorld(), x,y,z);
+			p.teleport(tp);
+			
+			p.sendMessage(ChatColor.GOLD + "You are now part of the Jury, you will be paid if you stay the entire court trial. If you must leave do " + ChatColor.BLUE + 
+					"/LeaveJury " + ChatColor.GOLD + "You will not be paid if you leave early");
+			
+			plugin.Jury.add(p.getName());
+			
+			String judge = plugin.Judge.get(0);
+			
+			
+			Player Judge = Bukkit.getPlayer(judge);
+			
+			Judge.sendMessage(ChatColor.GOLD + p.getName()+ " has joined the jury.");
+			return true;
+		}
+		
+		
+		if(cmd.getName().equalsIgnoreCase("leaveJury")){
+			
+			Player p = (Player) sender;
+			String name = p.getName();
+			
+			if(!plugin.Jury.contains(name)){
+				p.sendMessage(ChatColor.GOLD + "You are not part of the Jury");
+				return false;
+			}else{
+				p.sendMessage("You are no longer a Jury member you will not be paid");
+				plugin.Jury.remove(name);
+				
+				plugin.Jury.add(p.getName());
+				
+				String judge = plugin.Judge.get(0);
+				
+				
+				Player Judge = Bukkit.getPlayer(judge);
+				
+				Judge.sendMessage(ChatColor.GOLD + p.getName()+ " has left the jury.");
+				return true;
+						
+			}
+		}
+		
+		
+		if(cmd.getName().equalsIgnoreCase("RemovePolice")){
+			Player p = (Player) sender;
+			
+			if(args.length != 1){
+				p.sendMessage(ChatColor.RED+ "Not enough arguments");
+				return false;
+			}
+			
+			if(plugin.isPlayer(args[0]) == false){
+				p.sendMessage(ChatColor.RED +  args[0] + " is not a player");
+				return true;
+			}
+			
+			if(p.isOp() || plugin.getConfig().contains("Judge." + args[0])){
+				p.sendMessage(ChatColor.GREEN + "You have removed " + args[0]);
+				Player nc = Bukkit.getPlayer(args[0]);
+				nc.sendMessage(ChatColor.BLUE + "You are off the police force " + nc.getName());
+				plugin.getConfig().set("Police." + nc.getName(), null);
+				plugin.getConfig().set("Police." + nc.getName(), null);
+				plugin.saveConfig();
+			}
+			return true;
+		}
+		
 		
 		if(cmd.getName().equalsIgnoreCase("setdefense")){
 			Player p = (Player) sender;
@@ -233,6 +388,66 @@ public class FiddyCraftCommands implements CommandExecutor {
 			p.sendMessage(ChatColor.GREEN + "You have set the new Prosecutor location for the convicted");
 			}else{
 				p.sendMessage(ChatColor.RED+ "You must be a mod to do this");
+			}
+			return true;
+		}
+		
+		if(cmd.getName().equalsIgnoreCase("setRegion1")){
+			Player p = (Player) sender;
+			if(args.length != 1){
+				p.sendMessage(ChatColor.RED + "You need to name the area");
+				return false;
+			}
+
+			double x = p.getLocation().getX();
+			double y = p.getLocation().getY();
+			double z = p.getLocation().getZ();
+			
+			String area = args[0];
+			plugin.getConfig().set("Regions." + area+".X", x);
+			plugin.getConfig().set("Regions." +area+".Y", y);
+			plugin.getConfig().set("Regions." +area+".Z", z);
+			plugin.saveConfig();
+			
+			p.sendMessage(ChatColor.AQUA + "Saved location as " + area);
+			
+		}
+		
+		
+		if(cmd.getName().equalsIgnoreCase("setRegion2")){
+			Player p = (Player) sender;
+			if(args.length != 1){
+				p.sendMessage(ChatColor.RED + "You need to name the area");
+				return false;
+			}
+
+			if(!plugin.getConfig().contains("Regions."+args[0])){
+				p.sendMessage(ChatColor.RED + "You must use an existing location name");
+				p.sendMessage(plugin.getConfig().getString("Regions"));
+				return false;
+			}
+			
+			double x = p.getLocation().getX();
+			double y = p.getLocation().getY();
+			double z = p.getLocation().getZ();
+			
+		
+			String area = args[0];
+			plugin.getConfig().set("Regions." + area+".X2", x);
+			plugin.getConfig().set("Regions." +area+".Y2", y);
+			plugin.getConfig().set("Regions." +area+".Z2", z);
+			plugin.saveConfig();
+			p.sendMessage(ChatColor.AQUA + "Saved location as " + area);
+			
+		}
+		
+		if(cmd.getName().equalsIgnoreCase("rTest")){
+			Player p = (Player) sender;
+			Location loc = p.getLocation();
+			if(plugin.isInRegion("Test", loc)){
+				p.sendMessage("in area");
+			}else{
+				p.sendMessage("Not in area");
 			}
 			return true;
 		}
@@ -317,9 +532,62 @@ public class FiddyCraftCommands implements CommandExecutor {
 			}else{
 				p.sendMessage(ChatColor.RED + "You must be OP to reload the plugin.");
 			}
+			return true;
+	}
+		
+		if(cmd.getName().equalsIgnoreCase("setLocation")){
+			Player p = (Player) sender;
+			if(args.length != 1){
+				p.sendMessage(ChatColor.RED + "You do not have enough arguments");
+				return false;
+			}
+			
+			double x = p.getLocation().getX();
+			double y = p.getLocation().getY();
+			double z = p.getLocation().getZ();
+			
+			String area = args[0];
+			plugin.getConfig().set("Location." + area+".X", x);
+			plugin.getConfig().set("Location." +area+".Y", y);
+			plugin.getConfig().set("Location." +area+".Z", z);
+			plugin.saveConfig();
+			
+			
+			p.sendMessage(ChatColor.BLUE + "Set the location of " + args[0]);
+			
 		}
-		return false;
 		
+	
+	
+	if(cmd.getName().equalsIgnoreCase("patrol")){
+		Player p = (Player) sender;
 		
+		if(args.length !=0){
+			p.sendMessage(ChatColor.RED + "To many arguments");
+		}
+		if(plugin.getConfig().contains("Police." + p.getName())){
+			if(plugin.patrol.containsKey(p.getName())){
+				Boolean state = plugin.patrol.get(p.getName());
+				
+				if(state == false){
+					p.sendMessage(ChatColor.BLUE + "You are now in patrol mode anyone you kill will be put into probation");
+					plugin.patrol.put(p.getName(), true);
+				}else{
+					p.sendMessage(ChatColor.DARK_AQUA + "You are now out of patrol mode you will not put anyone in probation on kill");
+					plugin.patrol.put(p.getName(), false);
+				}
+			}else{
+				p.sendMessage(ChatColor.DARK_AQUA + "You are now in patrol mode anyone you kill will be put into probation");
+				plugin.patrol.put(p.getName(), true);
+				
+			}
+		}else{
+			p.sendMessage(ChatColor.RED + " You are not a police officer and cannot go on patrol");
+			return true;
+		}
+	return true;
+			}
+	return true;
+	
 	}
 }
