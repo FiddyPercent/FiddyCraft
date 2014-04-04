@@ -22,6 +22,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 	
 	
 	
+	@SuppressWarnings("static-access")
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
 		
@@ -509,19 +510,15 @@ public class FiddyCraftCommands implements CommandExecutor {
 				book.setItemMeta(bm);
 				World world = p.getWorld();
 				world.dropItem(loc, book);
+				
 				plugin.getConfig().set("Jailed."+ target.getName(), args[1]);
 				plugin.saveConfig();
-			//	if(!(target.getScoreboard().getObjective("Jailed") == null)){
-			//		plugin.manager.getNewScoreboard();
-			//		target.setScoreboard(plugin.manager.getNewScoreboard());
-			//	}
 				
-				plugin.setJailScoreBoard(target, args[1]);
-			
-			}
+				plugin.setJailSentence(target, Integer.parseInt(args[1]));
 		}
-			return true;
-		}
+	}
+		return true;
+}
 		
 		if(cmd.getName().equalsIgnoreCase("fcreload")){
 			Player p = (Player) sender;

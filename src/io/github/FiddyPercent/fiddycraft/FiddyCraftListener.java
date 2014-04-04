@@ -41,8 +41,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.ScoreboardManager;
-import org.bukkit.scoreboard.Team;
+import org.bukkit.scoreboard.DisplaySlot;
 
 
 
@@ -102,7 +101,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
                 					plugin.getConfig().set("Jailed."+ player.getName(), 250);
                 					plugin.saveConfig();
                 					
-                					plugin.setJailScoreBoard(player,"250");
+                					FiddyCraft.setJailSentence(player,250);
                 				}else{
                 					
                 					if (!(armor[3].getType().equals(Material.AIR))){
@@ -543,11 +542,10 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	        }else{
         	        		p.sendMessage("you have nothing");
         	        	}
-        	        	String ob =  "Jailed";
-        	        	 ScoreboardManager manager = Bukkit.getScoreboardManager();
-        	        	 Team team = p.getScoreboard().getTeam(p.getName());
-        	        	String sb = (ChatColor.GRAY + "Labor:");
-        	        	 if(plugin.getScore(p, ob, sb) <= 0 ){
+        	        	plugin.getConfig().set("Jailed." + p.getName(), plugin.getScore(p));
+        	        	plugin.saveConfig();
+        	        	
+        	        	 if(plugin.getScore(p) <= 0 ){
         	        		 p.sendMessage(ChatColor.YELLOW + "You have paid for you Crimes You are free to go");
         	        		 Bukkit.broadcastMessage(p.getName() + " has been released from jail");
         	        		 
@@ -560,20 +558,22 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	     				p.getInventory().clear();
         	     				p.teleport(loc);
         	     				plugin.getConfig().set("Jailed." + p.getName(), null);
-        	     				
-        	     				p.setScoreboard(manager.getNewScoreboard());
-        	     				team.unregister();
         	     				 plugin.saveConfig();
         	     				 plugin.reloadConfig();
+        	     				
+        	     				 FiddyCraft.getScoreboard(p).clearSlot(DisplaySlot.SIDEBAR);
+        	     				 FiddyCraft.boards.remove(p.getName());
         	        		 }else{
         	        			 Location loc = new Location(p.getWorld(), -1305, 72, -329);
         	        			 p.getInventory().clear();
         	        			 p.teleport(loc);
         	        			 plugin.getConfig().set("Jailed." + p.getName(), null);
-        	        			 p.setScoreboard(manager.getNewScoreboard());
+        	     
         	        			 plugin.saveConfig();
         	        			 plugin.reloadConfig();
-        	        			 team.unregister();
+        	        			 
+        	     				 FiddyCraft.getScoreboard(p).clearSlot(DisplaySlot.SIDEBAR);
+        	     				FiddyCraft.boards.remove(p.getName());
         	        		 }
         	        		 
         	        	 }
