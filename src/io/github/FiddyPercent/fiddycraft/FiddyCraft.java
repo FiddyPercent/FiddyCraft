@@ -12,15 +12,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -47,7 +48,7 @@ public class FiddyCraft extends JavaPlugin {
 	  private static HashMap<String, Integer> sentences = new HashMap<String, Integer>();
 	  private static final String OBJ_FORMAT = "§a%s";
 	  private static final String SCORE_NAME = "§bLabor";
-
+	  FcPerm fp = new FcPerm(this);
 	 
 	  BOSEconomy economy = null;
 	  
@@ -57,7 +58,6 @@ public class FiddyCraft extends JavaPlugin {
         saveConfig();
         saveSignLocation();
     }
-	
     public void onEnable(){
     	loadConfig();
     	reloadSignLocation();
@@ -83,22 +83,34 @@ public class FiddyCraft extends JavaPlugin {
         getCommand("LeaveJury").setExecutor(new FiddyCraftCommands(this));
         getCommand("setLocation").setExecutor(new FiddyCraftCommands(this));
         getCommand("Lawyer").setExecutor(new FiddyCraftCommands(this));
+    	new Permission ("FiddyCraft.noob");
+		new Permission ("FiddyCraft.police");
+		new Permission ("FiddyCraft.assasin");
+		new Permission ("FiddyCraft.thug");
+		new Permission ("FiddyCraft.judge");
+		new Permission ("FiddyCraft.detective");
+		new Permission ("FiddyCraft.rich");
+		new Permission ("FiddyCraft.common");
+		new Permission ("FiddyCraft.poor ");
         manager = Bukkit.getScoreboardManager();
         this.loadBOSEconomy();
-    	new BukkitRunnable(){
-			@Override
-			public void run() {
-				 for (Player player : Bukkit.getOnlinePlayers()) {
-				if(getConfig().contains("Jailed." + player.getName())){
-					String playerName = player.getName();
-					int oldSentence = sentences.containsKey(playerName) ? sentences.get(playerName): getConfig().getInt("Jailed." + playerName) ; 
-                    int newSentence = oldSentence;
-                    setJailSentence(player, newSentence); 
-				 }
-					
-				 }
-			}
-		} .runTaskTimer(this, 0, 200);
+    	//new BukkitRunnable(){
+		//	@Override
+			//public void run() {
+				
+			//	if(Bukkit.getOnlinePlayers().length > 0){
+		//		 for (Player player : Bukkit.getOnlinePlayers()) {
+		//		if(getConfig().contains("Jailed." + player.getName())){
+		//			String playerName = player.getName();
+		//			int oldSentence = sentences.containsKey(playerName) ? sentences.get(playerName): getConfig().getInt("Jailed." + playerName) ; 
+         //           int newSentence = oldSentence;
+         //           setJailSentence(player, newSentence); 
+			//	 }
+				 
+				// }
+				// }
+			//}
+		//} .runTaskTimer(this, 0, 200);
 			
   
     }
@@ -219,6 +231,7 @@ public class FiddyCraft extends JavaPlugin {
     	
     	Scoreboard board = getScoreboard(p);
      	Objective objective = board.getObjective(p.getName());
+		
 		Score score = objective.getScore(Bukkit.getOfflinePlayer(SCORE_NAME)); //Get a fake offline player	
     	int currentscore = score.getScore();
     	int newscore = currentscore - itemvalue;
@@ -257,12 +270,12 @@ public class FiddyCraft extends JavaPlugin {
 	@SuppressWarnings("deprecation")
 	public void takeOne(Player p, ItemStack i){
 		if(p.getItemInHand().getType() == i.getType()){
-		
 			  if(p.getItemInHand().getAmount() == 1){
-				  
-				  @SuppressWarnings("unused")
-				ItemStack air = new ItemStack(Material.AIR);
-	           p.getItemInHand().setType(Material.CACTUS);
+				 
+			p.setItemInHand(new ItemStack(Material.AIR));
+	          
+	           
+	           Bukkit.getWorld("world").playSound(p.getLocation(), Sound.ITEM_PICKUP, 1, 1);
 	           p.updateInventory();
 	          }else{
 	             

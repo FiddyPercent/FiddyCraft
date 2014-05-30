@@ -22,7 +22,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 	
 	
 	
-	@SuppressWarnings("static-access")
+	@SuppressWarnings({ "static-access" })
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
 		

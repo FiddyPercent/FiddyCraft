@@ -26,6 +26,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
@@ -36,6 +37,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -56,7 +58,8 @@ public class FiddyCraftListener implements Listener{
 	}
 	
 	
-	
+ArrayList<String> PendingTrial = new ArrayList<String>();
+
 HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	
 	@SuppressWarnings("deprecation")
@@ -236,7 +239,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	public void EntityDeath(EntityDeathEvent event){
 		String entityName = event.getEntityType().toString();
 
-;		if(entityName.equalsIgnoreCase("Villager")){
+		if(entityName.equalsIgnoreCase("dog")){
 			ArrayList<String> witness = new ArrayList<String>();
 			ArrayList<String> killer = new ArrayList<String>();
 			ArrayList<String> villagerName = new ArrayList<String>();
@@ -314,8 +317,109 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	
 		
 	}
+}
 	
+	@SuppressWarnings("deprecation")
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onMove(PlayerMoveEvent event){
+		Player p = event.getPlayer();
+		
+		if(p.hasPermission("FiddyCraft.noob") && p.isOp() == false){
+			if(plugin.isInRegion("Town", p.getLocation())){
+				
+				Bukkit.getWorld("world").playSound(p.getLocation(), Sound.FIREWORK_TWINKLE2, 1, 1);
+				Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has made it to the city!");
+				p.sendMessage(ChatColor.YELLOW + "Congratulations! You have made it to the city!");
+				
+			if(plugin.getConfig().contains("CitySpawn")){
+				double x = plugin.getConfig().getDouble("Location.city.X");
+				double y = plugin.getConfig().getDouble("Location.city.Y");
+				double z = plugin.getConfig().getDouble("Location.city.Z");
+				
+				Location loc = new Location(p.getWorld(), x,y,z);
+				p.setBedSpawnLocation(loc);
+				}else{
+					Location loc = new Location(p.getWorld(), -1458,76,-231);
+					p.setBedSpawnLocation(loc);
+				}
+		
+			p.sendMessage(ChatColor.YELLOW + "You are now a low class citizen to the Ghetto with you!");
+			double x = plugin.getConfig().getDouble("Location.ghetto.X");
+			double y = plugin.getConfig().getDouble("Location.ghetto.Y");
+			double z = plugin.getConfig().getDouble("Location.ghetto.Z");
+			
+			Location loc = new Location(p.getWorld(), x,y,z);
+			p.teleport(loc);
+			p.sendMessage(ChatColor.YELLOW + "Here is where you will start off life, you can now rent property but keep in mind " + ChatColor.RED + "if you can't pay rent everything will be repossessed.");
+			p.sendMessage("Here is a book to help you");
+			
+			ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+			BookMeta bm = (BookMeta) book.getItemMeta();
+			bm.setAuthor("City Hall");
+			bm.setTitle("Noob Guide");
+			bm.addPage("");
+			bm.addPage("");
+			bm.addPage("");
+			bm.addPage("");
+			bm.addPage("");
+			bm.setPage(1, "Welcome, here is a handy book for everything you need to know.");
+			bm.setPage(2, "Rules:" + "\n"  + "\n" + "Killing players or villagers == crime" + "\n"
+					                + "\n" + "having harmful drugs(potions) == crime" + "\n"
+					                + "\n" + "Hacks, harrasment, and any griefing is Bannable"
+					                + "\n" + "Crimes are not bannable but jailable."
+					                );
+			bm.setPage(3, "How to make money:" + "\n" + "\n" + 
+					                "Killing mobs" + "\n"+ "\n"+"Selling ores/items in the city" + "\n"+ "\n" + "Working(Laywer Cop etc)" + "\n"+ "\n"+ "*cough selling drugs cough");
+			
+			bm.setPage(4,  "How to buy a plot:" + "\n"  + "\n"+ 
+			                "To rent just click the sign for the plot and use //rg rent." + "\n" + "\n"+" WARNING if you cannot afford the daily (IRL) rent all your items will be removed always keep a money buffer" );
+			bm.setPage(5,  "useful commands" + "\n" + "/Help");
+			book.getItemMeta().setDisplayName(ChatColor.RED+ "Noob Guide");
+			book.setItemMeta(bm);
+			Bukkit.getWorld("world").dropItem(p.getLocation(), book);
+			
+			Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "permissions setrank " + p.getName() +  " user");
+			Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "permissions reload");
+			
+			p.setItemInHand(book);
+			}
+		}
+		
+		if(plugin.getConfig().contains("Regions.guardTower")){
+			if(plugin.isInRegion("guardTower", p.getLocation())){
+				if(!plugin.getConfig().contains("Police." + p.getName())){
+					
+					Bukkit.getWorld("world").playSound(p.getLocation(), Sound.EXPLODE, 1, 1);
+					p.sendMessage(ChatColor.RED + "You have been Shot!");
+					
+					Location pl = p.getLocation();
+					Location loc = new Location(p.getWorld(), pl.getX() + 2,pl.getY(),pl.getZ());
+					p.teleport(loc);
+					Bukkit.getWorld("world").playSound(p.getLocation(), Sound.EXPLODE, 1, 1);
+					p.setHealth(0);
+					
+				}
+			}
+		}
+	
+	
+	if(plugin.getConfig().contains("Regions.records")){
+		if(plugin.isInRegion("records", p.getLocation())){
+			if(!plugin.getConfig().contains("Police." + p.getName())){
+				
+				Bukkit.getWorld("world").playSound(p.getLocation(), Sound.EXPLODE, 1, 1);
+				p.sendMessage(ChatColor.RED + "You have been Shot!");
+				
+				Location pl = p.getLocation();
+				Location loc = new Location(p.getWorld(), pl.getX() + 2,pl.getY(),pl.getZ());
+				p.teleport(loc);
+				Bukkit.getWorld("world").playSound(p.getLocation(), Sound.EXPLODE, 1, 1);
+				p.setHealth(0);
+				
+			}
+		}
 	}
+}
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void VillagerSpawn(CreatureSpawnEvent event){
@@ -336,6 +440,8 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	@EventHandler
 	public void respawn(PlayerRespawnEvent event){
 		Player p = event.getPlayer();
+		
+	
 		if(plugin.getConfig().contains("Jailed." + p.getName())){
 			double x =  (double) plugin.getConfig().get("Jail.X");
 			double y =  (double) plugin.getConfig().get("Jail.y");
@@ -344,102 +450,147 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			p.teleport(loc);
 			event.setRespawnLocation(loc);
 		}
+		
+		if(PendingTrial.contains(p.getName())){
+			double x =  (double) plugin.getConfig().get("Jail.X");
+			double y =  (double) plugin.getConfig().get("Jail.y");
+			double z =  (double) plugin.getConfig().get("Jail.z");
+			Location loc = new Location(p.getWorld(), x,y,z);
+			p.teleport(loc);
+			event.setRespawnLocation(loc);
+			FiddyCraft.setJailSentence(p,500);
+			PendingTrial.remove(p.getName());
+			p.sendMessage("you are in jail");
+			
+		}
+		
+		
+		
+		if(p.hasPermission("FiddyCraft.noob")){
+			double xs =  (double) plugin.getConfig().getDouble("Location." + "Spawn.X");
+			double ys =  (double) plugin.getConfig().getDouble("Location." + "Spawn.Y");
+			double zs =  (double) plugin.getConfig().getDouble("Location." + "Spawn.Z");
+			Location loc = new Location(p.getWorld(), xs,ys,zs);
+			p.teleport(loc);
+			event.setRespawnLocation(loc);
+		}
 	}
+		
+	
 	
 	@EventHandler
-	public void onDeath(PlayerDeathEvent event){
-		Player p = event.getEntity();
+	public void PlayerDeath(PlayerDeathEvent event){
 		
-		if(p.getLastDamageCause().getEntity() instanceof Player){
-			Bukkit.broadcastMessage("Player attack");
-			
-			Player attacker = event.getEntity().getKiller();
-			if(plugin.getConfig().contains("Police." + attacker.getName())){
-				Bukkit.broadcastMessage("On the force");
-				if(plugin.patrol.containsKey(attacker.getName())){
-					Bukkit.broadcastMessage("on patrol");
-				if(plugin.patrol.get(attacker.getName())){
-					plugin.getConfig().set("PendingTrial." + p.getName(), attacker.getName());
-					plugin.saveConfig();
+	    
+	    if(event.getEntity() instanceof Player){
+	      Player p = (Player) event.getEntity();
+	        
+	
+				
+	        	if(p.getKiller() instanceof Player) {
+	             
+	                 Entity damager = p.getKiller();
+	                 if(damager instanceof Player) {
+	                	 Player attacker = (Player) damager;
+	        	
+	        	
+				
+				if(plugin.getConfig().contains("Police." + attacker.getName())){			
+					if(plugin.patrol.containsKey(attacker.getName())){
 					
-					p.sendMessage(ChatColor.RED + "You have been charged with a crime you will be put on trial shortly");
-					p.sendMessage(ChatColor.RED + "If you are unsure what you have done speak to the officer, It would be wise to look for a lawyer.");
-					attacker.sendMessage(ChatColor.BLUE + "You have charged " + p.getName() + " with a crime he will be put on trial shortly if convicted you will get paid");
-					plugin.getItems(p);
-					String causeOfDeath = event.getEntity().getLastDamageCause().getCause().name();
-					World world = Bukkit.getWorld("world");
-					ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-					BookMeta bm = (BookMeta) book.getItemMeta();
-					String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
-					ArrayList<String> witness = new ArrayList<String>();
-					
-					
-					List<Entity> witnesses = event.getEntity().getNearbyEntities(10, 10, 10);
-					
-					for(Entity y : witnesses){
-						if(y instanceof HumanEntity){
-							String name = ((HumanEntity) y).getName();
-							witness.add(name);
+					if(plugin.patrol.get(attacker.getName())){
+						plugin.getConfig().set("PendingTrial." + p.getName(), attacker.getName());
+						plugin.saveConfig();
+						PendingTrial.add(p.getName());
+						Bukkit.broadcastMessage("added to arraylist");
+						p.sendMessage(ChatColor.DARK_AQUA + "You have been charged with a crime you will be put on trial shortly");
+						p.sendMessage(ChatColor.RED + "If you are unsure what you have done speak to the officer, It would be wise to look for a lawyer.");
+						attacker.sendMessage(ChatColor.BLUE + "You have charged " + p.getName() + " with a crime he will be put on trial shortly if convicted you will get paid");
+						plugin.getItems(p);
+						String causeOfDeath = event.getEntity().getLastDamageCause().getCause().name();
+						World world = Bukkit.getWorld("world");
+						ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+						BookMeta bm = (BookMeta) book.getItemMeta();
+						String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
+						ArrayList<String> witness = new ArrayList<String>();
+						
+						
+						List<Entity> witnesses = event.getEntity().getNearbyEntities(10, 10, 10);
+						
+						for(Entity y : witnesses){
+							if(y instanceof HumanEntity){
+								String name = ((HumanEntity) y).getName();
+								witness.add(name);
+							}
+						}	
+						if(witness.isEmpty()){
+							witness.add("none");
 						}
-					}	
-					if(witness.isEmpty()){
-						witness.add("none");
-					}
-					
-					
-					bm.setAuthor(attacker.getName());
-					bm.setTitle("Police Report");
-					bm.addPage("");
-					bm.addPage("");
-					bm.addPage("");
-					bm.addPage("");
-					bm.setPage(1, ChatColor.RED+ "Suspect: " + ChatColor.BLACK + p.getName()  + "\n" + "\n" +
-					ChatColor.RED+ "Officer: " +"\n"+ ChatColor.BLACK + attacker.getName() + "\n" +"\n"
-							   + ChatColor.RED+ "Cause of death: "+ChatColor.BLACK + causeOfDeath + 
-							   "\n" +"\n"+ ChatColor.RED+"Time of Death: " +ChatColor.BLACK +timeStamp
-							   +"\n" + "\n" +ChatColor.GREEN+"People near by: " +ChatColor.BLACK + witness.toString());
-					bm.setPage(2, plugin.items.toString());
-					book.getItemMeta().setDisplayName(ChatColor.RED+ "Police Report");
-					book.setItemMeta(bm);
-					world.dropItem(attacker.getLocation(), book);
-					witness.clear();
-					plugin.items.clear();
-					
+						
+						
+						bm.setAuthor(attacker.getName());
+						bm.setTitle("Police Report");
+						bm.addPage("");
+						bm.addPage("");
+						bm.addPage("");
+						bm.addPage("");
+						bm.setPage(1, ChatColor.RED+ "Suspect: " + ChatColor.BLACK + p.getName()  + "\n" + "\n" +
+						ChatColor.RED+ "Officer: " +"\n"+ ChatColor.BLACK + attacker.getName() + "\n" +"\n"
+								   + ChatColor.RED+ "Cause of death: "+ChatColor.BLACK + causeOfDeath + 
+								   "\n" +"\n"+ ChatColor.RED+"Time of Death: " +ChatColor.BLACK +timeStamp
+								   +"\n" + "\n" +ChatColor.GREEN+"People near by: " +ChatColor.BLACK + witness.toString());
+						bm.setPage(2, plugin.items.toString());
+						book.getItemMeta().setDisplayName(ChatColor.RED+ "Police Report");
+						book.setItemMeta(bm);
+						world.dropItem(attacker.getLocation(), book);
+						witness.clear();
+						plugin.items.clear();
+						
+						
+						Bukkit.broadcastMessage(PendingTrial.toString());
+						
+						}
 					}
 				}
-			}
-		}
-		
+			}      
+	    }
 	}
-	//@EventHandler
-	//public void logout(PlayerQuitEvent event){
-		//Player p = event.getPlayer();
-		//if(plugin.getConfig().contains("Jailed."+p.getName())){
-			//Objective objective = p.getScoreboard().getObjective("Jailed");
-			//Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:"));
-			//int s = score.getScore();
-		//	plugin.getConfig().set("Jailed."+p.getName(), s);
-			//plugin.saveConfig();
-			//p.setScoreboard(plugin.manager.getNewScoreboard());
-		//	Bukkit.getServer().getLogger().info(ChatColor.RED + " in config quit");
-	//	}
+}
+	
 	
 	
 	@EventHandler
-	public void ojJoin(PlayerJoinEvent event ){
+	public void onJoin(PlayerJoinEvent event ){
 		Player p = event.getPlayer();
-		if(plugin.getConfig().contains("Jailed."+p.getName())){
-			//plugin.getJailScoreBoard(p);
-			//Scoreboard board = p.getScoreboard();
-			//Objective objective = p.getScoreboard().getObjective("Jailed");
-			//int labor = plugin.getConfig().getInt("Jailed."+p.getName());
-			//Score score = objective.getScore(Bukkit.getOfflinePlayer(ChatColor.GRAY + "Labor:")); //Get a fake offline player
-			//score.setScore(labor);
-			//objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-			//p.setScoreboard(p.getScoreboard());
+if(!plugin.getConfig().contains("Players."+ p.getName())){
+		if(plugin.getConfig().contains("Location." + "Spawn")){
+			double xs =  (double) plugin.getConfig().getDouble("Location." + "Spawn.X");
+			double ys =  (double) plugin.getConfig().getDouble("Location." + "Spawn.Y");
+			double zs =  (double) plugin.getConfig().getDouble("Location." + "Spawn.Z");
+			Location loc = new Location(p.getWorld(), xs,ys,zs);
+			p.teleport(loc);
 			
-			}
+		
+			String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
+			plugin.getConfig().set("Players."+ p.getName(), timeStamp);
+			plugin.saveConfig();
+			p.sendMessage(ChatColor.GREEN + "Welcome to FiddyCraft, you are now under the city if you wish to join make it to the city above you, good luck!");
+			
+		}else{
+			double X = -1460.7532303124158;
+			double Y = 6.247856929346917;
+		    double Z = -169.29275434773174;
+		    Location locb = new Location(p.getWorld(), X,Y,Z);
+		    p.teleport(locb);
+			String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
+			plugin.getConfig().set("Players."+ p.getName(), timeStamp);
+			plugin.saveConfig();
+			p.sendMessage(ChatColor.YELLOW + "Welcome to FiddyCraft, you are now under the city if you wish to join make it to the city above you, good luck!");
 		}
+	}
+}
+	
+
 	
 	@EventHandler
 	public void signSetUp(SignChangeEvent event){
@@ -468,7 +619,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		if(creature.getCustomName() == null){
 			Location loc = creature.getLocation();
 			
-			if(plugin.isInRegion("Town", loc)){
+			if(plugin.isInRegion("Town", loc) || plugin.isInRegion("ghetto", loc)){
 				
 			if(event.getSpawnReason() == SpawnReason.NATURAL){
 				event.setCancelled(true);
@@ -479,7 +630,8 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 
 
 	
-    @EventHandler
+    
+	@EventHandler
     public void rightClicks(PlayerInteractEvent e){
         Player p = e.getPlayer();
 
@@ -503,6 +655,8 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	    ItemStack redstone = new ItemStack(Material.REDSTONE);
         	    ItemStack diamond = new ItemStack(Material.DIAMOND);
         	    ItemStack gold = new ItemStack(Material.GOLD_INGOT);
+        	    ItemStack cobble = new ItemStack(Material.COBBLESTONE);
+        	    ItemStack melon = new ItemStack(Material.MELON);
         	        if(have.equals(rawFish.getType())){
         	        	int itemvalue = 10;
         	        	plugin.takeOne(p, rawFish);
@@ -539,6 +693,14 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	        	int itemvalue = 30;
         	        	plugin.newJailScore(p, itemvalue);
         	        	plugin.takeOne(p, gold);
+        	        }else if(have.equals(melon.getType())){
+        	        	int itemvalue = 1;
+        	        	plugin.newJailScore(p, itemvalue);
+        	        	plugin.takeOne(p, melon);
+        	        }else if(have.equals(cobble.getType())){
+        	        	int itemvalue = 1;
+        	        	plugin.newJailScore(p, itemvalue);
+        	        	plugin.takeOne(p, cobble);
         	        }else{
         	        		p.sendMessage("you have nothing");
         	        	}
@@ -573,14 +735,25 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
         	        			 plugin.reloadConfig();
         	        			 
         	     				 FiddyCraft.getScoreboard(p).clearSlot(DisplaySlot.SIDEBAR);
-        	     				FiddyCraft.boards.remove(p.getName());
+        	     				 FiddyCraft.boards.remove(p.getName());
         	        		 }
         	        		 
         	        	 }
         	   		}
         	   }
         	}
+        	 
+        	}
         }    
-    }
+    
+	@EventHandler
+	public void blockPlace(BlockPlaceEvent event){
+		Player p = event.getPlayer();
+		
+		if(event.getBlock().getType() == Material.BREWING_STAND || event.getBlock().getType() == Material.BREWING_STAND_ITEM){
+			event.setCancelled(true);
+			p.sendMessage(ChatColor.YELLOW + "Hmm looks like I can't place this," + ChatColor.RED + " its worthless!"+ ChatColor.YELLOW + " I wonder if there are other brewing stands laying around?");
+		}
+	}
 }
 

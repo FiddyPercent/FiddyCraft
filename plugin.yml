@@ -43,10 +43,8 @@ commands:
       permission: FiddyCraft.test
       permission-message: You don't have permission fool
     setdefendant:
-      description: uses your location as the defendant area for court.
+      description: sets your defense lawyer.
       usage: /setdefendant 
-      permission: FiddyCraft.test
-      permission-message: You don't have permission fool
     setprosecutor:
       description: uses your location as the spot for prosecutors area for inmates.
       usage: /setprosecutor 
@@ -65,11 +63,10 @@ commands:
     patrol:
       description: toggles patrol mode 
       usage: /patrol 
-      permission: FiddyCraft.test
-      permission-message: You don't have permission fool
+      permission:
     rTest:
       description: toggles patrol mode 
-      usage: /patrol 
+      usage: /test 
       permission: FiddyCraft.test
       permission-message: You don't have permission fool
     setRegion1:
@@ -85,13 +82,9 @@ commands:
     JoinJury:
       description: lets you join the Jury
       usage: /JoinJury 
-      permission: FiddyCraft.test
-      permission-message: You don't have permission fool
     LeaveJury:
       description: Releases you from Jury.
       usage: /LeaveJury 
-      permission: FiddyCraft.test
-      permission-message: You don't have permission fool
     setLocation:
       description: Releases you from Jury.
       usage: /LeaveJury 
@@ -100,5 +93,3 @@ commands:
     lawyer:
       description: selects your lawyer
       usage: /LeaveJury 
-      permission: FiddyCraft.test
-      permission-message: You don't have permission fool
