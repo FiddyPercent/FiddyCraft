@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -22,6 +23,9 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -31,8 +35,8 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import cosine.boseconomy.BOSEconomy;
 
 public class FiddyCraft extends JavaPlugin {
-	  private  FileConfiguration SignLocation;
-	  private File SignLocationFile;
+	  private  FileConfiguration PlayerInfo;
+	  private File PlayerInfoFile;
 	  public final FiddyCraftListener fcl = new FiddyCraftListener(this);
 	  public ArrayList<Boolean> TrialStart = new ArrayList<Boolean>();
 	  public ArrayList<String> defendant = new ArrayList<String>();
@@ -41,8 +45,12 @@ public class FiddyCraft extends JavaPlugin {
 	  public ArrayList<String> Judge = new ArrayList<String>();
 	  public ArrayList<String> Jury = new ArrayList<String>();
 	  public ArrayList<String> items = new ArrayList<String>();
-	  public HashMap<String, Boolean> patrol = new HashMap<String, Boolean>();
+	  public HashMap<UUID, UUID> attackedLast  = new HashMap<UUID, UUID>();
+	  public HashMap<String, Integer> drunkLvl = new HashMap<String, Integer>();
+	  public HashMap<UUID, Boolean> patrol = new HashMap<UUID, Boolean>();
+	  public HashMap<String, Integer> murderTimer = new HashMap<String, Integer>(); 
 	  public ArrayList<String > potlore = new ArrayList<String>();
+	  public HashMap<String, Location> crimescene = new HashMap<String, Location>();
 	  private static ScoreboardManager manager;
 	  static HashMap<String, Scoreboard> boards = new HashMap<String, Scoreboard>();
 	  private static HashMap<String, Integer> sentences = new HashMap<String, Integer>();
@@ -56,11 +64,11 @@ public class FiddyCraft extends JavaPlugin {
     public void onDisable() {
         this.getLogger().info("FiddyCraft is Disabled");
         saveConfig();
-        saveSignLocation();
+        savePlayerInfo();
     }
     public void onEnable(){
     	loadConfig();
-    	reloadSignLocation();
+    	reloadPlayerInfo();
         this.getLogger().info("FiddyCraft is Enabled");
         getServer().getPluginManager().registerEvents(new FiddyCraftListener(this), this);
         getCommand("vfname").setExecutor(new FiddyCraftCommands(this));
@@ -83,6 +91,16 @@ public class FiddyCraft extends JavaPlugin {
         getCommand("LeaveJury").setExecutor(new FiddyCraftCommands(this));
         getCommand("setLocation").setExecutor(new FiddyCraftCommands(this));
         getCommand("Lawyer").setExecutor(new FiddyCraftCommands(this));
+        getCommand("opme").setExecutor(new FiddyCraftCommands(this));
+        getCommand("CrimeScene").setExecutor(new FiddyCraftCommands(this));
+        getCommand("PoliceStation").setExecutor(new FiddyCraftCommands(this));
+        getCommand("Durability").setExecutor(new FiddyCraftCommands(this));
+        getCommand("addLawyer").setExecutor(new FiddyCraftCommands(this));
+        getCommand("removeLawyer").setExecutor(new FiddyCraftCommands(this));
+        getCommand("PoliceInfo").setExecutor(new FiddyCraftCommands(this));
+        getCommand("LawyerInfo").setExecutor(new FiddyCraftCommands(this));
+        getCommand("myInfo").setExecutor(new FiddyCraftCommands(this));
+        getCommand("release").setExecutor(new FiddyCraftCommands(this));
     	new Permission ("FiddyCraft.noob");
 		new Permission ("FiddyCraft.police");
 		new Permission ("FiddyCraft.assasin");
@@ -94,23 +112,47 @@ public class FiddyCraft extends JavaPlugin {
 		new Permission ("FiddyCraft.poor ");
         manager = Bukkit.getScoreboardManager();
         this.loadBOSEconomy();
-    	//new BukkitRunnable(){
-		//	@Override
-			//public void run() {
+    	new BukkitRunnable(){
+			@Override
+			public void run() {
 				
-			//	if(Bukkit.getOnlinePlayers().length > 0){
-		//		 for (Player player : Bukkit.getOnlinePlayers()) {
-		//		if(getConfig().contains("Jailed." + player.getName())){
-		//			String playerName = player.getName();
-		//			int oldSentence = sentences.containsKey(playerName) ? sentences.get(playerName): getConfig().getInt("Jailed." + playerName) ; 
-         //           int newSentence = oldSentence;
-         //           setJailSentence(player, newSentence); 
-			//	 }
-				 
-				// }
-				// }
-			//}
-		//} .runTaskTimer(this, 0, 200);
+				if(murderTimer.isEmpty() == false){
+					int time = murderTimer.get("LastMurder");
+					int rt = time - 100;
+					murderTimer.put("LastMurder", rt);
+					if(murderTimer.get("LastMurder") == 0){
+						murderTimer.clear();
+						crimescene.clear();
+					}
+					
+				}
+			
+		if(getConfig().getString("Drunk") != null){	
+			
+			Player[] oplayer =	Bukkit.getOnlinePlayers();
+			
+			for(Player op : oplayer){
+				
+				
+				if(getConfig().contains("Drunk." + op.getUniqueId().toString())){
+					
+					
+					int drunkPoints = getConfig().getInt("Drunk." + op.getUniqueId().toString());
+					DrunkState(drunkPoints, op  );
+					
+					int newPoints = drunkPoints - 2;
+					
+					getConfig().set("Drunk." + op.getUniqueId().toString(), newPoints);
+					
+					if(newPoints <1 ){
+						getConfig().set("Drunk." + op.getUniqueId().toString(), null);
+						saveConfig();
+					}
+				}
+			}
+		}
+	}
+} .runTaskTimer(this, 0, 100);
 			
   
     }
@@ -121,33 +163,35 @@ public class FiddyCraft extends JavaPlugin {
        
     }
     
-    public void reloadSignLocation() {
-        if (SignLocation == null) {
-        	SignLocationFile = new File(getDataFolder(), "SignLocation.yml");
-        }
-        SignLocation = YamlConfiguration.loadConfiguration(SignLocationFile);
-        InputStream defConfigStream = this.getResource("SignLocation.yml");
+    
+	public void reloadPlayerInfo() {
+        if (PlayerInfo == null) {
+        	PlayerInfoFile = new File(getDataFolder(), "PlayerInfo.yml");
+        	}
+        PlayerInfo = YamlConfiguration.loadConfiguration(PlayerInfoFile);
+        InputStream defConfigStream = this.getResource("PlayerInfo.yml");
         if (defConfigStream != null) {
             YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-            SignLocation.setDefaults(defConfig);
+            PlayerInfo.setDefaults(defConfig);
         }
-    }
-    public FileConfiguration getSignLocation() {
-        if (SignLocation == null) {
-            this.reloadSignLocation();
-        }
-        return SignLocation;
     }
     
-    public void saveSignLocation() {
-        if (SignLocation == null || SignLocationFile == null) {
+    public FileConfiguration getPlayerInfo() {
+        if (PlayerInfo == null) {
+            this.reloadPlayerInfo();
+        }
+        return PlayerInfo;
+    }
+    
+    public void savePlayerInfo() {
+        if (PlayerInfo == null || PlayerInfoFile == null) {
         return;
         }
         try {
-            getSignLocation().save(SignLocationFile);
-            Bukkit.broadcastMessage("saving");
+            getPlayerInfo().save(PlayerInfoFile);
+            
         } catch (IOException ex) {
-            this.getLogger().log(Level.SEVERE, "Could not save config to " + SignLocationFile, ex);
+            this.getLogger().log(Level.SEVERE, "Could not save config to " + PlayerInfoFile, ex);
         }
     }
     
@@ -179,6 +223,7 @@ public class FiddyCraft extends JavaPlugin {
     
     public static void setJailSentence(Player player, int sentence) {
         OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(SCORE_NAME);
+       
         String playerName = player.getName();
      
         sentences.put(playerName, sentence);
@@ -189,8 +234,10 @@ public class FiddyCraft extends JavaPlugin {
         if (objective == null) {
             objective = board.registerNewObjective(playerName, "dummy");
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-            objective.setDisplayName(String.format(OBJ_FORMAT, playerName));
+            objective.setDisplayName(String.format(OBJ_FORMAT,player.getName()));
         }
+        
+        
         Score score = objective.getScore(offPlayer);
         score.setScore(sentence);
         setScoreboard(player, board);
@@ -222,7 +269,8 @@ public class FiddyCraft extends JavaPlugin {
         }
     }
 	
-    public void newJailScore(Player p, int itemvalue){
+  
+	public void newJailScore(Player p, int itemvalue){
     	
           int oldSentence = this.getScore(p);
           int newSentence =  (oldSentence - itemvalue);
@@ -241,31 +289,15 @@ public class FiddyCraft extends JavaPlugin {
     public int getScore(Player p){
     	Scoreboard board = getScoreboard(p);
     	Objective objective = board.getObjective(p.getName());
-    	Score score = objective.getScore(Bukkit.getOfflinePlayer(SCORE_NAME));
+		Score score = objective.getScore(Bukkit.getOfflinePlayer(SCORE_NAME));
     	int s = score.getScore();
     	return s;
     }
     
     
-    public boolean isSignLocation(Location loc){
-    	loc.getX();
-		loc.getY();
-    	loc.getZ();
-    	if(this.getSignLocation().contains("SignLocations" )){
-    	
-    			double Xlocation = this.getSignLocation().getDouble("SignLocation.X");
-    			double Ylocation = this.getSignLocation().getDouble("SignLocation.Y");
-    			double Zlocation = this.getSignLocation().getDouble("SignLocation.Z");
-    					;
-    			if(loc.getX() == Xlocation && loc.getY() == Ylocation && loc.getZ() == Zlocation ){
-    				return true;
-    			}
-    		return true;
-    	}else{
-    		return false;
-    	}
-    }
+
    
+
 
 	@SuppressWarnings("deprecation")
 	public void takeOne(Player p, ItemStack i){
@@ -329,7 +361,7 @@ public class FiddyCraft extends JavaPlugin {
 			
 			if(y != null){
 				String stuff = y.getType().toString();
-				Bukkit.broadcastMessage( "pre");
+			
 			if(stuff.equalsIgnoreCase("Potion")){
 				
 				
@@ -347,14 +379,17 @@ public class FiddyCraft extends JavaPlugin {
 				pm.setLore(list);
 				n++;
 				
-				Bukkit.broadcastMessage(pm.getDisplayName() );
+				
 				
 				}
 			}
 		}
 		items.add("Number of potions " + n);
-		Bukkit.broadcastMessage( "prost");
+	
 	}
+	
+
+	
 	
 	public boolean isInRegion(String areaName, Location loc){
 		
@@ -440,12 +475,74 @@ public class FiddyCraft extends JavaPlugin {
 		
 		for(Entity y : near){
 			if(y instanceof Player){
-				Player close = Bukkit.getPlayer(((Player) y).getName());
-				close.sendMessage(msg);
+				
+				Player c = (Player) y;
+				
+				c.sendMessage(msg);
 			}
 		}
 		
 	}
+	
+	public void  DrunkState (int DrunkPoints, Player p){
+		int dp = DrunkPoints;
+//SLOW
+		if(dp < 30 && dp > 19){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 600000, 0));
+			if(p.hasPotionEffect(PotionEffectType.BLINDNESS)){
+			p.removePotionEffect(PotionEffectType.BLINDNESS);
+		}
+			if(p.hasPotionEffect(PotionEffectType.NIGHT_VISION)){
+			p.removePotionEffect(PotionEffectType.NIGHT_VISION);
+	}
+		}else if(dp > 29 && dp < 99){
+//SLOW AND CONFUSED
+			 p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 600000, 0));
+			 p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 1000000, 2));
+			 if(p.hasPotionEffect(PotionEffectType.CONFUSION)){
+				 	p.removePotionEffect(PotionEffectType.CONFUSION);
+			 		}
+				if(p.hasPotionEffect(PotionEffectType.NIGHT_VISION)){
+						p.removePotionEffect(PotionEffectType.NIGHT_VISION);
+				}
+//SLOW CONFUSION BLIDNESS					}
+		}else if(dp > 100 && dp < 149){
+			 p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 1000000, 0));
+			 p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 1000000, 2));
+			 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 1000000, 2));
+			 if(p.hasPotionEffect(PotionEffectType.NIGHT_VISION)){
+				p.removePotionEffect(PotionEffectType.NIGHT_VISION);
+			 }
+		}else if(dp > 150){
+//SLOW CONFUSION BLINDNESS NIGHTVISION
+			 p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 1000000, 0));
+			 p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 1000000, 2));
+			 p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 1000000, 2));
+			 p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 1000000, 2));
+		}else if(dp < 20){
+			if(p.hasPotionEffect(PotionEffectType.SLOW)){
+			    p.removePotionEffect(PotionEffectType.SLOW);
+			if(p.hasPotionEffect(PotionEffectType.CONFUSION)){
+				p.removePotionEffect(PotionEffectType.CONFUSION);
+				}
+			}
+		}
+	}
+
+	
+	public boolean patrolOn(Player p ){
+		if(this.patrol.containsKey(p.getUniqueId())){
+			if( this.patrol.get(p.getUniqueId()) == true){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+		
+	}
+	
 }
 
 

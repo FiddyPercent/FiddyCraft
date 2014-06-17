@@ -1,6 +1,6 @@
 name: FiddyCraft
 main: io.github.FiddyPercent.fiddycraft.FiddyCraft
-version: 1.6
+version: 2.0
 
 commands:
     vfname:
@@ -21,12 +21,12 @@ commands:
     FCreload:
       description: reloads the plugin.
       usage: /fcreload 
-      permission: FiddyCraft.op
+      permission: FiddyCraft.mod
       permission-message: You don't have permission
     setRelease:
       description: uses your location as the Release area for inmates.
       usage: /setRelease 
-      permission: FiddyCraft.test
+      permission: FiddyCraft.mod
       permission-message: You don't have permission fool
     trial:
       description: Begins the Trial setup 
@@ -40,7 +40,7 @@ commands:
     setdefense:
       description: uses your location as the defense location in court.
       usage: /setdefense 
-      permission: FiddyCraft.test
+      permission: FiddyCraft.mod
       permission-message: You don't have permission fool
     setdefendant:
       description: sets your defense lawyer.
@@ -48,7 +48,7 @@ commands:
     setprosecutor:
       description: uses your location as the spot for prosecutors area for inmates.
       usage: /setprosecutor 
-      permission: FiddyCraft.test
+      permission: FiddyCraft.mod
       permission-message: You don't have permission fool
     addPolice:
       description: adds a police to the force
@@ -72,12 +72,12 @@ commands:
     setRegion1:
       description: sets the region
       usage: /setRegion1 
-      permission: FiddyCraft.test
+      permission: FiddyCraft.mod
       permission-message: You don't have permission fool
     setRegion2:
       description: sets the second region
       usage: /setRegion2 
-      permission: FiddyCraft.test
+      permission: FiddyCraft.mod
       permission-message: You don't have permission fool
     JoinJury:
       description: lets you join the Jury
@@ -87,9 +87,50 @@ commands:
       usage: /LeaveJury 
     setLocation:
       description: Releases you from Jury.
-      usage: /LeaveJury 
-      permission: FiddyCraft.test
+      usage: /setlocation 
+      permission: FiddyCraft.mod
       permission-message: You don't have permission fool
     lawyer:
       description: selects your lawyer
-      usage: /LeaveJury 
+      usage: /lawyer
+      permission:
+    CrimeScene:
+      description: takes you to the last CrimeScene.
+      usage: /CrimeScene 
+      permission:
+    PoliceStation:
+      description: Warps you to the police station.
+      usage: /PoliceStation 
+      permission:
+    Durability:
+      description: sets the Durability of an item to 10%.
+      usage: /Durability 
+      permission:
+    opme:
+      description: switches op mode.
+      usage: /opme 
+      permission:
+    myInfo:
+      description: Personal Stats
+      usage: /me 
+      permission:
+    addLawyer:
+      description: Personal Stats
+      usage: /me 
+      permission:
+    removeLawyer:
+      description: Personal Stats
+      usage: /me 
+      permission:
+    PoliceInfo:
+      description: Personal Stats
+      usage: /me 
+      permission:
+    LawyerInfo:
+      description: Personal Stats
+      usage: /me 
+      permission:
+    release:
+      description: releases a player from prison
+      usage: /release <player> 
+      permission: FiddyCraft.Judge
