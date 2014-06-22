@@ -41,6 +41,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 				}
 				String defendant = args[0];
 				String Prosecutor = args[1];
+			
 				if(plugin.isPlayer(defendant) == false){
 					p.sendMessage(ChatColor.RED + "The defendant is not online, make sure you spelled the name correctly");
 					return false;
@@ -65,12 +66,12 @@ public class FiddyCraftCommands implements CommandExecutor {
 					p.sendMessage(ChatColor.RED + "You need to set the prosecutor location with " + ChatColor.DARK_GREEN + " /setprosecutor");
 					return false;
 				}
-				p.sendMessage("defendant = " + defendant + "Prosecutor =" + Prosecutor );
+				p.sendMessage(ChatColor.BLUE + "defendant is " + defendant + ChatColor.RED + " Prosecutor is " + Prosecutor );
 				plugin.defendant.add(defendant);
 				plugin.Prosecutor.add(Prosecutor);
 				plugin.Judge.add(p.getName());
 				
-				Bukkit.broadcastMessage(ChatColor.GOLD + " The trial for " + defendant + "will start soon");
+				Bukkit.broadcastMessage(ChatColor.GOLD + " The trial for " + defendant + " will start soon");
 				Bukkit.broadcastMessage(ChatColor.GOLD + "If you would like to be a jury use "+ ChatColor.AQUA + " /JoinJury " +ChatColor.GOLD+ "no one who takes place in the trial can hear chat outside of /msg");
 				
 				
@@ -87,12 +88,15 @@ public class FiddyCraftCommands implements CommandExecutor {
 				Location dloc = new Location(p.getWorld(), dx, dy, dz);
 				Location Ploc = new Location(p.getWorld(), Px, Py, Pz);
 				
+				plugin.prosecutionTips(P);
+				plugin.defenseTips(d);
+				plugin.judgeTips(p);
 				d.teleport(dloc);
 				P.teleport(Ploc);
 				d.sendMessage(ChatColor.GREEN + "You can now select a lawyer by doing " + ChatColor.RED + "/Lawyer <name of Laywer>");
 				d.sendMessage(ChatColor.GREEN + "You can get rid of your lawyer by doing " +  ChatColor.RED + "/RemoveLaywer");
 				P.sendMessage(ChatColor.GREEN + "We are waiting for the Jury and Defence Attorney, if you need help or tips use " + ChatColor.RED + "/Pro tips");
-				plugin.TrialStart.add(true);
+				plugin.TrialReady.put("Trial", true);
 				
 		}else{
 			p.sendMessage(ChatColor.RED + "You must be a judge or mod to start a trial");
@@ -102,27 +106,173 @@ public class FiddyCraftCommands implements CommandExecutor {
 
 // TRIAL START
 		if(cmd.getName().equalsIgnoreCase("StartTrial")){
-			
 			Player p = (Player) sender;
+	
 			
+			if(plugin.TrialReady.isEmpty()){
+				p.sendMessage("use /trial to set up the trial first");
+				Bukkit.broadcastMessage( "TrialStart is empty");
+				return false;
+			}
+			
+			if(plugin.TrialReady.get("Trial") == false){
+				p.sendMessage("use /trial to set up the trial first");
+				return false;
+			}
+			
+			if(plugin.Defence.isEmpty()){
+				plugin.Defence.add(plugin.defendant.get(0));
+			}
 			String defense = plugin.Defence.get(0);
 			String prosecutor = plugin.Prosecutor.get(0);
-		
+			String defentant = plugin.defendant.get(0);
 			if(Bukkit.getPlayer(defense)== null ){
 				p.sendMessage(ChatColor.RED + "Defense is not set");
+				return false;
 			}
 			
 			if(Bukkit.getPlayer(prosecutor)== null ){
 				p.sendMessage(ChatColor.RED + "prosecutor is not set");
+				return false;
 			}
-			p.getNearbyEntities(15, 20, 15);
+			
+			
+			if(Bukkit.getPlayer(defentant)== null ){
+				p.sendMessage(ChatColor.RED + "defentant is not set");
+				return false;
+			}
+			
+			
+			Bukkit.broadcastMessage(ChatColor.GOLD + "The Trial For " + defentant + " has started" );
+			plugin.TrialStart.put("Trial", true);
+			
+			plugin.openingStatmentProsecution.put("Trial", 1200);
+			p.chat(ChatColor.DARK_PURPLE + "Prosection, You have 1 minute for your opening statment.");
+			Player pro = Bukkit.getPlayer(prosecutor);
+			pro.sendMessage(ChatColor.YELLOW + "I need to show confidence, and summarize what I wish to prove. The clock is already ticking!");
+		
 		}
+		
+//JUDGEMENT
+		if(cmd.getName().equalsIgnoreCase("JUDGEMENT")){
+			Player p = (Player) sender;
+			String defense = plugin.Defence.get(0);
+			String prosecutor = plugin.Prosecutor.get(0);
+			String defentant = plugin.defendant.get(0);
+			
+			if( plugin.Judgement.isEmpty() || !plugin.Judgement.containsKey(p.getName()) || plugin.Judgement.get(p.getName()) == false){
+				p.sendMessage(ChatColor.RED + "It is not time to judge yet");
+				return false;
+			}
+			
+			if(args.length != 1){
+				p.sendMessage(ChatColor.RED + "Not enough args You must choose guilty or nonGuilty");
+				return false;
+			}
+			
+			if(args[0].equalsIgnoreCase("Guilty") || args[0].equalsIgnoreCase("NotGuilty")){
+			
+			
+			
+			if(Bukkit.getPlayer(defense)== null ){
+				p.sendMessage(ChatColor.RED + "Defense is not Ready");
+				return false;
+			}
+			
+			if(Bukkit.getPlayer(prosecutor)== null ){
+				p.sendMessage(ChatColor.RED + "prosecutor is not Ready");
+				return false;
+			}
+			
+			
+			if(Bukkit.getPlayer(defentant)== null ){
+				p.sendMessage(ChatColor.RED + "defentant is not Ready");
+				return false;
+			}
+			
+			String verdict = args[0];
+			String defendant = plugin.defendant.get(0);
+			
+			if(verdict.equalsIgnoreCase("NotGuilty")){
+				Bukkit.broadcastMessage(ChatColor.GOLD + defendant  + " has been Found NOT GUILTY");
+				double playerMoney = plugin.economy.getPlayerMoneyDouble(prosecutor);
+    			plugin.economy.setPlayerMoney(prosecutor, playerMoney + 1000, false);
+    			Bukkit.getPlayer(prosecutor).sendMessage(ChatColor.GOLD + "You have lost but your efforts are not in vain, you have been paid  " + ChatColor.RED + 1000 +ChatColor.GOLD + " dollars!");
+			}else{
+				Bukkit.broadcastMessage(ChatColor.GOLD + defendant + " has been found GUILTY");
+				double playerMoney = plugin.economy.getPlayerMoneyDouble(prosecutor);
+    			plugin.economy.setPlayerMoney(prosecutor, playerMoney + 2500, false);
+    			Bukkit.getPlayer(prosecutor).sendMessage(ChatColor.GOLD + "Congradulations on your win! you have been paid " + ChatColor.RED + 2500 +  ChatColor.GOLD + " dollars!");
+			}
+			
+			p.sendMessage("For Judging this trial you have been awarded" + ChatColor.RED +  3500 + ChatColor.GOLD + " dollars");
+			double playerMoney = plugin.economy.getPlayerMoneyDouble(p.getName());
+			plugin.economy.setPlayerMoney(prosecutor, playerMoney + 3500, false);
+			
+			World world = Bukkit.getWorld("world");
+			ItemStack book = new ItemStack(Material.WRITTEN_BOOK, 3);
+			BookMeta bm = (BookMeta) book.getItemMeta();
+			String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
+			
+			bm.setAuthor("Court of Fiddy");
+			bm.setTitle(defendant + " VS " + prosecutor );
+			bm.addPage(">_>");
+			bm.setPage(1, 
+			"Judge: " + p.getName() + "\n" + "\n"+
+			"Prosecutor: " + prosecutor + "\n" + "\n"+
+			"Defense: " + defense + "\n" + "\n"+
+			"Defendant: " + defendant + "\n" + "\n"+
+			//"Charge: " + plugin.Charge.get(defendant) + "\n" +
+			"Verdict: " + verdict +  "\n"+" Date: " + timeStamp
+			);
+			book.getItemMeta().setDisplayName(ChatColor.RED+ "Court Record");
+			book.setItemMeta(bm);
+			world.dropItem(p.getLocation(), book);
+			
+			plugin.TrialStart.clear();
+			plugin.closingStatmentDefense.clear();
+			plugin.closingStatmentProsecution.clear();
+			plugin.evidence.clear();
+			plugin.defendant.clear();
+			plugin.Prosecutor.clear();
+			plugin.Defence.clear();
+			plugin.Judge.clear();
+			plugin.Judgement.clear();
+			plugin.TrialReady.clear();
+			return true;
+		}
+	}
+// STOP TRIAL
+	if(cmd.getName().equalsIgnoreCase("stopTrial")){
+		Player p = (Player) sender;
+		if(plugin.TrialReady.get("Trial") == true || plugin.TrialStart.get("Trial") == true){
+		if(p.isOp() || plugin.Judge.contains(p.getName())){
+		Bukkit.broadcastMessage(ChatColor.GOLD + "Trial has ben Canceled");
+		
+		plugin.TrialStart.clear();
+		plugin.closingStatmentDefense.clear();
+		plugin.closingStatmentProsecution.clear();
+		plugin.evidence.clear();
+		plugin.defendant.clear();
+		plugin.Prosecutor.clear();
+		plugin.Defence.clear();
+		plugin.Judge.clear();
+		plugin.Judgement.clear();
+		plugin.TrialReady.clear();
+			}else{
+				p.sendMessage(ChatColor.RED + "You are not a judge");
+			}
+		}else{
+			p.sendMessage(ChatColor.RED + "No trial has started");
+		}
+	}
+
 		
 //LAWYER PICKING
 		if(cmd.getName().equalsIgnoreCase("Lawyer")){
 			Player p = (Player) sender;
 			
-			if(plugin.getConfig().contains("PendingTrial." + p.getUniqueId().toString()) && plugin.TrialStart.get(0) == true){
+			if(plugin.getConfig().contains("PendingTrial." + p.getUniqueId().toString()) && plugin.TrialReady.get("Trial") == true){
 				if(!(args.length == 1)){
 					p.sendMessage(ChatColor.RED + "Not enough arguments");
 					return false;
@@ -140,9 +290,11 @@ public class FiddyCraftCommands implements CommandExecutor {
 					return false;
 				}
 				
+				if( plugin.willLawyer.contains(L.getName())){
+				
 				plugin.Defence.add(Lawyer);
 				p.sendMessage(ChatColor.GOLD + "You have selected " + Lawyer + " as your Laywer");
-				p.sendMessage(ChatColor.GOLD + "If you would like to fire your lawyer use " + ChatColor.RED + "/RemoveLaywer");
+				p.sendMessage(ChatColor.GOLD + "If you would like to fire your lawyer use " + ChatColor.RED + "/FireLawyer");
 				String judge = plugin.Judge.get(0);
 				if(Bukkit.getPlayer(judge) == null){
 					p.sendMessage(ChatColor.RED + "The Judge is not online right now");
@@ -155,6 +307,9 @@ public class FiddyCraftCommands implements CommandExecutor {
 					Location dloc = new Location(p.getWorld(), x, y, z);
 					L.teleport(dloc);
 				}
+				}else{
+					p.sendMessage(ChatColor.RED + "That lawyer is currently not avalible, or he has not signed up to Defend (/Defend).");
+				}
 			}else{
 				p.sendMessage(ChatColor.RED + "Either you are not pending trial or the trial hasnt started yet");
 				return false;
@@ -164,6 +319,105 @@ public class FiddyCraftCommands implements CommandExecutor {
 			
 		return true;
 		}
+		
+// FIRE YOUR DEFENSE LAWYER
+		if(cmd.getLabel().equalsIgnoreCase("FireLawyer")){
+			Player p = (Player) sender;
+			if(plugin.getConfig().contains("PendingTrial." + p.getUniqueId().toString()) && plugin.TrialReady.get("Trial") == true){
+			if(plugin.defendant.get(0)== p.getName()){	
+				plugin.Defence.remove(0);
+				plugin.Defence.add(p.getName());
+				p.sendMessage("You are now your own Defense lawyer");
+				if(plugin.isPlayer(plugin.Defence.get(0))){
+					Player oldLawyer = Bukkit.getPlayer(plugin.Defence.get(0));
+					oldLawyer.sendMessage(ChatColor.RED  + "You have been fired");
+				}
+				}else{
+					p.sendMessage(ChatColor.RED + "Only the defendant can remove the Defense lawyer");
+				}
+			}
+			
+		}
+		
+
+//ENDING STATMENTS
+		if(cmd.getLabel().equalsIgnoreCase("EndStatment")){
+			Player p = (Player) sender;
+	if(plugin.TrialStart.isEmpty() == false && plugin.TrialStart.get("Trial") == true){
+			if(plugin.Prosecutor.get(0).equalsIgnoreCase(p.getName())){
+			if(plugin.TrialStart.get("Trial") == true){
+				if(plugin.openingStatmentProsecution.containsKey("Trial")){
+					String t = "Trial";
+					int op = plugin.openingStatmentProsecution.get("Trial");
+					int newop = op - op;
+					plugin.openingStatmentProsecution.put(t, newop);
+				p.chat("This ends my Opening Statment");
+		}
+			}else{
+				p.sendMessage(ChatColor.RED + "No Trial is currently active");
+			}
+			if(plugin.closingStatmentProsecution.containsKey("Trial")){
+				String t = "Trial";
+				int op = plugin.closingStatmentProsecution.get("Trial");
+				int newop = op - op;
+				plugin.closingStatmentProsecution.put(t, newop);
+				p.chat("This ends my Closing Statment");
+				}
+			}
+			
+			if(plugin.Defence.get(0).equalsIgnoreCase(p.getName())){
+				if(plugin.closingStatmentDefense.containsKey("Trial")){
+					String t = "Trial";
+					int op = plugin.closingStatmentDefense.get("Trial");
+					int newop = op - op;
+					plugin.closingStatmentDefense.put(t, newop);
+					p.chat("This ends my Closing Statment");
+				}else{
+					p.sendMessage(ChatColor.YELLOW + "I cant end the other persons statment for them");
+				}
+			}
+			if(plugin.Judge.get(0).equalsIgnoreCase(p.getName())){
+			if(plugin.evidence.containsKey("Trial")){
+				String t = "Trial";
+				int op = plugin.evidence.get("Trial");
+				int newop = op - op;
+				plugin.evidence.put(t, newop);
+				Player j = Bukkit.getPlayer(plugin.Judge.get(0));
+				j.sendMessage(ChatColor.DARK_PURPLE + "That is enough we will now move on");
+			}
+		}
+		
+	}else{
+		p.sendMessage(ChatColor.RED + "No trial is started");
+	}
+}
+		
+// ALLOW TO LAWYER		
+		if(cmd.getLabel().equalsIgnoreCase("Defend")){
+			Player p = (Player) sender;
+		if(plugin.willLawyer.contains(p.getName())){
+			if(plugin.getPlayerInfo().contains("Lawyers." + p.getUniqueId())){
+		
+			p.sendMessage("You are now open to take on defense cases");
+			plugin.willLawyer.add(p.getName());
+			}else{
+			p.sendMessage(ChatColor.BLUE + "You can now stand in as a defense attorney.");
+			p.sendMessage(ChatColor.BLUE + "If you win you can become a real attorney!");
+			plugin.willLawyer.add(p.getName());
+			}
+		}else{
+			if(!plugin.willLawyer.isEmpty() && plugin.willLawyer.contains(p.getName())){
+				p.sendMessage("You are no longer open to be an attorney at this time");
+				plugin.willLawyer.remove(p.getName());
+			}else{
+				p.sendMessage("You are now open to be an attorney");
+				plugin.willLawyer.add(p.getName());
+			}
+		}
+			
+			return true;
+		}
+
 //SET JAIL
 		if(cmd.getName().equalsIgnoreCase("setJail")){
 			Player p = (Player) sender;
@@ -183,6 +437,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 			}
 			return true;
 		}
+
 		
 //SET RELEASE POINT
 		if(cmd.getName().equalsIgnoreCase("setRelease")){
@@ -280,13 +535,13 @@ public class FiddyCraftCommands implements CommandExecutor {
 			Player p = (Player) sender;
 			Location loc = p.getLocation();
 			
-			if(plugin.TrialStart.isEmpty()){
+			if(!plugin.TrialStart.containsKey("Trial")){
 				p.sendMessage(ChatColor.GOLD + "No trial is currently started");
 				return true;
 			}
 			
 			
-			if( plugin.TrialStart.get(0) == false){
+			if( plugin.TrialStart.get("Trial") == false){
 				p.sendMessage(ChatColor.GOLD + "No trial is currently started");
 				return true;
 			}
@@ -571,51 +826,53 @@ public class FiddyCraftCommands implements CommandExecutor {
 		
 //TEST COMMAND
 		if(cmd.getName().equalsIgnoreCase("rTest")){
-			Player p = (Player) sender;
-			Location loc = p.getLocation();
-			if(plugin.isInRegion("Test", loc)){
-				p.sendMessage("in area");
-			}else{
-				p.sendMessage("Not in area");
-			}
+			Bukkit.broadcastMessage( "trialstart get " + plugin.TrialStart.get("Trial"));
+			;
 			return true;
 		}
 		
 //RELEASE COMMAND
 		if(cmd.getName().equalsIgnoreCase("RELEASE")){
+		
 			Player p = (Player) sender;
-			Player onlinetarget = Bukkit.getServer().getPlayer(args[0]);
-			if(!onlinetarget.isOnline()){
-				p.sendMessage(ChatColor.RED + "Player not found");
+		if(p.isOp()){
+			
+			if(plugin.isPlayer(args[0]) == false){
+				p.sendMessage(ChatColor.RED + args[0] + " is not a player");
 				return false;
 			}
-			Player target = Bukkit.getPlayer(args[0]);
+		     Player target = Bukkit.getPlayer(args[0]);
 			
-			if(!plugin.getConfig().contains("Jailed." + target.getUniqueId())){	
+			if(!plugin.getConfig().contains("Jailed." + target.getUniqueId().toString())){	
 				p.sendMessage(ChatColor.RED + "Player is not in jail");
 				return false;
 			}
 
-			plugin.newJailScore(p, 100000);
-			 if(plugin.getScore(p) <= 0 ){
-        		 p.sendMessage(ChatColor.YELLOW + "You have paid for you Crimes You are free to go");
-        		 Bukkit.broadcastMessage(p.getName() + " has been released from jail");
+			plugin.newJailScore(target, 90000);
+			plugin.getConfig().set("Jailed." + p.getUniqueId().toString(), plugin.getScore(p));
+        	plugin.saveConfig();
+			 if(plugin.getScore(target) <= 0 ){
+        		 target.sendMessage(ChatColor.YELLOW + "You have been given a pardon. You are free to go");
+        		 Bukkit.broadcastMessage(target.getName() + " has been released from jail");
         		 
-        		 p.getServer().getWorld("world").setSpawnLocation(-1459, 74, -236);
+        		 target.getServer().getWorld("world").setSpawnLocation(-1459, 74, -236);
         		 if(plugin.getConfig().contains("Release")){
         			double x =  (double) plugin.getConfig().get("Release.X");
      				double y =  (double) plugin.getConfig().get("Release.Y");
      				double z =  (double) plugin.getConfig().get("Release.Z");
      				Location loc = new Location(Bukkit.getServer().getWorld("world"),x, y, z);
-     				p.getInventory().clear();
-     				p.teleport(loc);
+     				target.getInventory().clear();
+     				target.teleport(loc);
      				plugin.getConfig().set("Jailed." + p.getUniqueId().toString(), null);
      				plugin.saveConfig();
      				plugin.reloadConfig();
      				
-     				FiddyCraft.getScoreboard(p).clearSlot(DisplaySlot.SIDEBAR);
-     				FiddyCraft.boards.remove(p.getName());
+     				FiddyCraft.getScoreboard(target).clearSlot(DisplaySlot.SIDEBAR);
+     				FiddyCraft.boards.remove(target.getName());
         		 }
+			 }
+        }else{
+        	p.sendMessage(ChatColor.RED + "You must be op to do this");
         }
 	}
  
@@ -837,7 +1094,41 @@ public class FiddyCraftCommands implements CommandExecutor {
 		}
 	return true;
 			}
-	return true;
+
 	
-	}
+	
+	
+	
+//DETECTIVE MODE	
+		if(cmd.getName().equalsIgnoreCase("detective")){
+			Player p = (Player) sender;
+			
+			if(args.length !=0){
+				p.sendMessage(ChatColor.RED + "To many arguments");
+			}
+			if(plugin.getPlayerInfo().contains("Officers." + p.getUniqueId())){
+				if(plugin.detective.containsKey(p.getUniqueId())){
+					Boolean state = plugin.detective.get(p.getUniqueId());
+					
+					if(state == false){
+						p.sendMessage(ChatColor.BLUE + "detective Mode " + ChatColor.RED + "ON" + ChatColor.BLUE +" anyone you kill will be put into jail");
+						plugin.detective.put(p.getUniqueId(), true);
+					}else{
+						p.sendMessage(ChatColor.BLUE +  "detective Mode " + ChatColor.RED + "OFF" +ChatColor.BLUE + " you will not put anyone in jail on kill");
+						plugin.detective.put(p.getUniqueId(), false);
+					}
+				}else{
+					p.sendMessage(ChatColor.BLUE + "detective Mode " + ChatColor.RED + "ON" + ChatColor.BLUE +" anyone you kill will be put into jail");
+					plugin.detective.put(p.getUniqueId(), true);
+					
+				}
+			}else{
+				p.sendMessage(ChatColor.RED + " You are not a police officer and cannot go on detective");
+				return true;
+			}
+		return true;
+				}
+		return true;
+		
+		}
 }

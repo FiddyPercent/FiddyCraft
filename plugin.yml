@@ -134,3 +134,26 @@ commands:
       description: releases a player from prison
       usage: /release <player> 
       permission: FiddyCraft.Judge
+    Defend:
+      description: opens you up to be selected as a defense attorney
+      usage: /Defend 
+    StartTrial:
+      description: Starts the Trial
+      usage: /start Trial 
+      permission: FiddyCraft.Judge
+    JUDGEMENT:
+      description: hands down verdict
+      usage: /Judgment <Guilty or NonGuilty> 
+      permission: FiddyCraft.Judge
+    FireLawyer:
+      description: Fires your Defense lawyer
+      usage: /FireLawyer 
+      permission: 
+    EndStatment:
+      description: Ends your current Statment for Trial
+      usage: /EndStatment  
+      permission: 
+    StopTrial:
+      description: Stops Current Trial
+      usage: /StopTrial  
+      permission: 

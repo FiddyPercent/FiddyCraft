@@ -10,10 +10,13 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
@@ -38,16 +41,29 @@ public class FiddyCraft extends JavaPlugin {
 	  private  FileConfiguration PlayerInfo;
 	  private File PlayerInfoFile;
 	  public final FiddyCraftListener fcl = new FiddyCraftListener(this);
-	  public ArrayList<Boolean> TrialStart = new ArrayList<Boolean>();
+	  public HashMap<String, Boolean> TrialStart = new HashMap<String, Boolean>();
+	  public HashMap<String, Boolean> TrialReady = new HashMap<String, Boolean>();
+	  public HashMap<String, Integer> openingStatmentProsecution = new HashMap<String, Integer>();
+	  public HashMap<String, Integer> testimony = new HashMap<String, Integer>();
+	  public HashMap<String, Integer> closingStatmentProsecution = new HashMap<String, Integer>();
+	  public HashMap<String, Integer> closingStatmentDefense= new HashMap<String, Integer>();
+	  public HashMap<String, Integer> evidence = new HashMap<String, Integer>();
+	  public HashMap<String, Integer> TrialTime = new HashMap<String, Integer>();
+	  public HashMap<UUID, Integer> pvpLoggers = new HashMap<UUID, Integer>();
+	  public HashMap<String, String> Charge = new HashMap<String, String>();
 	  public ArrayList<String> defendant = new ArrayList<String>();
 	  public ArrayList<String> Prosecutor = new ArrayList<String>();
 	  public ArrayList<String> Defence = new ArrayList<String>();
 	  public ArrayList<String> Judge = new ArrayList<String>();
+	  public ArrayList<String> willLawyer = new ArrayList<String>();
 	  public ArrayList<String> Jury = new ArrayList<String>();
 	  public ArrayList<String> items = new ArrayList<String>();
+	  public HashMap<String, String> verdict  = new HashMap<String, String>();
 	  public HashMap<UUID, UUID> attackedLast  = new HashMap<UUID, UUID>();
 	  public HashMap<String, Integer> drunkLvl = new HashMap<String, Integer>();
 	  public HashMap<UUID, Boolean> patrol = new HashMap<UUID, Boolean>();
+	  public HashMap<UUID, Boolean> detective = new HashMap<UUID, Boolean>();
+	  public HashMap<String, Boolean> Judgement = new HashMap<String, Boolean>();
 	  public HashMap<String, Integer> murderTimer = new HashMap<String, Integer>(); 
 	  public ArrayList<String > potlore = new ArrayList<String>();
 	  public HashMap<String, Location> crimescene = new HashMap<String, Location>();
@@ -65,6 +81,15 @@ public class FiddyCraft extends JavaPlugin {
         this.getLogger().info("FiddyCraft is Disabled");
         saveConfig();
         savePlayerInfo();
+    	this.TrialStart.clear();
+    	this.closingStatmentDefense.clear();
+    	this.closingStatmentProsecution.clear();
+    	this.evidence.clear();
+    	this.defendant.clear();
+    	this.Prosecutor.clear();
+    	this.Defence.clear();
+    	this.Judge.clear();
+    	this.Judgement.clear();
     }
     public void onEnable(){
     	loadConfig();
@@ -101,6 +126,12 @@ public class FiddyCraft extends JavaPlugin {
         getCommand("LawyerInfo").setExecutor(new FiddyCraftCommands(this));
         getCommand("myInfo").setExecutor(new FiddyCraftCommands(this));
         getCommand("release").setExecutor(new FiddyCraftCommands(this));
+        getCommand("Defend").setExecutor(new FiddyCraftCommands(this));
+        getCommand("StartTrial").setExecutor(new FiddyCraftCommands(this));
+        getCommand("JUDGEMENT").setExecutor(new FiddyCraftCommands(this));
+        getCommand("EndStatment").setExecutor(new FiddyCraftCommands(this));
+        getCommand("FireLawyer").setExecutor(new FiddyCraftCommands(this));
+        getCommand("StopTrial").setExecutor(new FiddyCraftCommands(this));
     	new Permission ("FiddyCraft.noob");
 		new Permission ("FiddyCraft.police");
 		new Permission ("FiddyCraft.assasin");
@@ -112,11 +143,12 @@ public class FiddyCraft extends JavaPlugin {
 		new Permission ("FiddyCraft.poor ");
         manager = Bukkit.getScoreboardManager();
         this.loadBOSEconomy();
-    	new BukkitRunnable(){
-			@Override
-			public void run() {
-				
-				if(murderTimer.isEmpty() == false){
+        this.getLogger().info(ChatColor.RED + "Right before Runnable");
+        new BukkitRunnable(){
+  			@Override
+  			public void run() {
+  			
+ 				if(murderTimer.isEmpty() == false){
 					int time = murderTimer.get("LastMurder");
 					int rt = time - 100;
 					murderTimer.put("LastMurder", rt);
@@ -126,6 +158,116 @@ public class FiddyCraft extends JavaPlugin {
 					}
 					
 				}
+				
+ 				
+ 				
+ 				
+ 				if(!pvpLoggers.isEmpty()){
+ 					Player[] p = Bukkit.getOnlinePlayers();
+ 					for(Player o : p){
+ 						if(pvpLoggers.containsKey(o.getUniqueId())){
+ 							int time = pvpLoggers.get(o.getUniqueId());
+ 							int newtime= time - 100;
+ 							pvpLoggers.put(o.getUniqueId(), newtime);
+ 							
+ 							if(time <= 0){
+ 								pvpLoggers.remove(o.getUniqueId());
+ 								o.sendMessage(ChatColor.GRAY + "It is safe to log out now");
+ 							}
+ 						}
+ 					}
+ 				}
+ 				
+ 				
+ 				
+				if(!TrialStart.isEmpty() && TrialStart.get("Trial") == true){
+					
+					if(openingStatmentProsecution.containsKey("Trial")){
+						String t = "Trial";
+						int op = openingStatmentProsecution.get("Trial");
+						int newop = op - 100;
+						openingStatmentProsecution.put(t, newop);
+						CourtSigns("OpeningStatment", op);
+					if(op <= 0 ){
+						if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(Defence.get(0))){
+							Player j = Bukkit.getPlayer(Judge.get(0));
+							Player pro = Bukkit.getPlayer(Prosecutor.get(0));
+							Player def = Bukkit.getPlayer(Defence.get(0));
+							j.chat(ChatColor.DARK_PURPLE +  "Now it is time to move on with the trial, Prosecution, you may now show evidence or use witness testemony in just a moment");
+							j.sendMessage(ChatColor.YELLOW + "I need to pay attention and be unbiased. Remember hard evidence is stronger than testimony.");
+							pro.sendMessage(ChatColor.YELLOW + "I have 10 minutes total to prove the defense guilty I need to make a solid case right off the bat");
+							def.sendMessage(ChatColor.YELLOW + "Now the prosecution will present evidence to win this case I have 10 minutes to get not guilty");
+							openingStatmentProsecution.clear();
+							evidence.put("Trial", 12000);
+						}
+					}
+				}
+					
+					if(closingStatmentProsecution.containsKey("Trial")){
+						String t = "Trial";
+						int op = closingStatmentProsecution.get("Trial");
+						int newop = op - 100;
+						closingStatmentProsecution.put(t, newop);
+						CourtSigns("Closing Statment", op);
+						if(op <= 0 ){
+							if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(Defence.get(0))){
+								Player j = Bukkit.getPlayer(Judge.get(0));
+								Player pro = Bukkit.getPlayer(Prosecutor.get(0));
+								Player def = Bukkit.getPlayer(Defence.get(0));
+								j.chat(ChatColor.DARK_PURPLE + "That is enough, time for the defense closing statment");
+								j.sendMessage(ChatColor.YELLOW + "Time is up for the Prosecutions closing statement, now it’s time for the Defense Attorneys final statement.");
+								pro.sendMessage(ChatColor.YELLOW + "Time is up for my closing statment the Judge will decide the verdict after the Defense Attorneys statment.");
+								def.sendMessage(ChatColor.YELLOW + "The Proseuction's closing statment is over now is your last chance to win the case.");
+								closingStatmentProsecution.clear();
+								closingStatmentDefense.put("Trial", 2400);
+							}
+						}
+					}
+					
+					if(closingStatmentDefense.containsKey("Trial")){
+						String t = "Trial";
+						int op = closingStatmentDefense.get("Trial");
+						int newop = op - 100;
+						closingStatmentDefense.put(t, newop);
+						CourtSigns("Closing Statment", op);
+						if(op <= 0 ){
+							if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(Defence.get(0))){
+								Player j = Bukkit.getPlayer(Judge.get(0));
+								Player pro = Bukkit.getPlayer(Prosecutor.get(0));
+								Player def = Bukkit.getPlayer(Defence.get(0));
+								j.chat(ChatColor.DARK_PURPLE + "That is enough I will now decide the verdict");
+								j.sendMessage(ChatColor.YELLOW + "Both sides have been heard please give the points to the proper side and place a verdict");
+								pro.sendMessage(ChatColor.YELLOW + "Time is up for the closing statment the Judge will now decide");
+								def.sendMessage(ChatColor.YELLOW + "This is it, time is up and the judge has the final call");
+								closingStatmentDefense.clear();
+								Judgement.put(j.getName(), true);
+							}
+						}
+					}
+					
+					if(evidence.containsKey("Trial")){
+						String t = "Trial";
+						int op = evidence.get("Trial");
+						int newop = op - 100;
+						evidence.put(t, newop);
+						Bukkit.broadcastMessage("Evidence time" + op);
+						CourtSigns("Trial hearing", op);
+					if(op <= 0){
+					if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(Defence.get(0))){
+						Player j = Bukkit.getPlayer(Judge.get(0));
+						Player pro = Bukkit.getPlayer(Prosecutor.get(0));
+						Player def = Bukkit.getPlayer(Defence.get(0));
+						j.chat(ChatColor.DARK_PURPLE + "I have heard enough you my now start your closing statment Prosecution");
+						j.sendMessage(ChatColor.YELLOW + "Listen carefully to each statments and try to decide which one is right");
+						pro.sendMessage(ChatColor.YELLOW + "Time to show my evidence for this trial ");
+						def.sendMessage(ChatColor.YELLOW + "Rember this is the only chance you get to win you have Object, and cross examin to win");
+						evidence.clear();
+						closingStatmentProsecution.put("Trial", 2400);
+						}
+					}
+				}
+			}
+				
 			
 		if(getConfig().getString("Drunk") != null){	
 			
@@ -147,15 +289,16 @@ public class FiddyCraft extends JavaPlugin {
 					if(newPoints <1 ){
 						getConfig().set("Drunk." + op.getUniqueId().toString(), null);
 						saveConfig();
+							}
+						}
 					}
 				}
-			}
-		}
-	}
-} .runTaskTimer(this, 0, 100);
-			
-  
+ 
+  			}
+  		} .runTaskTimer(this, 0, 100);
+  		this.getLogger().info(ChatColor.GREEN + "Right after Runnable");
     }
+
  
     public void loadConfig(){
         getConfig().options().copyDefaults(true);
@@ -484,6 +627,8 @@ public class FiddyCraft extends JavaPlugin {
 		
 	}
 	
+	
+	
 	public void  DrunkState (int DrunkPoints, Player p){
 		int dp = DrunkPoints;
 //SLOW
@@ -543,6 +688,107 @@ public class FiddyCraft extends JavaPlugin {
 		
 	}
 	
+	public boolean detectiveOn(Player p ){
+		if(this.patrol.containsKey(p.getUniqueId())){
+			if( this.patrol.get(p.getUniqueId()) == true){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+		
+	}
+	
+	public void prosecutionTips(Player p){
+		p.sendMessage(ChatColor.GOLD + "#########  Tips  #########");
+		p.sendMessage(ChatColor.GOLD + "Make your statments direct and to the point you do not have alot of time.");
+		p.sendMessage(ChatColor.GOLD + "Do not argue on flimsy he said she said stuff use hard evidence.");
+		p.sendMessage(ChatColor.GOLD + "Remember evidence speaks louder than testimony it’s is ok to remind the judge of this.");
+		p.sendMessage(ChatColor.GOLD + "If you are relying on testimony get a clear motive, location, and ability it will go a long way");
+		p.sendMessage(ChatColor.GOLD + "Try not get caught in traps think where the defense is trying to take your evidence and stop it.");
+	}
+	
+	public void defenseTips(Player p){
+		p.sendMessage(ChatColor.GOLD + "#########  Tips  #########");
+		p.sendMessage(ChatColor.BLUE + "Make sure you look hard at evidence, sometimes it can be used to prove your client is innocent");
+		p.sendMessage(ChatColor.BLUE + "Circumstantial evidence isn’t really strong if they have no real proof, bring it up!");
+		p.sendMessage(ChatColor.BLUE + "If refuting testimony try to trick the witness into saying something bias, or see if they have a shifty past");
+		p.sendMessage(ChatColor.BLUE + "Try to knock down each piece of evidence credibility as much as you can and bring it out to the judge");
+		p.sendMessage(ChatColor.BLUE + "Look at time, blood type, anything can be a clue for your side");
+		
+	}
+	
+	public void judgeTips(Player p ){
+		p.sendMessage(ChatColor.GOLD + "#########  Tips  #########");
+		p.sendMessage(ChatColor.DARK_GRAY + "You should be completely un bias on the part of the defense");
+		p.sendMessage(ChatColor.DARK_GRAY + "Evidence speaks louder than testimony");
+		p.sendMessage(ChatColor.DARK_GRAY + "Let the Prosecution do the work they are the one who are to prove guilt");
+		p.sendMessage(ChatColor.DARK_GRAY + "if you are confused ask questions");
+		p.sendMessage(ChatColor.DARK_GRAY + "Use the /muteD and /muteP /muteW commands to mute prosecution, defense, or witness");
+		p.sendMessage(ChatColor.DARK_GRAY + "Only take Prosecution and Defense questions any others are null");
+	}
+	
+	
+	
+	
+	
+	public void CourtSigns(String State, int op){
+		if(this.getConfig().contains("CourtSigns")){
+			if(this.getConfig().contains("CourtSigns.Prosecution") && this.getConfig().contains("CourtSigns.Defendant") &&  this.getConfig().contains("CourtSigns.Judge")){
+			double dx = this.getConfig().getDouble("CourtSigns.Prosecution.X");
+			double dy = this.getConfig().getDouble("CourtSigns.Prosecution.Y");
+			double dz = this.getConfig().getDouble("CourtSigns.Prosecution.Z");
+			
+			double Px = this.getConfig().getDouble("CourtSigns.Defendant.X");
+			double Py = this.getConfig().getDouble("CourtSigns.Defendant.Y");
+			double Pz = this.getConfig().getDouble("CourtSigns.Defendant.Z");
+			
+			double Jx = this.getConfig().getDouble("CourtSigns.Judge.X");
+			double Jy = this.getConfig().getDouble("CourtSigns.Judge.Y");
+			double Jz = this.getConfig().getDouble("CourtSigns.Judge.Z");
+			
+			Location ProSign = new Location(Bukkit.getWorld("world"), dx, dy, dz);
+			Location DefSign = new Location(Bukkit.getWorld("world"), Px, Py, Pz);
+			Location JudgeSign = new Location(Bukkit.getWorld("world"), Jx, Jy, Jz);
+			
+			BlockState ps = Bukkit.getWorld("world").getBlockAt(ProSign).getState();
+			BlockState ds = Bukkit.getWorld("world").getBlockAt(DefSign).getState();
+			BlockState js = Bukkit.getWorld("world").getBlockAt(JudgeSign).getState();
+			if(ps instanceof Sign &&  ds instanceof Sign && js instanceof Sign) {
+				Bukkit.broadcastMessage(ChatColor.RED +"in SIgns");
+				Sign pSign = (Sign) ps;
+				Sign dSign = (Sign) ds;
+				Sign jSign = (Sign) js;
+				pSign.setLine(0, ChatColor.RED + "Prosecution");
+				pSign.setLine(1, State);
+				pSign.setLine(2, "Time: " + op );
+				pSign.update();
+				
+				
+				dSign.setLine(0, ChatColor.BLUE + "Defense");
+				dSign.setLine(1, State);
+				dSign.setLine(2, "Time: " + op );
+				dSign.update();
+				
+				jSign.setLine(0, ChatColor.BOLD  + "Judge");
+				jSign.setLine(1, State);
+				jSign.setLine(2, "Time: " + op );
+				jSign.update();
+				
+				
+			}else{
+				Bukkit.broadcastMessage("Not a sign");
+			}
+			
+			}else{
+				Bukkit.broadcastMessage("no config names");
+			
+			}
+		}
+		
+	}
 }
 
 
