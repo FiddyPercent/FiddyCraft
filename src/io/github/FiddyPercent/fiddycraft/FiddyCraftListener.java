@@ -5,17 +5,19 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Jukebox;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -44,10 +46,12 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -84,7 +88,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
                 	 LivingEntity zb = (LivingEntity) damager;
                 	 if(!(zb.getCustomName() == null)){
                 	String b =  (((LivingEntity) damager).getCustomName()); 
-                	if(b.equalsIgnoreCase("Tax Collector")){
+                	if(b.equalsIgnoreCase("Tax Zombie")){
                 		
                 		if(!Attacked.containsKey(name) || Attacked.get(name) == 0){
                 			if(!Attacked.containsKey(name)){
@@ -154,7 +158,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
                						
                 				}
                 				
-//Need New ECON plugin              				
+//NEED A NEW ECON PLUGIN             				
                 			}else{
                 				double playerMoney = plugin.economy.getPlayerMoneyDouble(name);
                     			double FiddyMoney = plugin.economy.getPlayerMoneyDouble("Fiddy_percent");
@@ -191,7 +195,9 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
                 	boolean goldArmor = plugin.hasArmor(player, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
                 	boolean goldArmorAttacker = plugin.hasArmor((Player)damager, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
                 	
-                	
+                		plugin.pvpLoggers.put(player.getUniqueId(), 200);
+                		Bukkit.broadcastMessage("attacked");
+                		
                 	
                 		if(goldArmor && !plugin.getPlayerInfo().contains("Officers." + attacker.getUniqueId().toString() )){
                 			((Player) damager).sendMessage(ChatColor.YELLOW + "This player is wearing anti pvp armor");
@@ -218,7 +224,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
  				Player attacker = (Player) shooter;
  				Player shot = (Player) victim;
  				
- 				
+ 				plugin.pvpLoggers.put(shot.getUniqueId(), 200);
  				boolean goldArmor = plugin.hasArmor(shot, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
             	boolean goldArmorAttacker = plugin.hasArmor(attacker, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
             		if(goldArmor  && !plugin.getPlayerInfo().contains("Officers." + attacker.getUniqueId().toString()) ){
@@ -402,16 +408,16 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		//SLOW CONFUSION BLIDNESS					}
 				}else if(dp > 100 && dp < 149){
 					 String t = msg.replaceAll("so", "...").replaceAll("lol", "crap I peed myself").replaceAll("this", p.getName()).replaceAll("why", "I").replaceAll("no", "yes").replaceAll("yes", "no").replaceAll("help", "I will kill you").replaceAll(
-							 "ugh", "man I'm sexy").replaceAll("sucks", "rocks").replaceAll("fun", "furrn").replaceAll("bad", "I'm so alone").replaceAll("the", "thuur").replaceAll("why", "I think").replaceAll("drink", "strip club").replaceAll("hi", "get lost").replaceAll("like", "hate")
+							 "ugh", "man I'm sexy").replaceAll("sucks", "rocks").replaceAll("fun", "furrn").replaceAll("guys", "I'm so alone").replaceAll("the", "thuur").replaceAll("why", "I think").replaceAll("drink", "strip").replaceAll("come here", "get lost").replaceAll("like", "hate")
 							 .replaceAll("this", "diss").replaceAll("jk", "I'm serious");
 					 m.put(p.getUniqueId(), t);
 					 
 				}else if(dp > 150){
 		//SLOW CONFUSION BLINDNESS NIGHTVISION
 					 String t = msg.replaceAll("so", "...").replaceAll("lol", "crap I peed myself").replaceAll("this", p.getName()).replaceAll("why", "I").replaceAll("no", "yes").replaceAll("yes", "no").replaceAll("help", "I will kill you").replaceAll(
-							 "ugh", "man I'm sexy").replaceAll("sucks", "rocks").replaceAll("fun", "furrn").replaceAll("bad", "hot").replaceAll("the", "thuur").replaceAll("why", "I think").replaceAll("drink", "strip club").replaceAll("hi", "get lost").replaceAll("like", "hate")
+							 "ugh", "man I'm sexy").replaceAll("sucks", "rocks").replaceAll("fun", "furrn").replaceAll("bad", "hot").replaceAll("the", "thuur").replaceAll("why", "I think").replaceAll("drink", "strip").replaceAll("hi", "get lost").replaceAll("like", "hate")
 							 .replaceAll("this", "diss").replaceAll("jk", "I'm serious").replaceAll("-", "").replaceAll("brb", "I'm so alone").replaceAll("afk", "I want you bad").replaceAll("great", "greatsss").replaceAll("lag", "white power").replaceAll("nuns", "buns").replaceAll(
-							 "boone", "booze").replaceAll("last", "stay I like it").replaceAll("stupid", "..Who touched me").replaceAll("omg", "I think your sexy").replaceAll("wow", "amuzing").replaceAll("drink", "back rubub");
+							 "boone", "booze").replaceAll("last", "stay I like it").replaceAll("stupid", "..Who touched me").replaceAll("omg", "I think your sexy").replaceAll("wow", "amuzing").replaceAll("see", "rape");
 					 m.put(p.getUniqueId(), t);
 				}else if(dp <20){
 					String t =msg.replaceAll(" ", "  ");
@@ -425,7 +431,17 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 				}
 			}
 			
-			
+		if(plugin.TrialStart.isEmpty() == false && plugin.TrialStart.get("Trial") == true){
+		Set<Player> recip = e.getRecipients();
+							
+			for(Player r : recip){
+				if(plugin.isInRegion("CourtRoom", r.getLocation()) && !plugin.isInRegion("CourtRoom", p.getLocation())){
+						
+						
+						
+					}
+				}
+			}
 		}
 	
 
@@ -578,7 +594,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			book.setItemMeta(bm);
 			Bukkit.getWorld("world").dropItem(p.getLocation(), book);
 			
-			Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "permissions setrank " + p.getName() +  " user");
+			Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "permissions setrank " + p.getUniqueId() +  " user");
 			Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "permissions reload");
 			
 			p.setItemInHand(book);
@@ -709,6 +725,16 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	    //check if killer is a player
 	     if(p.getKiller() instanceof Player){
 	     Player killer = p.getKiller();
+//SKULL DEATH PERK	     
+	     int r =  (int) (Math.random() * 10 ); 
+	      if(r == 10 && plugin.getPlayerInfo().getInt("Players." + p.getUniqueId().toString()  + ".Murders") > 10 ){
+	    	  ItemStack skull = new ItemStack(Material.SKULL_ITEM);
+	    	  SkullMeta meta = (SkullMeta) skull.getItemMeta();
+	    	  meta.setOwner(p.getName());
+	    	  skull.setItemMeta(meta);
+	    	  Bukkit.broadcastMessage(ChatColor.DARK_RED + p.getName() + "has been beheaded!");
+	      }
+	     
 	     
 	     if((plugin.patrol.containsKey(p.getUniqueId()) && plugin.patrolOn(p) == true)){
 	    	 event.setDeathMessage(ChatColor.BLUE + "Officer Down");
@@ -721,19 +747,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	     plugin.attackedLast.remove(p.getKiller().getUniqueId());
 	     }
 	     
-	     
-	     //check if police is in patrol mode
-	   //  if(plugin.patrol.containsKey(killer.getUniqueId())){
-	   // 	 event.setDeathMessage(ChatColor.GOLD + "Suspect has been captured");
-	  //   }else if(plugin.patrol.containsKey(p.getUniqueId() && plugin.pa)){
-	  //  	 event.setDeathMessage(ChatColor.BLUE + "Officer Down!");
-	     
-	  //   }else{
-	    	 
-	     
-	   
-	  
-	     	//updating killer murder stat
+//UPDATING MURDER STAT
 	        	if(p.getKiller() instanceof Player) {
 	        		  Player killer = p.getKiller();
 	        		if(plugin.getPlayerInfo().contains("Players."+ killer.getUniqueId().toString())){
@@ -742,7 +756,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	        			plugin.getPlayerInfo().set("Players." + killer.getUniqueId().toString() + ".Murders", total);
 	        			plugin.savePlayerInfo();
 	        		}
-	        //checking if officer is down
+//CHECKING IF OFFICER IS DOWN
 	        		if(plugin.patrol.containsKey(p.getUniqueId())){
 	        			if(plugin.getPlayerInfo().contains("Officers." + p.getUniqueId().toString())){
 							int Arrests = plugin.getConfig().getInt("Officers." + p.getUniqueId().toString() + ".Deaths");
@@ -755,14 +769,11 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	        		plugin.murderTimer.put("LastMurder", 1200);
 	        		
 	        		Player[] olpys = Bukkit.getOnlinePlayers();
-	        		
-	        		
+
 	        		for(Player ps : olpys){
 	        			
-	        			String n = ps.getUniqueId().toString();
-	        			
-	        			if(plugin.getPlayerInfo().contains("Officers." + n)){
-	        				
+	        			String n = ps.getUniqueId().toString();        			
+	        			if(plugin.getPlayerInfo().contains("Officers." + n)){    				
 	        			if(plugin.isInRegion("Town", ps.getLocation()))	
 	        				ps.sendMessage(ChatColor.GOLD + "A player has been murderd report to the police station you have 1 minute use /"+ ChatColor.RED + "PoliceStation");
 	        				ps.sendMessage(ChatColor.GOLD + "If you are already ready use /" + ChatColor.RED  + "CrimeScene "+ ChatColor.GOLD + "to warp directly to the murder scene");
@@ -772,7 +783,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	        		
 	        		
 	        		
-//adding Lore to items             
+//ADDING LORE TO ITEMS             
 	                 Entity damager = p.getKiller();
 	                 if(damager instanceof Player) {
 	                	 		Player attacker = p.getKiller();
@@ -989,6 +1000,14 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	if(p.isOp()){	
 		p.setOp(false);;
 	}
+	if(plugin.getConfig().contains("pvpLoggers." + p.getUniqueId().toString())){
+		Bukkit.broadcastMessage(p.getName() + " the coward has returned weak from his own fear!");
+		 p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,2400 , 3));
+		 plugin.getConfig().set("pvpLoggers." + p.getUniqueId().toString(), null);
+		 plugin.pvpLoggers.remove(p.getUniqueId());
+		 plugin.saveConfig();
+	}
+	
 //New Players OnJoin
 if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayerInfo().contains("Players." + p.getUniqueId().toString()) == false){
 		if(plugin.getConfig().contains("Location." + "Start")){
@@ -997,7 +1016,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 			double zs =  (double) plugin.getConfig().getDouble("Location." + "Start.Z");
 			Location loc = new Location(p.getWorld(), xs,ys,zs);
 			p.teleport(loc);
-			
+			Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "permissions setrank " + p.getUniqueId() +  " default");
 		
 			String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
 			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Name", p.getName());
@@ -1052,7 +1071,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 		plugin.saveConfig();
 		//REMOVE OLD PLAYERDATA BASED ON PLAYER NAME		
 				plugin.getPlayerInfo().set("Players." + p.getName(), null);
-				plugin.saveConfig();
+				plugin.savePlayerInfo();
 				
 	}
 		
@@ -1073,7 +1092,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 		
 		// REMOVE OLD PLAYERDATA BASED ON PLAYER NAME		
 		plugin.getPlayerInfo().set("Officers." + p.getName(), null);
-		plugin.saveConfig();
+		plugin.savePlayerInfo();
 	}
 		
 		
@@ -1094,7 +1113,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 
 		// REMOVE OLD PLAYERDATA BASED ON PLAYER NAME		
 		plugin.getPlayerInfo().set("Lawyers." + p.getName(), null);
-		plugin.saveConfig();
+		plugin.savePlayerInfo();
 		
 	}
 }
@@ -1111,7 +1130,9 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 		
 			  p.sendMessage(ChatColor.GREEN + "Labor shop created");
 			}
-		}if(event.getLine(0).equalsIgnoreCase("[Juke]")){
+		}
+		
+		if(event.getLine(0).equalsIgnoreCase("[Juke]")){
 			if(p.isOp() == false){
 				event.setCancelled(true);
 				p.sendMessage(ChatColor.RED + "You cannot set up a juke sign");
@@ -1121,6 +1142,64 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 			}
 			
 		}
+		
+		if(event.getLine(0).equalsIgnoreCase("ClubJ")){
+			if(p.isOp() == false){
+				event.setCancelled(true);
+				p.sendMessage(ChatColor.RED + "You cannot set up a juke sign");
+			}else{
+				event.setLine(0, ChatColor.DARK_PURPLE + "[Club Juke]" );
+				event.setLine(1,  "Punch 2 play" );
+			}
+			
+		}
+		
+		if(event.getLine(0).equalsIgnoreCase("Pro")){
+			if(p.isOp()){
+				if(plugin.isInRegion("CourtRoom", p.getLocation())){
+				double x = event.getBlock().getLocation().getX();
+				double y = event.getBlock().getLocation().getY();
+				double z = event.getBlock().getLocation().getZ();
+				
+				plugin.getConfig().set("CourtSigns.Prosecution.X", x);
+				plugin.getConfig().set("CourtSigns.Prosecution.Y", y);
+				plugin.getConfig().set("CourtSigns.Prosecution.Z", z);
+				plugin.saveConfig();
+				event.setLine(0, "[Prosecution]");
+				
+			}
+		}
+	}	
+		if(event.getLine(0).equalsIgnoreCase("Def")){
+			if(p.isOp()){
+				if(plugin.isInRegion("CourtRoom", p.getLocation())){
+						double x = event.getBlock().getLocation().getX();
+						double y = event.getBlock().getLocation().getY();
+						double z = event.getBlock().getLocation().getZ();
+						
+						plugin.getConfig().set("CourtSigns.Defendant.X", x);
+						plugin.getConfig().set("CourtSigns.Defendant.Y", y);
+						plugin.getConfig().set("CourtSigns.Defendant.Z", z);
+						plugin.saveConfig();
+						event.setLine(0, "[Defense]");
+				}
+			}
+		}
+		if(event.getLine(0).equalsIgnoreCase("Judge")){
+			if(p.isOp()){
+				if(plugin.isInRegion("CourtRoom", p.getLocation())){
+						double x = event.getBlock().getLocation().getX();
+						double y = event.getBlock().getLocation().getY();
+						double z = event.getBlock().getLocation().getZ();
+						
+						plugin.getConfig().set("CourtSigns.Judge.X", x);
+						plugin.getConfig().set("CourtSigns.Judge.Y", y);
+						plugin.getConfig().set("CourtSigns.Judge.Z", z);
+						plugin.saveConfig();
+						event.setLine(0, "[Judge]");
+				}
+			}
+		}	
 	}
 	
 	
@@ -1253,40 +1332,73 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
         	    }else if(sign.getLine(0).contains(ChatColor.DARK_PURPLE + "[Juke]")){
         	    	int r =  (int) (Math.random() * 12 ); 
         	    	
-        	    	
+        	    	BlockState bs = p.getWorld().getBlockAt(-1479, 70, -236).getState();
+        	    			if(bs instanceof Jukebox) {	
         	    	
         	    	if(r == 1){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.GOLD_RECORD);
+        	    		((Jukebox) bs).setPlaying(Material.GOLD_RECORD);
         	    	}else if(r == 2){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.GREEN_RECORD);
+        	    		((Jukebox) bs).setPlaying(Material.GREEN_RECORD);
         	    	}else if(r == 3){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.RECORD_3);
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_3);
         	    	}else if(r == 4){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.RECORD_4);
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_4);
         	    	}else if(r == 5){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.RECORD_5);
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_5);
         	    	}else if(r == 6){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.RECORD_6);
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_6);
         	    	}else if(r == 7){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.RECORD_7);
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_7);
         	    	}else if(r == 8){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.RECORD_8);
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_8);
         	    	}else if(r == 9){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.RECORD_9);
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_9);
         	    	}else if(r == 10){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.RECORD_10);
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_10);
         	    	}else if(r == 11){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.RECORD_11);
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_11);
         	    	}else if(r == 12){
-        	    		p.playEffect(p.getLocation(), Effect.RECORD_PLAY, Material.RECORD_12);
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_12);
+        	    		}else{
+        	    			
+        	    		}
         	    	}
-
-        	    	
         	    }
-        	}	 
-        }
-    }    
-   
+        	   
+        	   if(sign.getLine(0).contains(ChatColor.DARK_PURPLE + "[Club Juke]")){
+     
+        	    	
+        	    	BlockState bs = p.getWorld().getBlockAt(-1479, 70, -236).getState();
+        	    			if(bs instanceof Jukebox) {	
+        	    	
+        	    		((Jukebox) bs).setPlaying(Material.RECORD_8);
+        	    	
+        	    			}
+        	    		}
+        	   		}
+        	   	}    
+        	}
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onQuit(PlayerQuitEvent e){
+		Player p = e.getPlayer();
+		if(!plugin.patrol.isEmpty() && plugin.patrol.containsKey(p.getUniqueId())){
+			plugin.patrol.remove(p.getUniqueId());
+		}
+		Bukkit.broadcastMessage(ChatColor.RED + p.getName());
+		if(plugin.pvpLoggers.containsKey(p.getUniqueId())){
+			Bukkit.broadcastMessage(ChatColor.RED + p.getName() + " has pvp logged!");
+			if(!plugin.getConfig().contains("pvpLoggers")){
+			plugin.getConfig().set("pvpLoggers." + p.getUniqueId().toString(), p.getName());
+			plugin.saveConfig();
+			}else{
+				plugin.getConfig().set("pvpLoggers." + p.getUniqueId().toString(), p.getName());
+				plugin.saveConfig();
+			}
+			
+			
+		}
+		
+	}
 	@EventHandler
 	public void blockPlace(BlockPlaceEvent event){
 		Player p = event.getPlayer();
