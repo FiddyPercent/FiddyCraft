@@ -149,11 +149,15 @@ commands:
       description: Fires your Defense lawyer
       usage: /FireLawyer 
       permission: 
-    EndStatment:
+    EndStatement:
       description: Ends your current Statment for Trial
-      usage: /EndStatment  
+      usage: /EndStatement  
       permission: 
     StopTrial:
       description: Stops Current Trial
       usage: /StopTrial  
+      permission: 
+    Name:
+      description: Sets the Name tag Name
+      usage: /Name <AnimalName>  
       permission: 

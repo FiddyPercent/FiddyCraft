@@ -4,8 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -19,10 +23,20 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Chicken;
+import org.bukkit.entity.Cow;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Horse;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Ocelot;
+import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Sheep;
+import org.bukkit.entity.Wolf;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.material.Mushroom;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -40,20 +54,23 @@ import cosine.boseconomy.BOSEconomy;
 public class FiddyCraft extends JavaPlugin {
 	  private  FileConfiguration PlayerInfo;
 	  private File PlayerInfoFile;
+		 private  FileConfiguration AnimalData;
+		 private File AnimalDataFile;
 	  public final FiddyCraftListener fcl = new FiddyCraftListener(this);
 	  public HashMap<String, Boolean> TrialStart = new HashMap<String, Boolean>();
 	  public HashMap<String, Boolean> TrialReady = new HashMap<String, Boolean>();
-	  public HashMap<String, Integer> openingStatmentProsecution = new HashMap<String, Integer>();
+	  public HashMap<String, Integer> openingStatementProsecution = new HashMap<String, Integer>();
 	  public HashMap<String, Integer> testimony = new HashMap<String, Integer>();
-	  public HashMap<String, Integer> closingStatmentProsecution = new HashMap<String, Integer>();
-	  public HashMap<String, Integer> closingStatmentDefense= new HashMap<String, Integer>();
+	  public HashMap<String, Integer> closingStatementProsecution = new HashMap<String, Integer>();
+	  public HashMap<String, Integer> closingStatementdefense= new HashMap<String, Integer>();
 	  public HashMap<String, Integer> evidence = new HashMap<String, Integer>();
 	  public HashMap<String, Integer> TrialTime = new HashMap<String, Integer>();
+	  public HashMap<UUID, Integer> animalProduce = new HashMap<UUID, Integer>();
 	  public HashMap<UUID, Integer> pvpLoggers = new HashMap<UUID, Integer>();
 	  public HashMap<String, String> Charge = new HashMap<String, String>();
 	  public ArrayList<String> defendant = new ArrayList<String>();
 	  public ArrayList<String> Prosecutor = new ArrayList<String>();
-	  public ArrayList<String> Defence = new ArrayList<String>();
+	  public ArrayList<String> defense = new ArrayList<String>();
 	  public ArrayList<String> Judge = new ArrayList<String>();
 	  public ArrayList<String> willLawyer = new ArrayList<String>();
 	  public ArrayList<String> Jury = new ArrayList<String>();
@@ -82,18 +99,19 @@ public class FiddyCraft extends JavaPlugin {
         saveConfig();
         savePlayerInfo();
     	this.TrialStart.clear();
-    	this.closingStatmentDefense.clear();
-    	this.closingStatmentProsecution.clear();
+    	this.closingStatementdefense.clear();
+    	this.closingStatementProsecution.clear();
     	this.evidence.clear();
     	this.defendant.clear();
     	this.Prosecutor.clear();
-    	this.Defence.clear();
+    	this.defense.clear();
     	this.Judge.clear();
     	this.Judgement.clear();
     }
     public void onEnable(){
     	loadConfig();
     	reloadPlayerInfo();
+    	reloadAnimalData();
         this.getLogger().info("FiddyCraft is Enabled");
         getServer().getPluginManager().registerEvents(new FiddyCraftListener(this), this);
         getCommand("vfname").setExecutor(new FiddyCraftCommands(this));
@@ -110,6 +128,7 @@ public class FiddyCraft extends JavaPlugin {
         getCommand("RemovePolice").setExecutor(new FiddyCraftCommands(this));
         getCommand("patrol").setExecutor(new FiddyCraftCommands(this));
         getCommand("rTest").setExecutor(new FiddyCraftCommands(this));
+        getCommand("Name").setExecutor(new FiddyCraftCommands(this));
         getCommand("setRegion2").setExecutor(new FiddyCraftCommands(this));
         getCommand("setRegion1").setExecutor(new FiddyCraftCommands(this));
         getCommand("joinJury").setExecutor(new FiddyCraftCommands(this));
@@ -129,7 +148,7 @@ public class FiddyCraft extends JavaPlugin {
         getCommand("Defend").setExecutor(new FiddyCraftCommands(this));
         getCommand("StartTrial").setExecutor(new FiddyCraftCommands(this));
         getCommand("JUDGEMENT").setExecutor(new FiddyCraftCommands(this));
-        getCommand("EndStatment").setExecutor(new FiddyCraftCommands(this));
+        getCommand("EndStatement").setExecutor(new FiddyCraftCommands(this));
         getCommand("FireLawyer").setExecutor(new FiddyCraftCommands(this));
         getCommand("StopTrial").setExecutor(new FiddyCraftCommands(this));
     	new Permission ("FiddyCraft.noob");
@@ -148,6 +167,10 @@ public class FiddyCraft extends JavaPlugin {
   			@Override
   			public void run() {
   			
+  				
+  			AnimalCoolDown();
+  				
+  				
  				if(murderTimer.isEmpty() == false){
 					int time = murderTimer.get("LastMurder");
 					int rt = time - 100;
@@ -159,7 +182,22 @@ public class FiddyCraft extends JavaPlugin {
 					
 				}
 				
- 				
+ 				if(Bukkit.getOnlinePlayers().length > 0){
+ 				 			 for (Player player : Bukkit.getOnlinePlayers()) {
+ 				 				 
+ 				 				 if(player.getItemInHand().getType() == Material.COMPASS){
+ 				 					 
+ 				 					 Material item = player.getItemInHand().getType();
+ 				 					
+ 				 				 }	 
+ 				 			if(getConfig().contains("Jailed." + player.getUniqueId().toString())){
+ 				 				String playerName = player.getName();
+ 				 				int oldSentence = sentences.containsKey(playerName) ? sentences.get(playerName): getConfig().getInt("Jailed." + player.getUniqueId().toString()) ; 
+ 				                 int newSentence = oldSentence;
+ 				                  setJailSentence(player, newSentence); 				                  
+ 				 				}
+ 				 			}
+ 						}				
  				
  				
  				if(!pvpLoggers.isEmpty()){
@@ -178,91 +216,91 @@ public class FiddyCraft extends JavaPlugin {
  					}
  				}
  				
- 				
+//OPENING Statement				
  				
 				if(!TrialStart.isEmpty() && TrialStart.get("Trial") == true){
 					
-					if(openingStatmentProsecution.containsKey("Trial")){
+					if(openingStatementProsecution.containsKey("Trial")){
 						String t = "Trial";
-						int op = openingStatmentProsecution.get("Trial");
+						int op = openingStatementProsecution.get("Trial");
 						int newop = op - 100;
-						openingStatmentProsecution.put(t, newop);
-						CourtSigns("OpeningStatment", op);
+						openingStatementProsecution.put(t, newop);
+						CourtSigns("OpeningStatement", op);
 					if(op <= 0 ){
-						if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(Defence.get(0))){
+						if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(defense.get(0))){
 							Player j = Bukkit.getPlayer(Judge.get(0));
 							Player pro = Bukkit.getPlayer(Prosecutor.get(0));
-							Player def = Bukkit.getPlayer(Defence.get(0));
+							Player def = Bukkit.getPlayer(defense.get(0));
 							j.chat(ChatColor.DARK_PURPLE +  "Now it is time to move on with the trial, Prosecution, you may now show evidence or use witness testemony in just a moment");
 							j.sendMessage(ChatColor.YELLOW + "I need to pay attention and be unbiased. Remember hard evidence is stronger than testimony.");
 							pro.sendMessage(ChatColor.YELLOW + "I have 10 minutes total to prove the defense guilty I need to make a solid case right off the bat");
 							def.sendMessage(ChatColor.YELLOW + "Now the prosecution will present evidence to win this case I have 10 minutes to get not guilty");
-							openingStatmentProsecution.clear();
+							openingStatementProsecution.clear();
 							evidence.put("Trial", 12000);
 						}
 					}
 				}
-					
-					if(closingStatmentProsecution.containsKey("Trial")){
+//CLOSING Statement					
+					if(closingStatementProsecution.containsKey("Trial")){
 						String t = "Trial";
-						int op = closingStatmentProsecution.get("Trial");
+						int op = closingStatementProsecution.get("Trial");
 						int newop = op - 100;
-						closingStatmentProsecution.put(t, newop);
-						CourtSigns("Closing Statment", op);
+						closingStatementProsecution.put(t, newop);
+						CourtSigns("Closing Statement", op);
 						if(op <= 0 ){
-							if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(Defence.get(0))){
+							if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(defense.get(0))){
 								Player j = Bukkit.getPlayer(Judge.get(0));
 								Player pro = Bukkit.getPlayer(Prosecutor.get(0));
-								Player def = Bukkit.getPlayer(Defence.get(0));
-								j.chat(ChatColor.DARK_PURPLE + "That is enough, time for the defense closing statment");
-								j.sendMessage(ChatColor.YELLOW + "Time is up for the Prosecutions closing statement, now it’s time for the Defense Attorneys final statement.");
-								pro.sendMessage(ChatColor.YELLOW + "Time is up for my closing statment the Judge will decide the verdict after the Defense Attorneys statment.");
-								def.sendMessage(ChatColor.YELLOW + "The Proseuction's closing statment is over now is your last chance to win the case.");
-								closingStatmentProsecution.clear();
-								closingStatmentDefense.put("Trial", 2400);
+								Player def = Bukkit.getPlayer(defense.get(0));
+								j.chat(ChatColor.DARK_PURPLE + "That is enough, time for the defense closing Statement");
+								j.sendMessage(ChatColor.YELLOW + "Time is up for the Prosecutions closing statement, now it’s time for the defense Attorneys final statement.");
+								pro.sendMessage(ChatColor.YELLOW + "Time is up for my closing Statement the Judge will decide the verdict after the defense Attorneys Statement.");
+								def.sendMessage(ChatColor.YELLOW + "The Proseuction's closing Statement is over now is your last chance to win the case.");
+								closingStatementProsecution.clear();
+								closingStatementdefense.put("Trial", 2400);
 							}
 						}
 					}
-					
-					if(closingStatmentDefense.containsKey("Trial")){
+//CLOSING Statement defense					
+					if(closingStatementdefense.containsKey("Trial")){
 						String t = "Trial";
-						int op = closingStatmentDefense.get("Trial");
+						int op = closingStatementdefense.get("Trial");
 						int newop = op - 100;
-						closingStatmentDefense.put(t, newop);
-						CourtSigns("Closing Statment", op);
+						closingStatementdefense.put(t, newop);
+						CourtSigns("Closing Statement", op);
 						if(op <= 0 ){
-							if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(Defence.get(0))){
+							if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(defense.get(0))){
 								Player j = Bukkit.getPlayer(Judge.get(0));
 								Player pro = Bukkit.getPlayer(Prosecutor.get(0));
-								Player def = Bukkit.getPlayer(Defence.get(0));
+								Player def = Bukkit.getPlayer(defense.get(0));
 								j.chat(ChatColor.DARK_PURPLE + "That is enough I will now decide the verdict");
 								j.sendMessage(ChatColor.YELLOW + "Both sides have been heard please give the points to the proper side and place a verdict");
-								pro.sendMessage(ChatColor.YELLOW + "Time is up for the closing statment the Judge will now decide");
+								pro.sendMessage(ChatColor.YELLOW + "Time is up for the closing Statement the Judge will now decide");
 								def.sendMessage(ChatColor.YELLOW + "This is it, time is up and the judge has the final call");
-								closingStatmentDefense.clear();
+								closingStatementdefense.clear();
 								Judgement.put(j.getName(), true);
 							}
 						}
 					}
-					
+//TRIAL HEARING					
 					if(evidence.containsKey("Trial")){
 						String t = "Trial";
 						int op = evidence.get("Trial");
 						int newop = op - 100;
 						evidence.put(t, newop);
-						Bukkit.broadcastMessage("Evidence time" + op);
+					
 						CourtSigns("Trial hearing", op);
 					if(op <= 0){
-					if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(Defence.get(0))){
+					if(isPlayer(Judge.get(0)) && isPlayer( Prosecutor.get(0)) && isPlayer(defense.get(0))){
 						Player j = Bukkit.getPlayer(Judge.get(0));
 						Player pro = Bukkit.getPlayer(Prosecutor.get(0));
-						Player def = Bukkit.getPlayer(Defence.get(0));
-						j.chat(ChatColor.DARK_PURPLE + "I have heard enough you my now start your closing statment Prosecution");
-						j.sendMessage(ChatColor.YELLOW + "Listen carefully to each statments and try to decide which one is right");
-						pro.sendMessage(ChatColor.YELLOW + "Time to show my evidence for this trial ");
-						def.sendMessage(ChatColor.YELLOW + "Rember this is the only chance you get to win you have Object, and cross examin to win");
+						Player def = Bukkit.getPlayer(defense.get(0));
+						j.chat(ChatColor.DARK_PURPLE + "I have heard enough you my now start your closing Statement Prosecution");
+						j.sendMessage(ChatColor.YELLOW + "Listen carefully to each Statements and try to decide which one is right");
+						pro.sendMessage(ChatColor.YELLOW + "Time to put everything I talked about together and win my case");
+						def.sendMessage(ChatColor.YELLOW + "Remember what the prosecutions points are and counter them when it is my turn");
 						evidence.clear();
-						closingStatmentProsecution.put("Trial", 2400);
+						closingStatementProsecution.put("Trial", 2400);
 						}
 					}
 				}
@@ -274,11 +312,8 @@ public class FiddyCraft extends JavaPlugin {
 			Player[] oplayer =	Bukkit.getOnlinePlayers();
 			
 			for(Player op : oplayer){
-				
-				
 				if(getConfig().contains("Drunk." + op.getUniqueId().toString())){
-					
-					
+									
 					int drunkPoints = getConfig().getInt("Drunk." + op.getUniqueId().toString());
 					DrunkState(drunkPoints, op  );
 					
@@ -296,6 +331,7 @@ public class FiddyCraft extends JavaPlugin {
  
   			}
   		} .runTaskTimer(this, 0, 100);
+  		
   		this.getLogger().info(ChatColor.GREEN + "Right after Runnable");
     }
 
@@ -703,7 +739,7 @@ public class FiddyCraft extends JavaPlugin {
 	
 	public void prosecutionTips(Player p){
 		p.sendMessage(ChatColor.GOLD + "#########  Tips  #########");
-		p.sendMessage(ChatColor.GOLD + "Make your statments direct and to the point you do not have alot of time.");
+		p.sendMessage(ChatColor.GOLD + "Make your Statements direct and to the point you do not have alot of time.");
 		p.sendMessage(ChatColor.GOLD + "Do not argue on flimsy he said she said stuff use hard evidence.");
 		p.sendMessage(ChatColor.GOLD + "Remember evidence speaks louder than testimony it’s is ok to remind the judge of this.");
 		p.sendMessage(ChatColor.GOLD + "If you are relying on testimony get a clear motive, location, and ability it will go a long way");
@@ -727,7 +763,7 @@ public class FiddyCraft extends JavaPlugin {
 		p.sendMessage(ChatColor.DARK_GRAY + "Let the Prosecution do the work they are the one who are to prove guilt");
 		p.sendMessage(ChatColor.DARK_GRAY + "if you are confused ask questions");
 		p.sendMessage(ChatColor.DARK_GRAY + "Use the /muteD and /muteP /muteW commands to mute prosecution, defense, or witness");
-		p.sendMessage(ChatColor.DARK_GRAY + "Only take Prosecution and Defense questions any others are null");
+		p.sendMessage(ChatColor.DARK_GRAY + "Only take Prosecution and defense questions any others are null");
 	}
 	
 	
@@ -757,7 +793,6 @@ public class FiddyCraft extends JavaPlugin {
 			BlockState ds = Bukkit.getWorld("world").getBlockAt(DefSign).getState();
 			BlockState js = Bukkit.getWorld("world").getBlockAt(JudgeSign).getState();
 			if(ps instanceof Sign &&  ds instanceof Sign && js instanceof Sign) {
-				Bukkit.broadcastMessage(ChatColor.RED +"in SIgns");
 				Sign pSign = (Sign) ps;
 				Sign dSign = (Sign) ds;
 				Sign jSign = (Sign) js;
@@ -767,7 +802,7 @@ public class FiddyCraft extends JavaPlugin {
 				pSign.update();
 				
 				
-				dSign.setLine(0, ChatColor.BLUE + "Defense");
+				dSign.setLine(0, ChatColor.BLUE + "defense");
 				dSign.setLine(1, State);
 				dSign.setLine(2, "Time: " + op );
 				dSign.update();
@@ -779,16 +814,424 @@ public class FiddyCraft extends JavaPlugin {
 				
 				
 			}else{
-				Bukkit.broadcastMessage("Not a sign");
+			
 			}
 			
 			}else{
-				Bukkit.broadcastMessage("no config names");
+			
 			
 			}
 		}
 		
 	}
-}
+	
+	public void updateStat(Player p, String Stat, String job){
+		
+	if(job == null){
+		int oldstat = this.getPlayerInfo().getInt("Players." +p.getUniqueId().toString() +"." + Stat );
+		int newstat = oldstat + 1;
+		this.getPlayerInfo().set("Players." +p.getUniqueId().toString() +"." + Stat , newstat);
+		this.savePlayerInfo();
+	}else{
+		int oldstat = this.getPlayerInfo().getInt(job +"." +p.getUniqueId().toString() + Stat );
+		int newstat = oldstat + 1;
+		this.getPlayerInfo().set(job + "." +p.getUniqueId().toString() +"."+ Stat , newstat);
+		this.savePlayerInfo();
+		}
+	}
+	
 
+	public TreeMap<String, Double> sortHashMap(HashMap<String, Double> map){
+
+       
+        ValueComparator bvc =  new ValueComparator(map);
+        TreeMap<String,Double> sorted_map = new TreeMap<String,Double>(bvc);
+
+
+        
+
+        sorted_map.putAll(map);
+
+       return sorted_map; 
+    }
+	
+	class ValueComparator implements Comparator<String> {
+
+	    Map<String, Double> base;
+	    public ValueComparator(Map<String, Double> base) {
+	        this.base = base;
+	    }
+
+	    // Note: this comparator imposes orderings that are inconsistent with equals.    
+	    public int compare(String a, String b) {
+	        if (base.get(a) >= base.get(b)) {
+	            return -1;
+	        } else {
+	            return 1;
+	        } // returning 0 would merge keys
+	    }
+	}
+	
+	public int randomNumber(int total){
+		int r =  (int) (Math.random() * total ); 
+		return r;
+	}
+	
+	public boolean isSword(ItemStack item){
+		Material wep = item.getType(); 
+		if(wep == Material.WOOD_SWORD || wep == Material.IRON_SWORD|| wep == Material.GOLD_SWORD|| wep == Material.STONE_SWORD|| wep == Material.DIAMOND_SWORD){
+			return true;
+		}else{
+		return false;
+		}
+		
+	}
+	
+	public void changeLore(ItemStack item, Player victim, Player attacker, String tag){
+		if(!(attacker.getItemInHand().getType() == Material.AIR)){
+			ItemStack weapon = attacker.getItemInHand().clone();
+                ItemMeta meta = item.getItemMeta(); 
+                ArrayList<String> Lore = new ArrayList<String>();
+              
+         if(meta.hasLore()){
+        	List<String> firstLore = meta.getLore();
+        	 
+                if(!meta.getLore().contains(attacker.getName() + "'s finger prints")){
+                	Lore.add(attacker.getName() + "'s finger prints");
+				}
+		  if(!meta.getLore().contains(victim.getName() + "'s blood")){
+      		Lore.add(victim.getName() + "'s blood");
+				}
+		 Lore.addAll(firstLore);
+		  
+         }else{
+        	
+        	 Lore.add(victim.getName() + "'s blood");
+        	 Lore.add(attacker.getName() + "'s finger prints");
+         }
+         		meta.setLore(Lore);
+         		item.setItemMeta(meta);
+         		
+                attacker.setItemInHand(item);
+			}else{
+			
+			}
+	}
+	
+	 public void reloadAnimalData() {
+	        if (AnimalDataFile == null) {
+	        	AnimalDataFile = new File(getDataFolder(), "AnimalData.yml");
+	        }
+	        AnimalData = YamlConfiguration.loadConfiguration(AnimalDataFile);
+	        InputStream defConfigStream = this.getResource("AnimalData.yml");
+	        if (defConfigStream != null) {
+	            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+	            AnimalData.setDefaults(defConfig);
+	        }
+	    }
+	    public FileConfiguration getAnimalData() {
+	        if (AnimalData == null) {
+	            this.reloadAnimalData();
+	        }
+	        return AnimalData;
+	    }
+	    
+	    public void saveAnimalData() {
+	        if (AnimalData == null || AnimalDataFile == null) {
+	        	this.reloadAnimalData();
+	     
+	        }
+	        try {
+	            getAnimalData().save(AnimalDataFile);
+	
+	        } catch (IOException ex) {
+	            this.getLogger().log(Level.SEVERE, "Could not save config to " + AnimalDataFile, ex);
+	        }
+	    }
+
+//CLAIMING A ANIMAL
+	public void claimAnimal(Player p, Entity animal, ItemMeta meta){
+		String owner = p.getUniqueId().toString();
+		String pet = animal.getUniqueId().toString();
+		Bukkit.broadcastMessage("claim animal");
+		if(!this.AnimalData.contains("Farmer." + owner)){
+			this.AnimalData.set("Farmer."+ owner + ".Name", p.getName());
+			this.saveAnimalData();
+		}
+		
+			if(this.canHaveMoreAnimals(p)){
+				Bukkit.broadcastMessage("out of can have more animals");
+		if(checkifHasOwner(pet) == false){
+			Bukkit.broadcastMessage("Claming animals");
+			this.AnimalData.set("Farmer."+ owner + "." + pet + ".Name", meta.getDisplayName());
+			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Owner", p.getName());
+			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".OwnerID", owner );
+			this.AnimalData.set("Farmer."+ owner +"." +  pet + ".HeartPoints", 0 );
+			this.AnimalData.set("Farmer."+ owner +"." +  pet + ".Hunger", true );
+			this.AnimalData.set("Farmer."+ owner + "." + pet + ".Thirst", true);
+			this.AnimalData.set("Farmer."+ owner +"." +  pet + ".Healthy", true );
+			this.AnimalData.set("Farmer."+ owner +"." +  pet + ".Brushed", false );
+			this.AnimalData.set("Farmer."+ owner +"." +  pet + ".CanProduce", true );
+			this.saveAnimalData();
+			p.sendMessage(ChatColor.BLUE + "You now own " + meta.getDisplayName() + "!");
+		}else{
+			p.sendMessage(ChatColor.RED + "This Animal is already owned.");
+		}
+		
+			}
+	}
+	
+//CHECK IF CAN DROP PRODUCE
+	public boolean canDropProduce(Player p, Entity e){
+		
+		if(this.AnimalData.contains("AnimalCoolDown") == false){
+			return true;
+		}else{
+		
+		if(this.AnimalData.contains("AnimalCoolDown." + e.getUniqueId().toString())){
+			int timeLeft = this.AnimalData.getInt("AnimalCoolDown." + e.getUniqueId().toString());
+			
+			if(timeLeft > 0){
+				LivingEntity animal = (LivingEntity) e;
+				p.sendMessage(ChatColor.YELLOW + animal.getCustomName() + " looks like it needs to rest a bit more.");
+				return false;
+			}else{
+				this.AnimalData.set("AnimalCoolDown." + e.getUniqueId().toString(), null);
+				return true;
+			}
+		}else{
+			return true;
+			}
+		}
+	}
+//CHECK IF ANIMAL HAS A OWNER
+	public boolean checkifHasOwner(String uuid){
+	//getting the list of farmers
+		if(this.getAnimalData().getString("Farmer") == null){
+			return false;
+		}else{
+		Set<String> farmList =  this.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
+	//getting the farmers animals
+		for(String l : farmList){
+			Set<String> t =  this.getAnimalData().getConfigurationSection("Farmer." + l).getKeys(false);
+			
+			if(this.getAnimalData().contains("Farmer." + l + "." + uuid)){
+				return false;
+			
+			
+			//for(String aL : t){
+				//Bukkit.broadcastMessage("Al = " + aL +" uuid = " + uuid);
+				//f(aL.equalsIgnoreCase(uuid)){	
+					//Bukkit.broadcastMessage(aL + " true " + uuid);
+					return true;				
+				}else{
+					Bukkit.broadcastMessage(aL + " false " + uuid);
+					return false;
+					
+				}
+			}
+		}
+	}
+		return false;
+}
+//CHECK IF PLAYER IS THE OWNER
+	public boolean isAnimalOwner(Player p, Entity e){
+		if(this.getAnimalData().contains("Farmer." + p.getUniqueId().toString() + "." + e.getUniqueId().toString())){
+			return true;
+		}else{
+		
+		return false;
+		}
+	}
+//PRODUCE DROPPING
+	public void DropProduce(Player p, Entity animal){
+		String owner = p.getUniqueId().toString();
+		String pet = animal.getUniqueId().toString();
+		
+		double hp = this.AnimalData.getInt("Farmer." + owner + "." +  pet + ".HeartPoints", 0 );
+	//COW
+		if(animal instanceof Cow){
+			int drop = this.randomNumber(2);
+			ItemStack milk = new ItemStack(Material.MILK_BUCKET, drop);
+			ItemMeta meta = milk.getItemMeta();
+			ArrayList<String> milkLore = new ArrayList<String>();
+			if(hp <= 3){
+				meta.setDisplayName("Small Milk");
+				milkLore.add("Low Quailty Milk");
+			}else if(hp >= 4 && hp < 6){
+				meta.setDisplayName("Medium Milk");
+				milkLore.add("Good Quality Milk");
+			}else if(hp >= 7 && hp < 9){
+				meta.setDisplayName("Large Milk");
+				milkLore.add("Great Quailty Milk");
+			}else{
+				meta.setDisplayName("Golden Milk");
+				milkLore.add("The Highest Quality Milk");
+			}
+			meta.setLore(milkLore);
+			milk.setItemMeta(meta);
+			Bukkit.getWorld("world").dropItem(animal.getLocation(), milk);
+			this.getAnimalData().set("AnimalCoolDown." + pet, 12000);
+			this.saveAnimalData();
+	//CHICKEN	
+		}else if(animal instanceof Chicken){
+			ItemStack Egg = new ItemStack(Material.EGG);
+			ItemMeta meta = Egg.getItemMeta();
+			ArrayList<String> feathers = new ArrayList<String>();
+			ArrayList<String> eggLore = new ArrayList<String>();
+			int r = this.randomNumber(3);
+			int rare = this.randomNumber(100);
+			ItemStack Feather = new ItemStack(Material.FEATHER, r);
+			ItemMeta fm = Feather.getItemMeta();
+			
+			if(rare == 100 && hp > 7){
+				fm.setDisplayName("Golden Feather");
+				feathers.add("A very rare feather that causes temporary flight");
+			}else if(rare <= 95 && rare >= 85 && hp > 5){
+				fm.setDisplayName("Grey Feather");
+				feathers.add("A rare feather that causes temporary flight");
+			}else{
+				fm.setDisplayName("Normal Feather");
+				feathers.add("A feather");
+			}
+			
+			if(hp <= 1){
+				meta.setDisplayName("Ugly Egg");
+				eggLore.add("A warped egg not very good looking");
+			}else if(hp >= 2 && hp < 5){
+				meta.setDisplayName("Normal Egg");
+				eggLore.add("A normal looking egg");
+			}else if(hp >= 5 && hp < 6){
+				meta.setDisplayName("Good Egg");
+				eggLore.add("A good sized egg");
+			}else if(hp >= 7 && hp < 9){
+				meta.setDisplayName("High Quality Egg");
+				eggLore.add("A very good quality large egg");
+			}else{
+				meta.setDisplayName("Golden Golden");
+				eggLore.add("A rare Golden Egg the highest quality of egg");
+			}
+			
+		meta.setLore(eggLore);
+		Egg.setItemMeta(meta);
+		fm.setLore(feathers);
+		Feather.setItemMeta(fm);
+		
+		Bukkit.getWorld("world").dropItem(animal.getLocation(), Egg);
+		Bukkit.getWorld("world").dropItem(animal.getLocation(), Feather);
+		this.getAnimalData().set("AnimalCoolDown." + pet, 12000);
+		this.saveAnimalData();
+	//SHEEP
+		}else if(animal instanceof Sheep){
+			
+			
+			int drops = this.randomNumber(4);
+			ItemStack wool = new ItemStack(Material.WOOL, drops);
+			ArrayList<String> woolLore = new ArrayList<String>();
+			ItemMeta meta = wool.getItemMeta();
+			if(hp <= 3){
+				meta.setDisplayName("Small Wool");
+				woolLore.add("Low Quality wool");
+			}else if(hp >= 4 && hp < 6){
+				meta.setDisplayName("Medium Wool");
+				woolLore.add("Good Quality wool");
+			}else if(hp >= 7 && hp < 9){
+				meta.setDisplayName("Large Wool");
+				woolLore.add("Great Quality wool");
+			}else{
+				meta.setDisplayName("Golden Wool");
+				woolLore.add("The Highest Quality of Wool");
+			}
+			
+			Sheep sheep = (Sheep) animal;
+			sheep.setSheared(true);
+			meta.setLore(woolLore);
+			wool.setItemMeta(meta);
+			Bukkit.getWorld("world").dropItem(animal.getLocation(), wool);
+			this.getAnimalData().set("AnimalCoolDown." + pet, 12000);
+			this.saveAnimalData();
+		}
+	}
+//ADDING HEART POINTS
+	public void addheartPoint(Entity e, Player p, double  hp){
+		String owner = p.getUniqueId().toString();
+		String pet = e.getUniqueId().toString();
+		double oldhp =	this.AnimalData.getDouble("Farmer."+ owner +"." +  pet + ".HeartPoints" );
+		double newhp = hp + oldhp;
+		double roundOff = Math.round(newhp * 100.0) / 100.0;
+		this.AnimalData.set("Farmer."+ owner +"." +  pet + ".HeartPoints", roundOff );
+		this.saveAnimalData();
+	}
+//CHECK IF IS ANIMAL
+	public boolean isAnimal(Entity e){
+		
+		if(e instanceof Cow || e instanceof Chicken || e instanceof Sheep || e instanceof Horse
+				|| e instanceof Wolf || e instanceof Ocelot ||e instanceof Pig || e instanceof Mushroom){
+			return true;
+		}else{
+			return false;
+		}
+	}
+//ANIMAL COOL DOWN
+	public void AnimalCoolDown(){
+		
+		if(!this.getAnimalData().contains("AnimalCoolDown.")){
+			this.getAnimalData().set("AnimalCoolDown.", "test");
+			this.saveAnimalData();
+		}
+		Player[] p = Bukkit.getOnlinePlayers();
+			for(Player player : p){
+			
+				if(this.getAnimalData().contains("Farmer." + player.getUniqueId().toString())){
+				String l = player.getUniqueId().toString();	
+		
+				Set<String> t =  this.getAnimalData().getConfigurationSection("Farmer." + l).getKeys(false);
+				for(String aL : t){
+					
+					if(this.getAnimalData().contains("AnimalCoolDown." + aL)){
+						int cooldown = this.getAnimalData().getInt("AnimalCoolDown." + aL);				
+						int newcooldown = cooldown - 5;
+						this.getAnimalData().set("AnimalCoolDown." + aL, newcooldown);
+						this.saveAnimalData();
+						if(newcooldown <= 0){
+							this.getAnimalData().set("AnimalCoolDown." + aL, null);
+							this.saveAnimalData();
+						}
+						
+					}
+				}
+			}
+		}
+	}
+//CHECK IF ANIMALS HAS DIED
+	public void isAnimalDead(Player p){
+		
+	}
+//CHECK ANIMAL LIMITS
+	public boolean canHaveMoreAnimals(Player p ){
+		Bukkit.broadcastMessage("in can have more animals");
+		if(this.getAnimalData().getString("Farmer") == null){
+			return true;
+		}else{
+			
+			if(!this.getAnimalData().contains("Farmer." + p.getUniqueId().toString())){
+				this.AnimalData.set("Farmer."+ p.getUniqueId().toString() + ".Name", p.getName());
+				this.saveAnimalData();
+			}
+				
+			Set<String> t =  this.getAnimalData().getConfigurationSection("Farmer." + p.getUniqueId().toString()).getKeys(false);
+			ArrayList<String> animals = new ArrayList<String>();
+			
+			for(String aL : t){
+				animals.add(aL);
+			}
+				Bukkit.broadcastMessage(animals.size() + " total");
+					if(animals.size() <= 11){
+						return true;
+					}else{
+						return false;
+			}
+		}
+	}
+}
 

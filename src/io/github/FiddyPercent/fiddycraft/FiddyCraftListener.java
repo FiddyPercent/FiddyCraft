@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -19,11 +18,14 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Jukebox;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Chicken;
+import org.bukkit.entity.Cow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Sheep;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -39,8 +41,12 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.SheepDyeWoolEvent;
+import org.bukkit.event.entity.SheepRegrowWoolEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -48,6 +54,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -61,7 +68,7 @@ import org.bukkit.scoreboard.DisplaySlot;
 public class FiddyCraftListener implements Listener{
 	
 	HashMap<UUID, ItemStack> thug = new HashMap<UUID, ItemStack>();
-	
+	public String NotOwner = ChatColor.RED + "I do not own this animal";
 	public final FiddyCraft plugin;
 	 
 	public FiddyCraftListener(FiddyCraft plugin){
@@ -191,12 +198,14 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
                 		
                 	Player attacker = (Player) damager;
                 	
+                	
 				
+                	
+                	
                 	boolean goldArmor = plugin.hasArmor(player, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
                 	boolean goldArmorAttacker = plugin.hasArmor((Player)damager, Material.GOLD_HELMET, Material.GOLD_CHESTPLATE, Material.GOLD_LEGGINGS, Material.GOLD_BOOTS);
                 	
                 		plugin.pvpLoggers.put(player.getUniqueId(), 200);
-                		Bukkit.broadcastMessage("attacked");
                 		
                 	
                 		if(goldArmor && !plugin.getPlayerInfo().contains("Officers." + attacker.getUniqueId().toString() )){
@@ -245,7 +254,86 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
             	}
  				
  			}
-	 
+//SHEAR SHEEP EVENT
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onShear(PlayerShearEntityEvent e){
+		Player p = e.getPlayer();
+	if(e.getEntity() instanceof Sheep){
+		if(plugin.isAnimalOwner(p, e.getEntity())){
+			e.setCancelled(true);
+			if(plugin.canDropProduce(p, e.getEntity())){
+			plugin.DropProduce(p, e.getEntity());
+			plugin.addheartPoint(e.getEntity(), p, .01);
+			}
+		}else{
+			e.setCancelled(true);
+			p.sendMessage(ChatColor.RED + "You do not own this sheep and cannot shear it");
+			}
+		}
+	}
+	
+	
+//STOP WOOL DIE EVENT	 
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void noDyingWool(SheepDyeWoolEvent e) {
+		e.setCancelled(true);
+	}
+
+	
+//USE OF MILK BUCKET
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void animalgoods(PlayerInteractEntityEvent e) {
+		Player p = e.getPlayer();
+//CLAMING ANIMAL
+			if ((plugin.isAnimal(e.getRightClicked()) && (p.getItemInHand()
+					.getType().equals(Material.NAME_TAG)))) {
+				ItemStack item = p.getItemInHand();
+				ItemMeta meta = item.getItemMeta();
+				
+				if(item.hasItemMeta() == false){
+					p.sendMessage(ChatColor.YELLOW + "I need to put a  name on this name tag /Name <Pick Animal Name>");
+				}else{
+					if(plugin.checkifHasOwner(e.getRightClicked().getUniqueId().toString())){
+						e.setCancelled(true);
+					}else{
+					plugin.claimAnimal(p, e.getRightClicked(), meta);
+					}
+				}
+			}
+			
+			if(plugin.isAnimal(e.getRightClicked()) && (p.getItemInHand()
+					.getType().equals(Material.BUCKET) && e.getRightClicked() instanceof Cow)){
+				
+				if(plugin.isAnimalOwner(p, e.getRightClicked())){
+				if(plugin.canDropProduce(p, e.getRightClicked())){
+					e.setCancelled(true);
+					plugin.DropProduce(p, e.getRightClicked());
+					plugin.addheartPoint(e.getRightClicked(), p, .01);
+				}else{
+					e.setCancelled(true);
+				}
+				}else{
+					e.setCancelled(true);
+					p.sendMessage(ChatColor.RED + "You do not own this animal and cannot milk it");
+				}
+				
+			}
+			
+			 if(e.getRightClicked() instanceof Chicken  &&  p.getItemInHand().getType().equals(Material.AIR)){
+				 if(plugin.isAnimalOwner(p, e.getRightClicked())){
+						if(plugin.canDropProduce(p, e.getRightClicked())){	
+					 plugin.DropProduce(p, e.getRightClicked());
+					 plugin.addheartPoint(e.getRightClicked(), p, .01);
+						}else{
+							e.setCancelled(true);
+						}
+				 }else{
+						e.setCancelled(true);
+						p.sendMessage(ChatColor.RED + "You do not own this animal and cannot gather eggs from it");
+				 }
+			 }
+	}
+	
 	@EventHandler
 	public void entityDamage(EntityDamageByEntityEvent e){
 		if(e.getEntity() instanceof Player){
@@ -338,16 +426,12 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 				plugin.saveConfig();
 			}else{
 				int d =  plugin.getConfig().getInt("Snooper." + p.getName()+ ".Dimaonds." + timeStamp);
-				Bukkit.broadcastMessage("amount d "+d);
+				
 				int newD = d + 1;
 				plugin.getConfig().set("Snooper." + p.getName()+ ".Dimaonds." + timeStamp, newD);
 				plugin.saveConfig();
 			}
-		
-			
-			
-		}
-				
+		}		
 				
 	}
 	
@@ -379,18 +463,17 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	}
 	
 	
-	@EventHandler(priority = EventPriority.HIGH)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onChat(AsyncPlayerChatEvent e){
+		
 		Player p = e.getPlayer();
-		HashMap<UUID, String> m = new HashMap<UUID, String>();
-		if(plugin.getConfig().getString("Drunk") != null){	
+		
+		if(plugin.getConfig().getString("Drunk") != null){
+			
 			if(plugin.getConfig().contains("Drunk." + p.getUniqueId().toString())){
 				String d = e.getMessage();
-				
-			
-				
 				int dp = plugin.getConfig().getInt("Drunk." + p.getUniqueId().toString());
-				
+				HashMap<UUID, String> m = new HashMap<UUID, String>();
 				m.put(p.getUniqueId(), d);
 				
 				String msg = m.get(p.getUniqueId());
@@ -405,7 +488,8 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					String t = msg.replaceAll("so", " *hick* ").replaceAll("lol", "I love my anus").replaceAll("this", p.getName()).replaceAll("why ", "I").replaceAll("its", "I'm"
 							).replaceAll("the", "thuur").replaceAll("club", "the dancy place").replaceAll("milk", "more drinks").replaceAll("no", "yes");
 					m.put(p.getUniqueId(), t);
-		//SLOW CONFUSION BLIDNESS					}
+		//SLOW CONFUSION BLIDNESS		
+					
 				}else if(dp > 100 && dp < 149){
 					 String t = msg.replaceAll("so", "...").replaceAll("lol", "crap I peed myself").replaceAll("this", p.getName()).replaceAll("why", "I").replaceAll("no", "yes").replaceAll("yes", "no").replaceAll("help", "I will kill you").replaceAll(
 							 "ugh", "man I'm sexy").replaceAll("sucks", "rocks").replaceAll("fun", "furrn").replaceAll("guys", "I'm so alone").replaceAll("the", "thuur").replaceAll("why", "I think").replaceAll("drink", "strip").replaceAll("come here", "get lost").replaceAll("like", "hate")
@@ -417,7 +501,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					 String t = msg.replaceAll("so", "...").replaceAll("lol", "crap I peed myself").replaceAll("this", p.getName()).replaceAll("why", "I").replaceAll("no", "yes").replaceAll("yes", "no").replaceAll("help", "I will kill you").replaceAll(
 							 "ugh", "man I'm sexy").replaceAll("sucks", "rocks").replaceAll("fun", "furrn").replaceAll("bad", "hot").replaceAll("the", "thuur").replaceAll("why", "I think").replaceAll("drink", "strip").replaceAll("hi", "get lost").replaceAll("like", "hate")
 							 .replaceAll("this", "diss").replaceAll("jk", "I'm serious").replaceAll("-", "").replaceAll("brb", "I'm so alone").replaceAll("afk", "I want you bad").replaceAll("great", "greatsss").replaceAll("lag", "white power").replaceAll("nuns", "buns").replaceAll(
-							 "boone", "booze").replaceAll("last", "stay I like it").replaceAll("stupid", "..Who touched me").replaceAll("omg", "I think your sexy").replaceAll("wow", "amuzing").replaceAll("see", "rape");
+							 "boone", "booze").replaceAll("funny", "getting really hot").replaceAll("stupid", "..Who touched me").replaceAll("omg", "I think your sexy").replaceAll("wow", "amuzing").replaceAll("see", "rape");
 					 m.put(p.getUniqueId(), t);
 				}else if(dp <20){
 					String t =msg.replaceAll(" ", "  ");
@@ -428,18 +512,6 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			
 				e.setMessage(m.get(p.getUniqueId()));
 			
-				}
-			}
-			
-		if(plugin.TrialStart.isEmpty() == false && plugin.TrialStart.get("Trial") == true){
-		Set<Player> recip = e.getRecipients();
-							
-			for(Player r : recip){
-				if(plugin.isInRegion("CourtRoom", r.getLocation()) && !plugin.isInRegion("CourtRoom", p.getLocation())){
-						
-						
-						
-					}
 				}
 			}
 		}
@@ -726,14 +798,18 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	     if(p.getKiller() instanceof Player){
 	     Player killer = p.getKiller();
 //SKULL DEATH PERK	     
-	     int r =  (int) (Math.random() * 10 ); 
-	      if(r == 10 && plugin.getPlayerInfo().getInt("Players." + p.getUniqueId().toString()  + ".Murders") > 10 ){
+	     int kills = plugin.getPlayerInfo().getInt("Players." + killer.getUniqueId().toString()  + ".Murders");
+	     int r = (int) (Math.random() * 10 ); 
+	      if(r == 10 && kills > 10 ){
 	    	  ItemStack skull = new ItemStack(Material.SKULL_ITEM);
 	    	  SkullMeta meta = (SkullMeta) skull.getItemMeta();
 	    	  meta.setOwner(p.getName());
 	    	  skull.setItemMeta(meta);
+	    	  Bukkit.getWorld("world").dropItem(killer.getLocation(), skull);
 	    	  Bukkit.broadcastMessage(ChatColor.DARK_RED + p.getName() + "has been beheaded!");
 	      }
+	      
+	    
 	     
 	     
 	     if((plugin.patrol.containsKey(p.getUniqueId()) && plugin.patrolOn(p) == true)){
@@ -987,7 +1063,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 							plugin.saveConfig();
 						}else{
 							p.sendMessage(ChatColor.YELLOW + "Maybe I should take this when I'm actually drunk");
-						}
+					}
 				}
 			}
 		}
@@ -1112,7 +1188,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 		plugin.savePlayerInfo();
 
 		// REMOVE OLD PLAYERDATA BASED ON PLAYER NAME		
-		plugin.getPlayerInfo().set("Lawyers." + p.getName(), null);
+		plugin.getPlayerInfo().set("Lawyer." + p.getName(), null);
 		plugin.savePlayerInfo();
 		
 	}
@@ -1216,10 +1292,26 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 				}
 			}
 		}
+		
+		if(event.getSpawnReason() == SpawnReason.EGG || event.getSpawnReason() == SpawnReason.BREEDING){
+			
+			event.setCancelled(true);
+		}
 	}
 
 
-	
+	@EventHandler
+	public void commands(PlayerCommandPreprocessEvent e){
+		Player p = e.getPlayer();
+		if(p.isOp()){
+			if(p.getName().equalsIgnoreCase("secretfish98") || p.getName().equalsIgnoreCase("linkstheman12")){
+			String timeStamp = new SimpleDateFormat("MM/dd HH:mm").format(Calendar.getInstance().getTime());
+			String m = e.getMessage();
+			plugin.getConfig().set("Snooper.Commands", p.getName() + ". Command" + m +".timeStamp." + timeStamp );
+			plugin.saveConfig();
+			}
+		}
+	}
     
 	@EventHandler
     public void rightClicks(PlayerInteractEvent e){
@@ -1323,9 +1415,10 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
         	     
         	        			 plugin.saveConfig();
         	        			 plugin.reloadConfig();
-        	        			 
+        	        			
         	     				 FiddyCraft.getScoreboard(p).clearSlot(DisplaySlot.SIDEBAR);
         	     				 FiddyCraft.boards.remove(p.getName());
+        	     				 
         	        		 } 
         	        	 }
         	   		}
@@ -1376,15 +1469,30 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
         	    			}
         	    		}
         	   		}
-        	   	}    
+        	   	}
+        if(  e.getAction() == Action.RIGHT_CLICK_BLOCK ){
+        	if(e.getClickedBlock().getType() == Material.ANVIL){
+        		if(p.getName().equalsIgnoreCase("xxBooneXX") || p.getName().equalsIgnoreCase("nuns") ||  p.getName().equalsIgnoreCase("Fiddy_Percent")){
+        		p.sendMessage(ChatColor.YELLOW + "Remember this cannot be used in normal play just mod stuff");
+        		}else{
+        		p.sendMessage(ChatColor.YELLOW + "Hmm I cant use this anymore");
+        		e.setCancelled(true);
+        		}
         	}
+        }
+        
+        
+        	}
+	
+	
+
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onQuit(PlayerQuitEvent e){
 		Player p = e.getPlayer();
 		if(!plugin.patrol.isEmpty() && plugin.patrol.containsKey(p.getUniqueId())){
 			plugin.patrol.remove(p.getUniqueId());
 		}
-		Bukkit.broadcastMessage(ChatColor.RED + p.getName());
+		
 		if(plugin.pvpLoggers.containsKey(p.getUniqueId())){
 			Bukkit.broadcastMessage(ChatColor.RED + p.getName() + " has pvp logged!");
 			if(!plugin.getConfig().contains("pvpLoggers")){
@@ -1411,5 +1519,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 			}
 		}
 	}
+	
+	
 }
 
