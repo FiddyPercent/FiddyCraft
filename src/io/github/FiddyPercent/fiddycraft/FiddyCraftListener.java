@@ -841,8 +841,12 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	}
 	@EventHandler
 	public void crafting(PrepareItemCraftEvent e){
+		Player p = (Player)e.getViewers().get(0);
 		ItemStack[] items = e.getInventory().getContents();
 		ItemStack result = e.getRecipe().getResult();
+		ArrayList<Boolean> trueOnce = new ArrayList<Boolean>();
+		HashMap<String,ArrayList<String>> playerCraft = new HashMap<String,ArrayList<String>>();
+		ArrayList<String> displayName = new ArrayList<String>();
 		Bukkit.broadcastMessage("Crafting Event");
 		if(result.hasItemMeta()){
 			Bukkit.broadcastMessage("Has Meta");
@@ -851,20 +855,24 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			ItemMeta rmeta = result.getItemMeta();
 			if(rmeta.hasDisplayName()){
 				Bukkit.broadcastMessage("Checking Name");
-				if(rmeta.getDisplayName().equalsIgnoreCase(plugin.getRecipeNames())){
+				if(plugin.isRecipe(rmeta.getDisplayName())){
+					Bukkit.broadcastMessage("name match");
 					for(ItemStack i : items){
 						if(i.hasItemMeta()){
 							if(i.getItemMeta().hasDisplayName()){
-								ArrayList<String> displayName = new ArrayList<String>();
-								if(displayName.isEmpty()){
-									displayName.add(rmeta.getDisplayName());
-								}
 								displayName.add(i.getItemMeta().getDisplayName());
+							
+							playerCraft.put(p.getName(), displayName);
+							if(displayName.contains(rmeta.getDisplayName())){
+								displayName.remove(rmeta.getDisplayName());
 							}
-							
-							if(plugin.hasIngredents(displayName))
-							
-							
+							if(plugin.hasIngredents(playerCraft, rmeta.getDisplayName(), p.getName()) == false && trueOnce.isEmpty()){
+								 ItemStack failedDish = new ItemStack(Material.DIRT);
+								 Bukkit.broadcastMessage(ChatColor.RED + "Failed DISH " + trueOnce.isEmpty() );
+								 e.getInventory().setItem(0,failedDish);
+							}else{
+								trueOnce.add(true);
+								 Bukkit.broadcastMessage(ChatColor.GREEN + " DISH");
 							if(i.getItemMeta().hasLore()){
 								Bukkit.broadcastMessage("has Lore");
 								Bukkit.broadcastMessage("size " + ChatColor.RED + i.getItemMeta().getLore().size());
@@ -890,6 +898,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 										 Bukkit.broadcastMessage("fr not emty");
 									 foodRank.put(rmeta.getDisplayName(), newlevel);
 									 }
+									 
 									 int totalItems = foodTotal.get(rmeta.getDisplayName());
 									 Bukkit.broadcastMessage("item Length " + items.length);
 									 
@@ -905,9 +914,9 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 									 newitem.setItemMeta(nimeta);
 									 e.getInventory().setItem(0, newitem);
 									 
-									 Bukkit.broadcastMessage("end");
-									
-									 
+									 Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + "end");
+										}
+									}	
 								}
 							}
 						}else{
@@ -930,17 +939,38 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 									 int newlevel = oldLevel + rlevel;
 									 Bukkit.broadcastMessage("fr not emty");
 								 foodRank.put(rmeta.getDisplayName(), newlevel);
-								 }
+							if(trueOnce.contains(true)){
+								
+							
+								 int totalItems = foodTotal.get(rmeta.getDisplayName());
+								 Bukkit.broadcastMessage("item Length " + items.length);
+								 
+								 int newrank = (int) foodRank.get(rmeta.getDisplayName()) / totalItems;
+								 String rankStar = plugin.setCookingRank(newrank);
+								 ArrayList<String> Lore = new ArrayList<String>();
+								 ItemStack newitem = new ItemStack(result.getType());
+								 ItemMeta nimeta = newitem.getItemMeta();
+								 Lore.add(rmeta.getLore().get(0));
+								 Lore.add(rankStar);
+								 nimeta.setDisplayName(rmeta.getDisplayName());
+								 nimeta.setLore(Lore);
+								 newitem.setItemMeta(nimeta);
+								 e.getInventory().setItem(0, newitem);
+								 
+								 Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + "end");
+							}else{
+								 ItemStack failedDish = new ItemStack(Material.DIRT);
+								 Bukkit.broadcastMessage(ChatColor.RED + "Failed DISH " + trueOnce.isEmpty() );
+								 e.getInventory().setItem(0,failedDish);
 							}
 						}
 					}
 				}
 			}
 		}
-		
-		
 	}
-	
+}
+	}
 	@SuppressWarnings("unused")
 	@EventHandler
 	public void PlayerDeath(PlayerDeathEvent event){

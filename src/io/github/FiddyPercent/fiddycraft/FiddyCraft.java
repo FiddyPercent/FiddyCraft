@@ -1558,48 +1558,44 @@ public class FiddyCraft extends JavaPlugin {
 		public void  Recipes(){
 	        this.dehydratedMeat();
 	        this.MushroomSoup();
+	        this.hotMilk();
+	        this.boiledEgg();
 		}
 //COOKING RECIPE NAMES
-		public String getRecipeNames(){
+		public boolean isRecipe(String Resultname){
 			ArrayList<String> recipeNames = new ArrayList<String>();
 			recipeNames.add("Broth Powder");
 			recipeNames.add("Boiled Egg");
 			recipeNames.add("Mushroom Soup");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
-			recipeNames.add("this");
 			
-			String names = recipeNames.iterator().toString();
-			
-			
-			return names;
+			if(recipeNames.contains(Resultname)){
+				return true;
+			}else{
+				return false;
+			}
 		}
-		
-		public boolean hasIngredents(ArrayList<String> dn){
+//CHECK INGREDENTS
+		public boolean hasIngredents(HashMap<String,ArrayList<String>> dn, String itemName, String name){
 			ArrayList<String> foodlist = new ArrayList<String>();
-			String fn = foodName;
-			
+			ArrayList<String> itemlist = dn.get(name);
+			String fn = itemName;
+			Bukkit.broadcastMessage("inside hasIngredents");
 		if(fn.equalsIgnoreCase("Mushroom Soup")){
-			foodlist.add("Broth powder");
-			foodlist.add("Brown Mushroom");
+			Bukkit.broadcastMessage("mushroomSoup");
+			foodlist.add("Broth Powder");
+			Bukkit.broadcastMessage(ChatColor.GREEN + "item list" + itemlist.toString());
+			Bukkit.broadcastMessage(ChatColor.DARK_AQUA +"food list" + foodlist.toString());
+			if(itemlist.containsAll(foodlist)){
+				Bukkit.broadcastMessage("true");
+				return true;
+			}else{
+				Bukkit.broadcastMessage("false");
+				return false;
+			}
+			
 			}
 		
-		if(fn.equalsIgnoreCase(something)){
+		if(fn.equalsIgnoreCase("something")){
 			foodlist.add("this");
 			foodlist.add("this");
 			foodlist.add("this");
@@ -1641,14 +1637,14 @@ public class FiddyCraft extends JavaPlugin {
 	}
 	
 	public void  hotMilk(){
-		ItemStack BoiledEgg = new ItemStack(Material.MILK_BUCKET);
-		ItemMeta meta = BoiledEgg.getItemMeta();
+		ItemStack HotMilk = new ItemStack(Material.MILK_BUCKET);
+		ItemMeta meta = HotMilk.getItemMeta();
 		ArrayList<String> Lore = new ArrayList<String>();
-		meta.setDisplayName("Boiled Egg");
-		Lore.add("An egg boiled in water");
+		meta.setDisplayName("Hot Milk");
+		Lore.add("Milk that has been heated");
 		meta.setLore(Lore);
-		BoiledEgg.setItemMeta(meta);
-		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(BoiledEgg), Material.EGG));
+		HotMilk.setItemMeta(meta);
+		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(HotMilk), Material.MILK_BUCKET));
 	}
 	
 //BROTH POWDER
