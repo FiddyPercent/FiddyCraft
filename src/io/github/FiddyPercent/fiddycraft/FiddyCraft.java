@@ -15,6 +15,7 @@ import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -33,7 +34,9 @@ import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Sheep;
 import org.bukkit.entity.Wolf;
+import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.material.Mushroom;
@@ -54,8 +57,8 @@ import cosine.boseconomy.BOSEconomy;
 public class FiddyCraft extends JavaPlugin {
 	  private  FileConfiguration PlayerInfo;
 	  private File PlayerInfoFile;
-		 private  FileConfiguration AnimalData;
-		 private File AnimalDataFile;
+	  private  FileConfiguration AnimalData;
+	  private File AnimalDataFile;
 	  public final FiddyCraftListener fcl = new FiddyCraftListener(this);
 	  public HashMap<String, Boolean> TrialStart = new HashMap<String, Boolean>();
 	  public HashMap<String, Boolean> TrialReady = new HashMap<String, Boolean>();
@@ -89,6 +92,7 @@ public class FiddyCraft extends JavaPlugin {
 	  private static HashMap<String, Integer> sentences = new HashMap<String, Integer>();
 	  private static final String OBJ_FORMAT = "§a%s";
 	  private static final String SCORE_NAME = "§bLabor";
+	  public HashMap<String, Boolean> newday = new HashMap<String, Boolean>();
 	  FcPerm fp = new FcPerm(this);
 	 
 	  BOSEconomy economy = null;
@@ -112,6 +116,7 @@ public class FiddyCraft extends JavaPlugin {
     	loadConfig();
     	reloadPlayerInfo();
     	reloadAnimalData();
+    	this.Recipes();
         this.getLogger().info("FiddyCraft is Enabled");
         getServer().getPluginManager().registerEvents(new FiddyCraftListener(this), this);
         getCommand("vfname").setExecutor(new FiddyCraftCommands(this));
@@ -169,8 +174,13 @@ public class FiddyCraft extends JavaPlugin {
   			
   				
   			AnimalCoolDown();
-  				
-  				
+  			newDay();
+  			
+  			if(newday.isEmpty() == false){
+  			if(Bukkit.getWorld("world").getTime() < 1000){
+  				newday.clear();
+  			}
+  		}
  				if(murderTimer.isEmpty() == false){
 					int time = murderTimer.get("LastMurder");
 					int rt = time - 100;
@@ -187,7 +197,7 @@ public class FiddyCraft extends JavaPlugin {
  				 				 
  				 				 if(player.getItemInHand().getType() == Material.COMPASS){
  				 					 
- 				 					 Material item = player.getItemInHand().getType();
+ 				 					// Material item = player.getItemInHand().getType();
  				 					
  				 				 }	 
  				 			if(getConfig().contains("Jailed." + player.getUniqueId().toString())){
@@ -889,7 +899,7 @@ public class FiddyCraft extends JavaPlugin {
 	
 	public void changeLore(ItemStack item, Player victim, Player attacker, String tag){
 		if(!(attacker.getItemInHand().getType() == Material.AIR)){
-			ItemStack weapon = attacker.getItemInHand().clone();
+			
                 ItemMeta meta = item.getItemMeta(); 
                 ArrayList<String> Lore = new ArrayList<String>();
               
@@ -953,45 +963,42 @@ public class FiddyCraft extends JavaPlugin {
 	public void claimAnimal(Player p, Entity animal, ItemMeta meta){
 		String owner = p.getUniqueId().toString();
 		String pet = animal.getUniqueId().toString();
-		Bukkit.broadcastMessage("claim animal");
 		if(!this.AnimalData.contains("Farmer." + owner)){
 			this.AnimalData.set("Farmer."+ owner + ".Name", p.getName());
 			this.saveAnimalData();
 		}
 		
 			if(this.canHaveMoreAnimals(p)){
-				Bukkit.broadcastMessage("out of can have more animals");
-		if(checkifHasOwner(pet) == false){
-			Bukkit.broadcastMessage("Claming animals");
-			this.AnimalData.set("Farmer."+ owner + "." + pet + ".Name", meta.getDisplayName());
+			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Name", meta.getDisplayName());
 			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Owner", p.getName());
 			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".OwnerID", owner );
-			this.AnimalData.set("Farmer."+ owner +"." +  pet + ".HeartPoints", 0 );
-			this.AnimalData.set("Farmer."+ owner +"." +  pet + ".Hunger", true );
-			this.AnimalData.set("Farmer."+ owner + "." + pet + ".Thirst", true);
-			this.AnimalData.set("Farmer."+ owner +"." +  pet + ".Healthy", true );
-			this.AnimalData.set("Farmer."+ owner +"." +  pet + ".Brushed", false );
-			this.AnimalData.set("Farmer."+ owner +"." +  pet + ".CanProduce", true );
+			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".HeartPoints", 0 );
+			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Hunger", true );
+			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Thirst", true);
+			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Healthy", true );
+			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Brushed", false );
+			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".isPet", true );
 			this.saveAnimalData();
 			p.sendMessage(ChatColor.BLUE + "You now own " + meta.getDisplayName() + "!");
-		}else{
-			p.sendMessage(ChatColor.RED + "This Animal is already owned.");
-		}
 		
+		
+		
+			}else{
+				p.sendMessage(ChatColor.RED + "You Have to many animals you cannot claim anymore");
 			}
 	}
 	
 //CHECK IF CAN DROP PRODUCE
 	public boolean canDropProduce(Player p, Entity e){
 		
-		if(this.AnimalData.contains("AnimalCoolDown") == false){
+		if(!this.AnimalData.contains("AnimalCoolDown")){
 			return true;
 		}else{
 		
 		if(this.AnimalData.contains("AnimalCoolDown." + e.getUniqueId().toString())){
 			int timeLeft = this.AnimalData.getInt("AnimalCoolDown." + e.getUniqueId().toString());
 			
-			if(timeLeft > 0){
+			if(timeLeft > 10){
 				LivingEntity animal = (LivingEntity) e;
 				p.sendMessage(ChatColor.YELLOW + animal.getCustomName() + " looks like it needs to rest a bit more.");
 				return false;
@@ -1007,7 +1014,8 @@ public class FiddyCraft extends JavaPlugin {
 //CHECK IF ANIMAL HAS A OWNER
 	public boolean checkifHasOwner(String uuid){
 	//getting the list of farmers
-		if(this.getAnimalData().getString("Farmer") == null){
+		ArrayList<String> allAnimals = new ArrayList<String>();
+		if(!this.getAnimalData().contains("Farmer")){
 			return false;
 		}else{
 		Set<String> farmList =  this.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
@@ -1015,24 +1023,18 @@ public class FiddyCraft extends JavaPlugin {
 		for(String l : farmList){
 			Set<String> t =  this.getAnimalData().getConfigurationSection("Farmer." + l).getKeys(false);
 			
-			if(this.getAnimalData().contains("Farmer." + l + "." + uuid)){
-				return false;
-			
-			
-			//for(String aL : t){
-				//Bukkit.broadcastMessage("Al = " + aL +" uuid = " + uuid);
-				//f(aL.equalsIgnoreCase(uuid)){	
-					//Bukkit.broadcastMessage(aL + " true " + uuid);
-					return true;				
-				}else{
-					Bukkit.broadcastMessage(aL + " false " + uuid);
-					return false;
-					
-				}
+			for(String FarmAnimals : t){
+				allAnimals.add(FarmAnimals);
 			}
 		}
+		if(allAnimals.contains(uuid)){
+	
+			return true;
+		}else{
+			
+			return false;
+		}
 	}
-		return false;
 }
 //CHECK IF PLAYER IS THE OWNER
 	public boolean isAnimalOwner(Player p, Entity e){
@@ -1047,8 +1049,7 @@ public class FiddyCraft extends JavaPlugin {
 	public void DropProduce(Player p, Entity animal){
 		String owner = p.getUniqueId().toString();
 		String pet = animal.getUniqueId().toString();
-		
-		double hp = this.AnimalData.getInt("Farmer." + owner + "." +  pet + ".HeartPoints", 0 );
+		double hp = this.AnimalData.getInt("Farmer." + owner + "." +  pet + ".HeartPoints" );
 	//COW
 		if(animal instanceof Cow){
 			int drop = this.randomNumber(2);
@@ -1058,20 +1059,24 @@ public class FiddyCraft extends JavaPlugin {
 			if(hp <= 3){
 				meta.setDisplayName("Small Milk");
 				milkLore.add("Low Quailty Milk");
+				milkLore.add("*");
 			}else if(hp >= 4 && hp < 6){
 				meta.setDisplayName("Medium Milk");
 				milkLore.add("Good Quality Milk");
+				milkLore.add("**");
 			}else if(hp >= 7 && hp < 9){
 				meta.setDisplayName("Large Milk");
 				milkLore.add("Great Quailty Milk");
+				milkLore.add("***");
 			}else{
 				meta.setDisplayName("Golden Milk");
 				milkLore.add("The Highest Quality Milk");
+				milkLore.add("****");;
 			}
 			meta.setLore(milkLore);
 			milk.setItemMeta(meta);
 			Bukkit.getWorld("world").dropItem(animal.getLocation(), milk);
-			this.getAnimalData().set("AnimalCoolDown." + pet, 12000);
+			this.getAnimalData().set("AnimalCoolDown." + pet, 6000);
 			this.saveAnimalData();
 	//CHICKEN	
 		}else if(animal instanceof Chicken){
@@ -1098,18 +1103,23 @@ public class FiddyCraft extends JavaPlugin {
 			if(hp <= 1){
 				meta.setDisplayName("Ugly Egg");
 				eggLore.add("A warped egg not very good looking");
+				eggLore.add("");
 			}else if(hp >= 2 && hp < 5){
 				meta.setDisplayName("Normal Egg");
 				eggLore.add("A normal looking egg");
+				eggLore.add("*");
 			}else if(hp >= 5 && hp < 6){
 				meta.setDisplayName("Good Egg");
 				eggLore.add("A good sized egg");
+				eggLore.add("**");
 			}else if(hp >= 7 && hp < 9){
 				meta.setDisplayName("High Quality Egg");
 				eggLore.add("A very good quality large egg");
+				eggLore.add("***");
 			}else{
 				meta.setDisplayName("Golden Golden");
 				eggLore.add("A rare Golden Egg the highest quality of egg");
+				eggLore.add("****");
 			}
 			
 		meta.setLore(eggLore);
@@ -1119,7 +1129,7 @@ public class FiddyCraft extends JavaPlugin {
 		
 		Bukkit.getWorld("world").dropItem(animal.getLocation(), Egg);
 		Bukkit.getWorld("world").dropItem(animal.getLocation(), Feather);
-		this.getAnimalData().set("AnimalCoolDown." + pet, 12000);
+		this.getAnimalData().set("AnimalCoolDown." + pet, 6000);
 		this.saveAnimalData();
 	//SHEEP
 		}else if(animal instanceof Sheep){
@@ -1148,7 +1158,7 @@ public class FiddyCraft extends JavaPlugin {
 			meta.setLore(woolLore);
 			wool.setItemMeta(meta);
 			Bukkit.getWorld("world").dropItem(animal.getLocation(), wool);
-			this.getAnimalData().set("AnimalCoolDown." + pet, 12000);
+			this.getAnimalData().set("AnimalCoolDown." + pet, 6000);
 			this.saveAnimalData();
 		}
 	}
@@ -1175,8 +1185,8 @@ public class FiddyCraft extends JavaPlugin {
 //ANIMAL COOL DOWN
 	public void AnimalCoolDown(){
 		
-		if(!this.getAnimalData().contains("AnimalCoolDown.")){
-			this.getAnimalData().set("AnimalCoolDown.", "test");
+		if(!this.getAnimalData().contains("AnimalCoolDown")){
+			this.getAnimalData().set("AnimalCoolDown", "test");
 			this.saveAnimalData();
 		}
 		Player[] p = Bukkit.getOnlinePlayers();
@@ -1203,29 +1213,44 @@ public class FiddyCraft extends JavaPlugin {
 			}
 		}
 	}
-//CHECK IF ANIMALS HAS DIED
-	public void isAnimalDead(Player p){
-		
-	}
+	public void removeAnimal(Entity e){
+				Set<String> farmers =  this.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
+				for(String farmer : farmers){
+					Set<String> farmeranimals =  this.getAnimalData().getConfigurationSection("Farmer." + farmer).getKeys(false);
+					
+					for(String farmanimal : farmeranimals){
+						if(farmanimal.equalsIgnoreCase(e.getUniqueId().toString())){
+							LivingEntity le = (LivingEntity) e;
+							this.getAnimalData().set("Farmer." + farmer +"."+ farmanimal, null);
+							Player[] p = Bukkit.getOnlinePlayers();
+							for(Player online : p){
+							if(online.getUniqueId().toString().equalsIgnoreCase(farmer)){
+							online.sendMessage(ChatColor.GRAY + "Your " + e.getType().toString() +  " " + le.getCustomName() + " has " + ChatColor.DARK_RED + "died.");
+							}
+							}
+							if(this.getAnimalData().contains("AnimalCoolDown." + farmanimal)){
+								this.getAnimalData().set("AnimalCoolDown." + farmanimal, null );
+							}
+							this.saveAnimalData();
+							}
+						}
+					}
+				}
+
 //CHECK ANIMAL LIMITS
 	public boolean canHaveMoreAnimals(Player p ){
-		Bukkit.broadcastMessage("in can have more animals");
 		if(this.getAnimalData().getString("Farmer") == null){
 			return true;
 		}else{
-			
 			if(!this.getAnimalData().contains("Farmer." + p.getUniqueId().toString())){
 				this.AnimalData.set("Farmer."+ p.getUniqueId().toString() + ".Name", p.getName());
 				this.saveAnimalData();
 			}
-				
 			Set<String> t =  this.getAnimalData().getConfigurationSection("Farmer." + p.getUniqueId().toString()).getKeys(false);
 			ArrayList<String> animals = new ArrayList<String>();
-			
 			for(String aL : t){
 				animals.add(aL);
 			}
-				Bukkit.broadcastMessage(animals.size() + " total");
 					if(animals.size() <= 11){
 						return true;
 					}else{
@@ -1233,5 +1258,443 @@ public class FiddyCraft extends JavaPlugin {
 			}
 		}
 	}
-}
 
+	public boolean getanimalHunger(String uuid, String auuid){
+		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".Hunger");
+	}
+	
+	public void setanimalHunger(String uuid, String auuid, boolean b){
+		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".Hunger", b);
+		 this.saveAnimalData();
+	}
+	
+	public boolean getanimalThirst(String uuid, String auuid){
+		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".Thirst");
+	}
+	
+	public void setanimalThirst(String uuid, String auuid, boolean b){
+		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".Thirst", b);
+		 this.saveAnimalData();
+	}
+	
+	public double getanimalHeartPoints(String uuid, String auuid){
+		return this.AnimalData.getDouble("Farmer."+ uuid + "." +  auuid + ".HeartPoints");
+	}
+	
+	public void setanimalHeartPoints(String uuid, String auuid, Double d){
+		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".HeartPoints", d);
+		 this.saveAnimalData();
+	}
+	
+	public boolean isanimalWashed(String uuid, String auuid){
+		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".Brushed");
+	}
+	
+	public void setanimalWashed(String uuid, String auuid, Boolean b){
+		this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".Brushed", b);
+		this.saveAnimalData();
+	}
+	public boolean isanimalHealthy(String uuid, String auuid){
+		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".Healthy");
+	}
+	
+	public void setanimalHealth(String uuid, String auuid, Boolean b){
+		this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".Healthy", b);
+		this.saveAnimalData();
+	}
+	public String getanimalName(String uuid, String auuid){
+		return this.AnimalData.getString("Farmer."+ uuid + "." +  auuid + ".Name");
+	}
+	
+	public void setanimalName(String uuid, String auuid, String name){
+		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".Name", name);
+		 this.saveAnimalData();
+	}
+	public String getanimalOwner(String auuid){
+		Set<String> farmers = this.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
+		for(String farmer : farmers){
+			if(this.getAnimalData().contains("Farmer." + farmer +"." + auuid)){
+				return this.AnimalData.getString("Farmer."+ farmer + "." +  auuid + ".Owner");
+			}else{
+				return "Unknown";
+			}
+				
+		}
+		return "Unknown";
+		
+	}
+	
+	public String getanimalOwnerID(String auuid){
+		Set<String> farmers = this.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
+		for(String farmer : farmers){
+			if(this.getAnimalData().contains("Farmer." + farmer +"." + auuid)){
+				return this.AnimalData.getString("Farmer."+ farmer + "." +  auuid + ".OwnerID");
+			}else{
+				return "Unknown";
+			}
+				
+		}
+		return "Unknown";
+		
+	}
+	public boolean isanimalAbletobePet(String uuid, String auuid){
+		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".isPet");
+	}
+	
+	public void setanimalAbletobePet(String uuid, String auuid, Boolean b){
+		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".isPet", b);
+		 this.saveAnimalData();
+	}
+	public void playAnimalSound(Entity e, Player p){
+		String type = e.getType().toString();
+		Location loc = p.getLocation();
+		if(type.equalsIgnoreCase("Cow")){
+			Bukkit.getWorld("world").playSound(loc, Sound.COW_IDLE, 0, 1);
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}else if(type.equalsIgnoreCase("Sheep")){
+			Bukkit.getWorld("world").playSound(loc, Sound.SHEEP_IDLE, 0, 1);
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}else if(type.equalsIgnoreCase("Pig")){
+			Bukkit.getWorld("world").playSound(loc, Sound.PIG_IDLE, 0, 1);
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}else if(type.equalsIgnoreCase("chicken")){
+			Bukkit.getWorld("world").playSound(loc, Sound.CHICKEN_IDLE, 0, 1);
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}else if(type.equalsIgnoreCase("Horse")){
+			Bukkit.getWorld("world").playSound(loc, Sound.HORSE_BREATHE, 0, 1);
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}else if(type.equalsIgnoreCase("Wolf")){
+			Bukkit.getWorld("world").playSound(loc, Sound.WOLF_BARK, 0, 1);
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}
+		
+	}
+	
+	public String getAllFarmAnimals(){
+		Player[] p = Bukkit.getOnlinePlayers();
+		for(Player player : p){
+		
+			if(this.getAnimalData().contains("Farmer." + player.getUniqueId().toString())){
+			String farmer = player.getUniqueId().toString();	
+	
+			Set<String> animals =  this.getAnimalData().getConfigurationSection("Farmer." + farmer).getKeys(false);
+			for(String animal : animals){
+		
+		return animal;
+				}
+			}else{
+				return null;
+				}
+			}
+		return null;
+	}
+	
+	public boolean animalFood(Entity e, Material item){
+		
+		if(e instanceof Cow || e instanceof Horse || e instanceof Pig || e instanceof Sheep ){
+			if(item == Material.HAY_BLOCK){
+				return true;
+			}else{
+				return false;
+			}
+		}else if(e instanceof Chicken){
+			if(item == Material.SEEDS){
+				return true;
+			}else{
+				return false;
+			}
+		}else if( e instanceof Wolf){
+			if(item == Material.ROTTEN_FLESH || item == Material.RAW_BEEF || item == Material.PORK){
+				return true;
+			}else{
+				return false;
+			}
+		}else if(e instanceof Ocelot){
+			if(item == Material.RAW_FISH){
+				return true;
+			}else{
+				return false;
+			}
+			
+		}else{
+			return false;
+		}
+	}
+	
+	public boolean isAnimalFood(Material item){
+		if(item == Material.HAY_BLOCK || item == Material.SEEDS || item == Material.ROTTEN_FLESH || item == Material.RAW_BEEF || item == Material.PORK
+				|| item == Material.RAW_FISH){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	public void newDay(){
+	long Time = Bukkit.getWorld("world").getTime();
+	if(newday.isEmpty() || newday.get("newday") == false){
+		if(Time > 23000){
+			Player[] p = Bukkit.getOnlinePlayers();
+			for(Player player : p){
+				if(this.getAnimalData().contains("Farmer." + player.getUniqueId().toString())){
+				String farmer = player.getUniqueId().toString();	
+		
+				Set<String> animals =  this.getAnimalData().getConfigurationSection("Farmer." + farmer).getKeys(false);
+				for(String animal : animals){
+					
+					this.setanimalHunger(farmer, animal, true);
+					this.setanimalThirst(farmer, animal, true);
+					this.setanimalWashed(farmer, animal, false);
+					this.setanimalAbletobePet(farmer, animal, true);
+					newday.put("newday", true);
+					}
+				}
+			}
+		}
+	}
+}
+	public void animalEat(Player p, ItemStack i){
+		String uuid = p.getUniqueId().toString();
+		if(this.getAnimalData().contains("Farmer." + uuid)){
+			List<Entity> nearby = p.getNearbyEntities(2, 2, 2);
+			for(Entity entity: nearby){
+				if(this.isAnimal(entity)){
+					if(this.isAnimalOwner(p, entity)){
+						if(this.getanimalHunger(p.getUniqueId().toString(), entity.getUniqueId().toString())){
+									if(this.animalFood(entity, i.getType())){
+										this.playAnimalSound(entity, p);
+										i.setType(Material.SEEDS);
+										this.addheartPoint(entity, p, .03);
+										this.setanimalHunger(p.getUniqueId().toString(), entity.getUniqueId().toString(), false);
+								}
+							}
+						}	
+					}
+				}
+			}
+		}
+	public void petAnimal(Player p , Entity e){
+		String uuid = p.getUniqueId().toString();
+		String auuid = e.getUniqueId().toString();
+		if(this.isAnimalOwner(p, e)){
+			if(this.isanimalAbletobePet(uuid, auuid)){
+				this.playAnimalSound(e, p);
+				p.sendMessage(ChatColor.YELLOW + "You pet " + this.getanimalName(uuid, auuid));
+				this.addheartPoint(e, p, .01);
+				this.setanimalAbletobePet(uuid, auuid, false);
+			}else{
+				p.sendMessage(ChatColor.YELLOW + "Looks like "  + this.getanimalName(uuid, auuid) +  " has been pet enough.");
+			}
+		}
+	}
+
+
+	public void showAnimalInfo(Player p, Entity e){
+	if(this.checkifHasOwner(e.getUniqueId().toString())){
+		String auuid = e.getUniqueId().toString();
+		String uuid = this.getanimalOwnerID(auuid);
+		int hp = (int) this.getanimalHeartPoints(uuid, auuid);
+		p.sendMessage(ChatColor.YELLOW + "+++++ Animal Info +++++");
+		p.sendMessage(ChatColor.YELLOW + "Animal Name: "  + ChatColor.GREEN+ getanimalName(uuid, e.getUniqueId().toString()) );
+		p.sendMessage(ChatColor.YELLOW + "Animal Owner: "  + ChatColor.GREEN+ this.getanimalOwner(auuid));
+		p.sendMessage(ChatColor.YELLOW + "Heart Level: " + ChatColor.GREEN + hp);
+		p.sendMessage(ChatColor.YELLOW + "Is Hungry: " + ChatColor.GREEN + this.getanimalHunger(uuid, auuid));
+		p.sendMessage(ChatColor.YELLOW + "Is Dirty: "  + ChatColor.GREEN + this.isanimalWashed(uuid, auuid));
+		p.sendMessage(ChatColor.YELLOW + "Is lonely: "  + ChatColor.GREEN + this.isanimalAbletobePet(uuid, auuid));
+		}
+	}
+	
+	public void washAnimal(Player p , Entity e){
+		String uuid = p.getUniqueId().toString();
+		String auuid = e.getUniqueId().toString();
+		if(this.isAnimalOwner(p, e)){
+		if((this.isanimalWashed(uuid, auuid) == true)){
+			p.sendMessage(ChatColor.RED + this.getanimalName(uuid, auuid) + " is already clean");
+		}
+		if((this.isanimalWashed(uuid, auuid) == false)){
+			Bukkit.getWorld("world").playSound(p.getLocation(), Sound.SWIM, 1, 1);
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.POTION_BREAK, 0);
+			p.sendMessage(ChatColor.YELLOW + this.getanimalName(uuid, auuid) + " is all clean!");
+			this.setanimalWashed(uuid, auuid, true);
+			this.addheartPoint(e, p, .02);
+		}
+		}
+	}
+	
+	public boolean isFood(ItemStack i){
+		Material item = i.getType();
+		if(item == Material.APPLE || item == Material.COOKED_CHICKEN ||item == Material.COOKED_FISH ||item == Material.COOKIE ||item == Material.GOLDEN_APPLE ||item == Material.APPLE ||
+				item == Material.COOKED_BEEF ||item == Material.BAKED_POTATO ||item == Material.BREAD ||item == Material.BROWN_MUSHROOM ||item == Material.CAKE ||item == Material.COCOA ||
+				item == Material.RED_MUSHROOM ||item == Material.RAW_BEEF ||item == Material.RAW_CHICKEN ||item == Material.RAW_FISH ||item == Material.MELON_BLOCK ||item == Material.MELON ||
+				item == Material.MELON_SEEDS ||item == Material.SPIDER_EYE ||item == Material.ROTTEN_FLESH ||item == Material.CARROT ||item == Material.CARROT_ITEM ||item == Material.POTATO_ITEM ||
+				item == Material.POTATO ||item == Material.MUSHROOM_SOUP ||item == Material.SUGAR ||item == Material.EGG ||item == Material.WHEAT ||item == Material.BONE 
+				){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	public boolean isCookedFood(Material food){
+		Material f = food;
+		if(f == Material.COOKED_BEEF || f == Material.COOKED_CHICKEN || f == Material.COOKED_FISH){
+			return true;
+		}else{
+		return false;
+		}
+	}
+	
+//
+	public boolean isaNoneFoodItem(Material item){
+		Material i = item;
+		if(i == Material.WATER_BUCKET || i == Material.BOWL || i == Material.POTION){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+//COOKING RECIPES
+		public void  Recipes(){
+	        this.dehydratedMeat();
+	        this.MushroomSoup();
+		}
+//COOKING RECIPE NAMES
+		public String getRecipeNames(){
+			ArrayList<String> recipeNames = new ArrayList<String>();
+			recipeNames.add("Broth Powder");
+			recipeNames.add("Boiled Egg");
+			recipeNames.add("Mushroom Soup");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			recipeNames.add("this");
+			
+			String names = recipeNames.iterator().toString();
+			
+			
+			return names;
+		}
+		
+		public boolean hasIngredents(ArrayList<String> dn){
+			ArrayList<String> foodlist = new ArrayList<String>();
+			String fn = foodName;
+			
+		if(fn.equalsIgnoreCase("Mushroom Soup")){
+			foodlist.add("Broth powder");
+			foodlist.add("Brown Mushroom");
+			}
+		
+		if(fn.equalsIgnoreCase(something)){
+			foodlist.add("this");
+			foodlist.add("this");
+			foodlist.add("this");
+			foodlist.add("this");
+		}
+			if(foodlist.contains("String")){
+				return true;
+			}else{
+			return false;
+		}
+	}
+//COOKING RANK STARS TO INTS
+		public int getcookingRankLevel(String rank){
+			String r = rank;
+			
+			if(r.equalsIgnoreCase("*")){
+				return 1;
+			}else if(r.equalsIgnoreCase("**")){
+				return 2;
+			}else if(r.equalsIgnoreCase("***")){
+				return 3;
+			}else if(r.equalsIgnoreCase("****")){
+				return 4;
+			}else{
+				return 0;
+			}
+		}
+		
+//BPOILED EGG
+	public void  boiledEgg(){
+		ItemStack BoiledEgg = new ItemStack(Material.EGG);
+		ItemMeta meta = BoiledEgg.getItemMeta();
+		ArrayList<String> Lore = new ArrayList<String>();
+		meta.setDisplayName("Boiled Egg");
+		Lore.add("An egg boiled in water");
+		meta.setLore(Lore);
+		BoiledEgg.setItemMeta(meta);
+		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(BoiledEgg), Material.EGG));
+	}
+	
+	public void  hotMilk(){
+		ItemStack BoiledEgg = new ItemStack(Material.MILK_BUCKET);
+		ItemMeta meta = BoiledEgg.getItemMeta();
+		ArrayList<String> Lore = new ArrayList<String>();
+		meta.setDisplayName("Boiled Egg");
+		Lore.add("An egg boiled in water");
+		meta.setLore(Lore);
+		BoiledEgg.setItemMeta(meta);
+		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(BoiledEgg), Material.EGG));
+	}
+	
+//BROTH POWDER
+	public void dehydratedMeat(){
+		   ItemStack Broth = new ItemStack(Material.INK_SACK, 1 , (short) 3);
+	        ItemMeta broth = Broth.getItemMeta();
+	        ArrayList<String> Lore = new ArrayList<String>();
+	        Lore.add("Home made broth powder");
+	        broth.setLore(Lore);
+	        broth.setDisplayName("Broth Powder");
+	        Broth.setItemMeta(broth);
+	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(Broth), Material.COOKED_CHICKEN));
+	}
+	
+//MUSHROOM SOUP
+	@SuppressWarnings("deprecation")
+	public void MushroomSoup(){
+        ItemStack MushRoomSoup = new ItemStack(Material.MUSHROOM_SOUP);
+        ItemMeta imeta = MushRoomSoup.getItemMeta();
+        ArrayList<String> Lore = new ArrayList<String>();
+        imeta.setDisplayName("Mushroom Soup");
+        Lore.add("Home made mushroom soup");
+        imeta.setLore(Lore);
+        MushRoomSoup.setItemMeta(imeta);
+        ShapedRecipe msoup = new ShapedRecipe(new ItemStack(MushRoomSoup));
+        msoup.shape(" B ","MWM"," K ");
+        msoup.setIngredient('M', Material.BROWN_MUSHROOM);
+        msoup.setIngredient('B', Material.INK_SACK, 3);
+        msoup.setIngredient('W', Material.WATER_BUCKET);
+        msoup.setIngredient('K', Material.BOWL);
+        getServer().addRecipe(msoup);
+	}
+	
+	public String setCookingRank(int number){
+		int r = number;
+		Bukkit.broadcastMessage("setting cooking rank");
+		if(r == 1){
+			return "*";
+		}else if(r == 2){
+			return "**";
+		}else if(r == 3){
+			return "***";
+		}else if(r >= 4){
+			return "****";
+		}else{
+			return "X";
+		}
+	}
+}

@@ -2,7 +2,6 @@ package io.github.FiddyPercent.fiddycraft;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -13,7 +12,6 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.MemorySection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -513,9 +511,6 @@ public class FiddyCraftCommands implements CommandExecutor {
 						plugin.getPlayerInfo().set("Officers." +p.getUniqueId() + ".Arrested", 0);
 						plugin.getPlayerInfo().set("Officers." +p.getUniqueId() + ".Convected", 0);
 						plugin.savePlayerInfo();
-						
-						
-						
 					}	
 			}
 			return true;

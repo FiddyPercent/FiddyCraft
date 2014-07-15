@@ -42,10 +42,12 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.SheepDyeWoolEvent;
-import org.bukkit.event.entity.SheepRegrowWoolEvent;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -254,6 +256,9 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
             	}
  				
  			}
+	
+
+	
 //SHEAR SHEEP EVENT
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onShear(PlayerShearEntityEvent e){
@@ -271,7 +276,18 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			}
 		}
 	}
-	
+//Feed animal and drop item
+	@EventHandler(priority = EventPriority.LOW)
+	public void onDropItem(PlayerDropItemEvent e){
+		Player p = e.getPlayer();
+		if(e.getItemDrop().getItemStack() instanceof ItemStack){
+		ItemStack item =  e.getItemDrop().getItemStack();
+		if(plugin.isAnimalFood(item.getType())){
+			plugin.animalEat(p, item);
+			
+		}
+	}
+}
 	
 //STOP WOOL DIE EVENT	 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -294,6 +310,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					p.sendMessage(ChatColor.YELLOW + "I need to put a  name on this name tag /Name <Pick Animal Name>");
 				}else{
 					if(plugin.checkifHasOwner(e.getRightClicked().getUniqueId().toString())){
+						p.sendMessage(ChatColor.RED + "This animal already has an owner");
 						e.setCancelled(true);
 					}else{
 					plugin.claimAnimal(p, e.getRightClicked(), meta);
@@ -331,6 +348,19 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 						e.setCancelled(true);
 						p.sendMessage(ChatColor.RED + "You do not own this animal and cannot gather eggs from it");
 				 }
+			 }
+			 if ((plugin.isAnimal(e.getRightClicked()) && (p.getItemInHand().getType().equals(Material.PAPER)))) {
+				 plugin.showAnimalInfo(p, e.getRightClicked());
+			 }
+			 
+			 if ((plugin.isAnimal(e.getRightClicked()) && (p.getItemInHand()
+						.getType().equals(Material.SPONGE)))) {
+				 plugin.washAnimal(p, e.getRightClicked());
+			 }
+			 
+			 if ((plugin.isAnimal(e.getRightClicked()) && (p.getItemInHand()
+						.getType().equals(Material.AIR)))) {
+				 plugin.petAnimal(p, e.getRightClicked());
 			 }
 	}
 	
@@ -523,7 +553,14 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	@EventHandler
 	public void EntityDeath(EntityDeathEvent event){
 		String entityName = event.getEntityType().toString();
-
+		Entity e = event.getEntity();
+		if(plugin.isAnimal(e)){
+			if(plugin.checkifHasOwner(e.getUniqueId().toString())){
+				plugin.removeAnimal(e);
+			}
+		}
+		
+		
 		if(entityName.equalsIgnoreCase("dog")){
 			ArrayList<String> witness = new ArrayList<String>();
 			ArrayList<String> killer = new ArrayList<String>();
@@ -783,8 +820,126 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		}
 		
 	}
+	@EventHandler
+	public void onSmelt(FurnaceSmeltEvent e){
+		ItemStack result = e.getResult();
+		ItemStack source = e.getSource();
+		ItemMeta smeta = source.getItemMeta();
+		ItemMeta rmeta = result.getItemMeta();
+
+		//if(source.getType() == Material.COOKED_CHICKEN){
+		//	ArrayList<String> Lore = new ArrayList<String>();
+		//	ItemStack food = new ItemStack(Material.INK_SACK,1 ,(short) 3);
+		//	ItemMeta meta = food.getItemMeta();
+		//	meta.setDisplayName("Dehydrated Chicken");
+		//	Lore.add("Beef");
+		//	Lore.add("*");
+		//	meta.setLore(Lore);
+		//	food.setItemMeta(meta);
+		//	e.setResult(food);
+		//}
+	}
+	@EventHandler
+	public void crafting(PrepareItemCraftEvent e){
+		ItemStack[] items = e.getInventory().getContents();
+		ItemStack result = e.getRecipe().getResult();
+		Bukkit.broadcastMessage("Crafting Event");
+		if(result.hasItemMeta()){
+			Bukkit.broadcastMessage("Has Meta");
+			HashMap<String, Integer> foodRank = new HashMap<String, Integer>();
+			HashMap<String, Integer> foodTotal = new HashMap<String, Integer>();
+			ItemMeta rmeta = result.getItemMeta();
+			if(rmeta.hasDisplayName()){
+				Bukkit.broadcastMessage("Checking Name");
+				if(rmeta.getDisplayName().equalsIgnoreCase(plugin.getRecipeNames())){
+					for(ItemStack i : items){
+						if(i.hasItemMeta()){
+							if(i.getItemMeta().hasDisplayName()){
+								ArrayList<String> displayName = new ArrayList<String>();
+								if(displayName.isEmpty()){
+									displayName.add(rmeta.getDisplayName());
+								}
+								displayName.add(i.getItemMeta().getDisplayName());
+							}
+							
+							if(plugin.hasIngredents(displayName))
+							
+							
+							if(i.getItemMeta().hasLore()){
+								Bukkit.broadcastMessage("has Lore");
+								Bukkit.broadcastMessage("size " + ChatColor.RED + i.getItemMeta().getLore().size());
+								if(i.getItemMeta().getLore().size() > 1){
+									Bukkit.broadcastMessage("lore size");
+									String ranking = i.getItemMeta().getLore().get(1);
+									Bukkit.broadcastMessage("got ranking");
+									 int rlevel = plugin.getcookingRankLevel(ranking);
+									 if(foodTotal.isEmpty()){
+										 Bukkit.broadcastMessage("food total empty");
+										 foodTotal.put(rmeta.getDisplayName(), 1);
+									 }else{
+										 int old = foodTotal.get(rmeta.getDisplayName());
+										 foodTotal.put(rmeta.getDisplayName(), old + 1);
+										 Bukkit.broadcastMessage("ft not empty");
+									 }
+									 if(foodRank.isEmpty()){
+										 foodRank.put(rmeta.getDisplayName(), rlevel);
+										 Bukkit.broadcastMessage("food rank emtpy");
+									 }else{
+										 int oldLevel = foodRank.get(rmeta.getDisplayName());
+										 int newlevel = oldLevel + rlevel;
+										 Bukkit.broadcastMessage("fr not emty");
+									 foodRank.put(rmeta.getDisplayName(), newlevel);
+									 }
+									 int totalItems = foodTotal.get(rmeta.getDisplayName());
+									 Bukkit.broadcastMessage("item Length " + items.length);
+									 
+									 int newrank = (int) foodRank.get(rmeta.getDisplayName()) / totalItems;
+									 String rankStar = plugin.setCookingRank(newrank);
+									 ArrayList<String> Lore = new ArrayList<String>();
+									 ItemStack newitem = new ItemStack(result.getType());
+									 ItemMeta nimeta = newitem.getItemMeta();
+									 Lore.add(rmeta.getLore().get(0));
+									 Lore.add(rankStar);
+									 nimeta.setDisplayName(rmeta.getDisplayName());
+									 nimeta.setLore(Lore);
+									 newitem.setItemMeta(nimeta);
+									 e.getInventory().setItem(0, newitem);
+									 
+									 Bukkit.broadcastMessage("end");
+									
+									 
+								}
+							}
+						}else{
+							if(plugin.isaNoneFoodItem(i.getType()) == false){
+								Bukkit.broadcastMessage("a non ranked item");
+								int rlevel = 0;
+								 if(foodTotal.isEmpty()){
+									 Bukkit.broadcastMessage("food total empty");
+									 foodTotal.put(rmeta.getDisplayName(), 1);
+								 }else{
+									 int old = foodTotal.get(rmeta.getDisplayName());
+									 foodTotal.put(rmeta.getDisplayName(), old + 1);
+									 Bukkit.broadcastMessage("ft not empty");
+								 }
+								 if(foodRank.isEmpty()){
+									 foodRank.put(rmeta.getDisplayName(), rlevel);
+									 Bukkit.broadcastMessage("food rank emtpy");
+								 }else{
+									 int oldLevel = foodRank.get(rmeta.getDisplayName());
+									 int newlevel = oldLevel + rlevel;
+									 Bukkit.broadcastMessage("fr not emty");
+								 foodRank.put(rmeta.getDisplayName(), newlevel);
+								 }
+							}
+						}
+					}
+				}
+			}
+		}
 		
-	
+		
+	}
 	
 	@SuppressWarnings("unused")
 	@EventHandler
@@ -799,7 +954,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	     Player killer = p.getKiller();
 //SKULL DEATH PERK	     
 	     int kills = plugin.getPlayerInfo().getInt("Players." + killer.getUniqueId().toString()  + ".Murders");
-	     int r = (int) (Math.random() * 10 ); 
+	     int r = (int) (Math.random() * 10 + 1 ); 
 	      if(r == 10 && kills > 10 ){
 	    	  ItemStack skull = new ItemStack(Material.SKULL_ITEM);
 	    	  SkullMeta meta = (SkullMeta) skull.getItemMeta();
@@ -1519,7 +1674,6 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 			}
 		}
 	}
-	
 	
 }
 
