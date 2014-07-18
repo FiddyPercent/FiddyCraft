@@ -1,6 +1,7 @@
 package io.github.FiddyPercent.fiddycraft;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Set;
 
@@ -847,37 +848,34 @@ public class FiddyCraftCommands implements CommandExecutor {
 		
 //TEST COMMAND
 		if(cmd.getName().equalsIgnoreCase("rTest")){
-		Set<String> y = plugin.getAnimalData().getConfigurationSection("Farmer").getKeys(true);
-		Set<String> z = plugin.getAnimalData().getConfigurationSection("Farmer").getRoot().getKeys(true);
-		Set<String> b =  plugin.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
-	
-		
-		for(String l : b){
-			Bukkit.broadcastMessage(ChatColor.GREEN + l);
-			Set<String> t =  plugin.getAnimalData().getConfigurationSection("Farmer." + l).getKeys(false);
-			Bukkit.broadcastMessage(ChatColor.YELLOW +"Animals " +  t);
-		}
-			return true;
-		}
-		
-
-		if(cmd.getName().equalsIgnoreCase("Name")){
 		Player p = (Player) sender;
-		if(!(args.length == 1)){
-			p.sendMessage(ChatColor.RED + "Your doing it wrong");
+		
+		if(args.length != 1){
 			return false;
 		}
 		
-		if(p.getItemInHand().getType() != Material.NAME_TAG){
-			p.sendMessage(ChatColor.RED + "You need to be holding a name tag");
-			return false;
+		if(p.getItemInHand().getType() != Material.AIR){
+			ItemStack hand = p.getItemInHand();
+			ItemMeta meta = hand.getItemMeta();
+			ArrayList<String> lore = new ArrayList<String>();
+			int rank = (int) Integer.parseInt(args[0]);
+			
+			
+			if(meta.hasLore()){
+				String lore1 = meta.getLore().get(0);
+				lore.add(lore1);
+				lore.add(plugin.setCookingRank(rank));
+			}else{
+				lore.add("whatever");
+				lore.add(plugin.setCookingRank(rank));
+			}
+			
+			meta.setLore(lore);
+			hand.setItemMeta(meta);
+			
 		}
-		ItemStack item = p.getItemInHand();
 		
-		ItemMeta meta = item.getItemMeta();
-	
-		meta.setDisplayName(args[0]);
-		item.setItemMeta(meta);
+		
 		
 		}
 		
@@ -1078,6 +1076,26 @@ public class FiddyCraftCommands implements CommandExecutor {
 		}
 	}
 		
+		
+			if(cmd.getName().equalsIgnoreCase("Name")){
+			 	Player p = (Player) sender;
+			 	if(!(args.length == 1)){
+			 		p.sendMessage(ChatColor.RED + "Your doing it wrong");
+			 		return false;
+			 	}
+			 	
+			 	if(p.getItemInHand().getType() != Material.NAME_TAG){
+			 		p.sendMessage(ChatColor.RED + "You need to be holding a name tag");
+			 		return false;
+			 	}
+			 	ItemStack item = p.getItemInHand();
+			 	
+			 	ItemMeta meta = item.getItemMeta();
+			 
+			 	meta.setDisplayName(args[0]);
+			 	item.setItemMeta(meta);
+			 	
+			 	}
 		
 		
 //DURABLITY	

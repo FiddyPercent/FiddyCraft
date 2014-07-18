@@ -883,7 +883,7 @@ public class FiddyCraft extends JavaPlugin {
 	}
 	
 	public int randomNumber(int total){
-		int r =  (int) (Math.random() * total ); 
+		int r =  (int) (Math.random() * total) + 1 ; 
 		return r;
 	}
 	
@@ -1103,7 +1103,7 @@ public class FiddyCraft extends JavaPlugin {
 			if(hp <= 1){
 				meta.setDisplayName("Ugly Egg");
 				eggLore.add("A warped egg not very good looking");
-				eggLore.add("");
+				eggLore.add("X");
 			}else if(hp >= 2 && hp < 5){
 				meta.setDisplayName("Normal Egg");
 				eggLore.add("A normal looking egg");
@@ -1567,6 +1567,8 @@ public class FiddyCraft extends JavaPlugin {
 			recipeNames.add("Broth Powder");
 			recipeNames.add("Boiled Egg");
 			recipeNames.add("Mushroom Soup");
+			recipeNames.add("Hot Milk");
+			recipeNames.add("Sweet Milk");
 			
 			if(recipeNames.contains(Resultname)){
 				return true;
@@ -1575,25 +1577,39 @@ public class FiddyCraft extends JavaPlugin {
 			}
 		}
 //CHECK INGREDENTS
-		public boolean hasIngredents(HashMap<String,ArrayList<String>> dn, String itemName, String name){
+		public boolean hasIngredents(HashMap<String,ArrayList<String>> hashmap, String sourceItemName, String hashmapkey){
 			ArrayList<String> foodlist = new ArrayList<String>();
-			ArrayList<String> itemlist = dn.get(name);
-			String fn = itemName;
+			ArrayList<String> itemlist = hashmap.get(hashmapkey);
+			String fn = sourceItemName;
 			Bukkit.broadcastMessage("inside hasIngredents");
+	//MUSHROOM SOUP	
 		if(fn.equalsIgnoreCase("Mushroom Soup")){
-			Bukkit.broadcastMessage("mushroomSoup");
+		//	Bukkit.broadcastMessage("mushroomSoup");
 			foodlist.add("Broth Powder");
+		//	Bukkit.broadcastMessage(ChatColor.GREEN + "item list" + itemlist.toString());
+		//	Bukkit.broadcastMessage(ChatColor.DARK_AQUA +"food list" + foodlist.toString());
+			if(itemlist.containsAll(foodlist) && foodlist.size() == itemlist.size()){
+				Bukkit.broadcastMessage("fl size " + foodlist.size()  );
+			//	Bukkit.broadcastMessage("true");
+				return true;
+			}else{
+			//	Bukkit.broadcastMessage("false");
+				return false;
+			}
+		}
+	//SWEET MILK
+		if(fn.equalsIgnoreCase("Sweet Milk")){
+			foodlist.add("Hot Milk");
 			Bukkit.broadcastMessage(ChatColor.GREEN + "item list" + itemlist.toString());
 			Bukkit.broadcastMessage(ChatColor.DARK_AQUA +"food list" + foodlist.toString());
-			if(itemlist.containsAll(foodlist)){
-				Bukkit.broadcastMessage("true");
+			if(itemlist.containsAll(foodlist) && foodlist.size() == itemlist.size()){
+			//	Bukkit.broadcastMessage("true");
 				return true;
 			}else{
 				Bukkit.broadcastMessage("false");
-				return false;
+			//	return false;
 			}
-			
-			}
+		}
 		
 		if(fn.equalsIgnoreCase("something")){
 			foodlist.add("this");
@@ -1607,6 +1623,88 @@ public class FiddyCraft extends JavaPlugin {
 			return false;
 		}
 	}
+		
+//IS THERE A SPICE AVALIBLE
+		public boolean isSpice(ItemStack spice){
+			ItemStack s = spice;
+			ItemMeta smeta = s.getItemMeta();
+			HashMap<String, Material> spices = new HashMap<String, Material>();
+			spices.put("Peper", Material.MELON_SEEDS);
+			spices.put("Cayenne pepper", Material.NETHER_STALK);
+			spices.put("Salt",  Material.PUMPKIN_SEEDS);
+			spices.put("Sugar", Material.SUGAR);
+
+			if(s.hasItemMeta() && smeta.hasDisplayName()){
+				String dn = smeta.getDisplayName();
+				
+				if(spices.containsKey(dn)){
+					if(spices.get(dn) == s.getType()){
+						return true;
+					}else{
+						return false;
+					}
+				}
+				
+			}
+			
+			return false;
+		}
+		
+		
+		public boolean canBeSpiced(){
+			HashMap<String,ArrayList<String>> spiceables = new HashMap<String, ArrayList<String>>();
+			ArrayList<String> spicesNeeded = new ArrayList<String>();
+			spiceables.put("", spicesNeeded);
+			
+			return false;
+		}
+		
+//FURNACE INGREDENTS
+		public boolean hasFurnaceIngredents(String sourceName, String resultName){
+			String sn = sourceName;
+			String rn = resultName;
+	//HOT MILK
+			if(rn.equalsIgnoreCase("Hot Milk")){
+				boolean canHaveAnyName = true;
+				if(canHaveAnyName){
+					return true;
+				}else{
+					if(sn.equalsIgnoreCase("ingredient")){
+					return true;
+					}else{
+						return false;
+					}
+				}
+	//BROTH POWDER
+			}else if(rn.equalsIgnoreCase("Broth Powder")){
+				boolean canHaveAnyName = true;
+				if(canHaveAnyName){
+					return true;
+				}else{
+					if(sn.equalsIgnoreCase("ingredient")){
+					return true;
+					}else{
+						return false;
+					}
+				}
+	//BOILED EGG
+			}else if(rn.equalsIgnoreCase("Boiled Egg")){
+				boolean canHaveAnyName = true;
+				if(canHaveAnyName){
+					return true;
+				}else{
+					if(sn.equalsIgnoreCase("ingredient")){
+					return true;
+					}else{
+						return false;
+					}
+				}
+			}else{
+				return false;
+			}
+			
+			
+		}
 //COOKING RANK STARS TO INTS
 		public int getcookingRankLevel(String rank){
 			String r = rank;
@@ -1623,6 +1721,23 @@ public class FiddyCraft extends JavaPlugin {
 				return 0;
 			}
 		}
+//HOT SWEET MILK
+	public void sweetMilk(){
+	    ItemStack MushRoomSoup = new ItemStack(Material.MUSHROOM_SOUP);
+        ItemMeta imeta = MushRoomSoup.getItemMeta();
+        ArrayList<String> Lore = new ArrayList<String>();
+        imeta.setDisplayName("Sweet Milk");
+        Lore.add("Sweetened Milk, may cause diabetes");
+        imeta.setLore(Lore);
+        MushRoomSoup.setItemMeta(imeta);
+        ShapedRecipe sweetMilk = new ShapedRecipe(new ItemStack(MushRoomSoup));
+        sweetMilk.shape("SSS"," M ","   ");
+        sweetMilk.setIngredient('S', Material.SUGAR);
+        sweetMilk.setIngredient('M', Material.MILK_BUCKET);
+        getServer().addRecipe(sweetMilk);
+	}
+
+		
 		
 //BPOILED EGG
 	public void  boiledEgg(){
@@ -1635,7 +1750,7 @@ public class FiddyCraft extends JavaPlugin {
 		BoiledEgg.setItemMeta(meta);
 		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(BoiledEgg), Material.EGG));
 	}
-	
+//HOT MILK
 	public void  hotMilk(){
 		ItemStack HotMilk = new ItemStack(Material.MILK_BUCKET);
 		ItemMeta meta = HotMilk.getItemMeta();
@@ -1677,7 +1792,7 @@ public class FiddyCraft extends JavaPlugin {
         msoup.setIngredient('K', Material.BOWL);
         getServer().addRecipe(msoup);
 	}
-	
+//SET COOKING RANK
 	public String setCookingRank(int number){
 		int r = number;
 		Bukkit.broadcastMessage("setting cooking rank");
