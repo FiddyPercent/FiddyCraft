@@ -331,7 +331,7 @@ public class FiddyCraft extends JavaPlugin {
 					
 					getConfig().set("Drunk." + op.getUniqueId().toString(), newPoints);
 					
-					if(newPoints <1 ){
+					if(newPoints < 1 ){
 						getConfig().set("Drunk." + op.getUniqueId().toString(), null);
 						saveConfig();
 							}
@@ -1560,6 +1560,7 @@ public class FiddyCraft extends JavaPlugin {
 	        this.MushroomSoup();
 	        this.hotMilk();
 	        this.boiledEgg();
+	        this.sweetMilk();
 		}
 //COOKING RECIPE NAMES
 		public boolean isRecipe(String Resultname){
@@ -1578,22 +1579,24 @@ public class FiddyCraft extends JavaPlugin {
 		}
 //CHECK INGREDENTS
 		public boolean hasIngredents(HashMap<String,ArrayList<String>> hashmap, String sourceItemName, String hashmapkey){
+			
 			ArrayList<String> foodlist = new ArrayList<String>();
 			ArrayList<String> itemlist = hashmap.get(hashmapkey);
+			Bukkit.broadcastMessage("displaynames = " +itemlist.toString());
 			String fn = sourceItemName;
 			Bukkit.broadcastMessage("inside hasIngredents");
 	//MUSHROOM SOUP	
 		if(fn.equalsIgnoreCase("Mushroom Soup")){
-		//	Bukkit.broadcastMessage("mushroomSoup");
+			Bukkit.broadcastMessage("mushroomSoup");
 			foodlist.add("Broth Powder");
-		//	Bukkit.broadcastMessage(ChatColor.GREEN + "item list" + itemlist.toString());
-		//	Bukkit.broadcastMessage(ChatColor.DARK_AQUA +"food list" + foodlist.toString());
-			if(itemlist.containsAll(foodlist) && foodlist.size() == itemlist.size()){
+			Bukkit.broadcastMessage(ChatColor.GREEN + "item list" + itemlist.toString());
+			Bukkit.broadcastMessage(ChatColor.DARK_AQUA +"food list" + foodlist.toString());
+			if(itemlist.containsAll(foodlist)){
 				Bukkit.broadcastMessage("fl size " + foodlist.size()  );
-			//	Bukkit.broadcastMessage("true");
+				Bukkit.broadcastMessage("true");
 				return true;
 			}else{
-			//	Bukkit.broadcastMessage("false");
+				Bukkit.broadcastMessage("false");
 				return false;
 			}
 		}
@@ -1602,12 +1605,12 @@ public class FiddyCraft extends JavaPlugin {
 			foodlist.add("Hot Milk");
 			Bukkit.broadcastMessage(ChatColor.GREEN + "item list" + itemlist.toString());
 			Bukkit.broadcastMessage(ChatColor.DARK_AQUA +"food list" + foodlist.toString());
-			if(itemlist.containsAll(foodlist) && foodlist.size() == itemlist.size()){
-			//	Bukkit.broadcastMessage("true");
+			if(itemlist.containsAll(foodlist)){
+				
 				return true;
 			}else{
 				Bukkit.broadcastMessage("false");
-			//	return false;
+				return false;
 			}
 		}
 		
@@ -1723,21 +1726,19 @@ public class FiddyCraft extends JavaPlugin {
 		}
 //HOT SWEET MILK
 	public void sweetMilk(){
-	    ItemStack MushRoomSoup = new ItemStack(Material.MUSHROOM_SOUP);
-        ItemMeta imeta = MushRoomSoup.getItemMeta();
+	    ItemStack item = new ItemStack(Material.MILK_BUCKET);
+        ItemMeta imeta = item.getItemMeta();
         ArrayList<String> Lore = new ArrayList<String>();
         imeta.setDisplayName("Sweet Milk");
         Lore.add("Sweetened Milk, may cause diabetes");
         imeta.setLore(Lore);
-        MushRoomSoup.setItemMeta(imeta);
-        ShapedRecipe sweetMilk = new ShapedRecipe(new ItemStack(MushRoomSoup));
-        sweetMilk.shape("SSS"," M ","   ");
+        item.setItemMeta(imeta);
+        ShapedRecipe sweetMilk = new ShapedRecipe(new ItemStack(item));
+        sweetMilk.shape("S","M");
         sweetMilk.setIngredient('S', Material.SUGAR);
         sweetMilk.setIngredient('M', Material.MILK_BUCKET);
         getServer().addRecipe(sweetMilk);
 	}
-
-		
 		
 //BPOILED EGG
 	public void  boiledEgg(){
@@ -1760,6 +1761,7 @@ public class FiddyCraft extends JavaPlugin {
 		meta.setLore(Lore);
 		HotMilk.setItemMeta(meta);
 		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(HotMilk), Material.MILK_BUCKET));
+		
 	}
 	
 //BROTH POWDER
@@ -1799,13 +1801,59 @@ public class FiddyCraft extends JavaPlugin {
 		if(r == 1){
 			return "*";
 		}else if(r == 2){
+			Bukkit.broadcastMessage("2" + " rank " + number);
 			return "**";
 		}else if(r == 3){
 			return "***";
 		}else if(r >= 4){
 			return "****";
 		}else{
+			Bukkit.broadcastMessage("else" + " rank " + number);
 			return "X";
 		}
 	}
-}
+//failedDish
+	public ItemStack getFailedDish(){
+		 ItemStack failedDish = new ItemStack(Material.ROTTEN_FLESH);
+		 ItemMeta meta = failedDish.getItemMeta();
+		 String rankStar = this.setCookingRank(0);
+		 ArrayList<String> Lore = new ArrayList<String>();
+		 Lore.add("Proof of bad cooking");
+		 Lore.add(rankStar);
+		 Lore.add("Bonus Effects");
+		 ArrayList<String> b = this.setFoodBuff(failedDish);
+		 b.get(0);
+		 Lore.add(b.get(0));
+		 meta.setLore(Lore);
+		return failedDish;
+	}
+	
+	public ArrayList<String> setFoodBuff(ItemStack mainIngredent){
+		Material item = mainIngredent.getType();
+		ItemMeta meta = mainIngredent.getItemMeta();
+		ArrayList<String> b = new ArrayList<String>();
+		
+		if(item == Material.RAW_BEEF || item == Material.RAW_CHICKEN ||item == Material.RAW_FISH){
+			b.add("Strength");
+			
+		}
+		
+		if(item == Material.MUSHROOM_SOUP && mainIngredent.hasItemMeta() && meta.hasDisplayName()){
+			if(meta.getDisplayName().equalsIgnoreCase("Mushroom Soup")){
+				b.add("Health");
+			}else{
+				b.add("Regeneration");
+			}
+		}
+		
+		if(item == Material.COOKIE || item == Material.CAKE || item == Material.PUMPKIN_PIE){
+			b.add("Speed");
+		}
+		
+		if(b.isEmpty()){
+			b.add( "None");
+		}
+		
+		return b;
+		}
+	}
