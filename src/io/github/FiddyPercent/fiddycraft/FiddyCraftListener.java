@@ -832,10 +832,9 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		if(result.hasItemMeta()){
 			if(plugin.isRecipe(rmeta.getDisplayName())){
 				HashMap<String, Integer> foodRank = new HashMap<String, Integer>();
-				 
 				if(source.hasItemMeta() && source.getItemMeta().hasDisplayName()){
 					dn.add(smeta.getDisplayName());
-				
+				}
 				if(plugin.hasFurnaceIngredents(smeta.getDisplayName(), rmeta.getDisplayName())){
 					if(smeta.hasLore() && smeta.getLore().size() > 1){
 					 int rlevel = plugin.getcookingRankLevel(smeta.getLore().get(1));
@@ -843,25 +842,21 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					}else{
 						foodRank.put(rmeta.getDisplayName(), 0);
 					}
-					
-				
-					 
+
 					 int newrank = (int) foodRank.get(rmeta.getDisplayName());
 					 String rankStar = plugin.setCookingRank(newrank);
 					 ArrayList<String> Lore = new ArrayList<String>();
-					 ItemStack newitem = new ItemStack(result.getType());
+					 ItemStack newitem = result;
 					 ItemMeta nimeta = newitem.getItemMeta();
 					 Lore.add(rmeta.getLore().get(0));
 					 Lore.add(rankStar);
 					 Lore.add("Bonus Effects");
 					 ArrayList<String> b = plugin.setFoodBuff(result);
-					 b.get(0);
 					 Lore.add(b.get(0));
 					 nimeta.setDisplayName(rmeta.getDisplayName());
 					 nimeta.setLore(Lore);
 					 newitem.setItemMeta(nimeta);
 					 e.setResult(newitem);
-					
 				}else{
 					if(smeta.hasLore() && smeta.getLore().size() > 1){
 					 int rlevel = plugin.getcookingRankLevel(smeta.getLore().get(1));
@@ -870,22 +865,14 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 						 int rlevel = 0;
 						 foodRank.put(rmeta.getDisplayName(), rlevel);
 					}
-					 ItemStack failedDish = new ItemStack(Material.ROTTEN_FLESH);
-					 ItemMeta meta = failedDish.getItemMeta();
-					 int newrank = (int) foodRank.get(rmeta.getDisplayName());
-					 String rankStar = plugin.setCookingRank(newrank);
-					 ArrayList<String> Lore = new ArrayList<String>();
-					 Lore.add("Proof of bad cooking");
-					 Lore.add(rankStar);
-					 meta.setLore(Lore);
-					 meta.setDisplayName("Failed Dish");
-					 failedDish.setItemMeta(meta);
-					 e.setResult(failedDish);
+					 e.setResult(plugin.getFailedDish());
 						}
+					}else{
+						
 					}
 				}
 			}
-		}
+		
 
 	@EventHandler
 	public void crafting(PrepareItemCraftEvent e){
@@ -895,174 +882,40 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		ArrayList<Boolean> trueOnce = new ArrayList<Boolean>();
 		HashMap<String,ArrayList<String>> playerCraft = new HashMap<String,ArrayList<String>>();
 		ArrayList<String> displayName = new ArrayList<String>();
-		//Bukkit.broadcastMessage("Crafting Event");
 		if(result.hasItemMeta()){
-			Bukkit.broadcastMessage("Has Meta");
 			HashMap<String, Integer> foodRank = new HashMap<String, Integer>();
 			HashMap<String, Integer> foodTotal = new HashMap<String, Integer>();
 			ItemMeta rmeta = result.getItemMeta();
 			if(rmeta.hasDisplayName()){
-			//	Bukkit.broadcastMessage("Checking Name");
 				if(plugin.isRecipe(rmeta.getDisplayName())){
-				//	Bukkit.broadcastMessage("name match");
 					for(ItemStack i : items){
-						if(i.hasItemMeta()){
-							if(i.getItemMeta().hasDisplayName()){
-								displayName.add(i.getItemMeta().getDisplayName());
-
-							playerCraft.put(p.getName(), displayName);
-							if(displayName.contains(rmeta.getDisplayName())){
-								displayName.remove(rmeta.getDisplayName());
-							}
+					
+					plugin.starRankSetup(trueOnce, foodRank, displayName, i, playerCraft, result, p, foodTotal);
+					}
 							if(plugin.hasIngredents(playerCraft, rmeta.getDisplayName(), p.getName()) == false && trueOnce.isEmpty()){
-								 ItemStack failedDish = new ItemStack(Material.ROTTEN_FLESH);
-								 ItemMeta meta = failedDish.getItemMeta();
-								 String rankStar = plugin.setCookingRank(0);
-								 ArrayList<String> Lore = new ArrayList<String>();
-								 Lore.add("Proof of bad cooking");
-								 Lore.add(rankStar);
-								 Lore.add("Bonus Effects");
-								 ArrayList<String> b = plugin.setFoodBuff(failedDish);
-								 b.get(0);
-								 Lore.add(b.get(0));
-								 meta.setLore(Lore);
-								// Bukkit.broadcastMessage(ChatColor.RED + "Failed DISH " + trueOnce.isEmpty() );
-								 e.getInventory().setItem(0,failedDish);
-							}else{
-								trueOnce.add(true);
-								// Bukkit.broadcastMessage(ChatColor.GREEN + " DISH");
-							if(i.getItemMeta().hasLore()){
-							//	Bukkit.broadcastMessage("has Lore");
-							//	Bukkit.broadcastMessage("size " + ChatColor.RED + i.getItemMeta().getLore().size());
-								if(i.getItemMeta().getLore().size() > 1){
-								//	Bukkit.broadcastMessage("lore size");
-									String ranking = i.getItemMeta().getLore().get(1);
-								//	Bukkit.broadcastMessage("got ranking");
-									 int rlevel = plugin.getcookingRankLevel(ranking);
-									 if(foodTotal.isEmpty()){
-									//	 Bukkit.broadcastMessage("food total empty");
-										 foodTotal.put(rmeta.getDisplayName(), 1);
-									 }else{
-										 int old = foodTotal.get(rmeta.getDisplayName());
-										 foodTotal.put(rmeta.getDisplayName(), old + 1);
-									//	 Bukkit.broadcastMessage("ft not empty");
-									 }
-									 if(foodRank.isEmpty()){
-										 foodRank.put(rmeta.getDisplayName(), rlevel);
-									//	 Bukkit.broadcastMessage("food rank emtpy");
-									 }else{
-										 int oldLevel = foodRank.get(rmeta.getDisplayName());
-										 int newlevel = oldLevel + rlevel;
-									//	 Bukkit.broadcastMessage("fr not emty");
-									 foodRank.put(rmeta.getDisplayName(), newlevel);
-									 }
-
-									 int totalItems = foodTotal.get(rmeta.getDisplayName());
-									// Bukkit.broadcastMessage("item Length " + items.length);
-									 Bukkit.broadcastMessage("foodrank " + foodRank.get(rmeta.getDisplayName()) + " total items " + totalItems); 
-									 int newrank = (int) foodRank.get(rmeta.getDisplayName()) / totalItems;
-									 Bukkit.broadcastMessage("new rank = "+ newrank);
-									 
-									 String rankStar = plugin.setCookingRank(newrank);
-									 ArrayList<String> Lore = new ArrayList<String>();
-									 ItemStack newitem = new ItemStack(result.getType());
-									 ItemMeta nimeta = newitem.getItemMeta();
-									 Lore.add(rmeta.getLore().get(0));
-									 Lore.add(rankStar);
-									 Lore.add("Bonus Effects");
-									 ArrayList<String> b = plugin.setFoodBuff(result);
-									 b.get(0);
-									 Lore.add(b.get(0));
-									 nimeta.setDisplayName(rmeta.getDisplayName());
-									 nimeta.setLore(Lore);
-									 newitem.setItemMeta(nimeta);
-									 e.getInventory().setItem(0, newitem);
-
-									// Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + "end");
+								 e.getInventory().setItem(0,plugin.getFailedDish());
+								}else{
+									 e.getInventory().setItem(0, plugin.getDish(foodRank, foodTotal, result));
 										}
 									}	
 								}
 							}
-						}else{
-							if(plugin.isaNoneFoodItem(i.getType()) == false){
-								//Bukkit.broadcastMessage("a non ranked item");
-								int rlevel = 0;
-								 if(foodTotal.isEmpty()){
-								//	 Bukkit.broadcastMessage("food total empty");
-									 foodTotal.put(rmeta.getDisplayName(), 1);
-								 }else{
-									 int old = foodTotal.get(rmeta.getDisplayName());
-									 foodTotal.put(rmeta.getDisplayName(), old + 1);
-							//		 Bukkit.broadcastMessage("ft not empty");
-								 }
-								 if(foodRank.isEmpty()){
-									 foodRank.put(rmeta.getDisplayName(), rlevel);
-							//		 Bukkit.broadcastMessage("food rank emtpy");
-								 }else{
-									 int oldLevel = foodRank.get(rmeta.getDisplayName());
-									 int newlevel = oldLevel + rlevel;
-								//	 Bukkit.broadcastMessage("fr not emty");
-								 foodRank.put(rmeta.getDisplayName(), newlevel);
-							if(trueOnce.contains(true)){
 
-
-								 int totalItems = foodTotal.get(rmeta.getDisplayName());
-								 //Bukkit.broadcastMessage("item Length " + items.length);
-
-								 int newrank = (int) foodRank.get(rmeta.getDisplayName()) / totalItems;
-								 String rankStar = plugin.setCookingRank(newrank);
-								 ArrayList<String> Lore = new ArrayList<String>();
-								 ItemStack newitem = new ItemStack(result.getType());
-								 ItemMeta nimeta = newitem.getItemMeta();
-								 Lore.add(rmeta.getLore().get(0));
-								 Lore.add(rankStar);
-								 Lore.add("Bonus Effects");
-								 ArrayList<String> b = plugin.setFoodBuff(result);
-								 b.get(0);
-								 Lore.add(b.get(0));
-								 nimeta.setDisplayName(rmeta.getDisplayName());
-								 nimeta.setLore(Lore);
-								 newitem.setItemMeta(nimeta);
-								 e.getInventory().setItem(0, newitem);
-
-								// Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + "end");
-							}else{
-								 ItemStack failedDish = new ItemStack(Material.ROTTEN_FLESH);
-								 ItemMeta meta = failedDish.getItemMeta();
-								 String rankStar = plugin.setCookingRank(0);
-								 ArrayList<String> Lore = new ArrayList<String>();
-								 Lore.add("Proof of bad cooking");
-								 Lore.add(rankStar);
-								 Lore.add("Bonus Effects");
-								 ArrayList<String> b = plugin.setFoodBuff(failedDish);
-								 b.get(0);
-								 Lore.add(b.get(0));
-								 meta.setLore(Lore);
-								// Bukkit.broadcastMessage(ChatColor.RED + "Failed DISH " + trueOnce.isEmpty() );
-								 e.getInventory().setItem(0,failedDish);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-	
-		
 		ItemStack[] allItems = e.getInventory().getContents();
 		ArrayList<Boolean> trueOnce2 = new ArrayList<Boolean>();
 		for(ItemStack is : allItems){
 			if(plugin.isSpice(is)){
 				trueOnce2.add(true);
 			}
-			
 			if(trueOnce2.contains(true)){
-				
 			}
+			
 		}
 		
-		
+		if(plugin.canCraft(result) == false){
+			Bukkit.broadcastMessage("method cancraft");
+			e.getInventory().setItem(0, plugin.getFailedDish());
+		}
 	}
 	@SuppressWarnings("unused")
 	@EventHandler
@@ -1277,11 +1130,39 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	public void onEat(PlayerItemConsumeEvent e){
 		Player p = e.getPlayer();
 		String name = p.getUniqueId().toString();
-		
+		Bukkit.broadcastMessage("on eat");
 		if(p.getItemInHand() != null){
 			ItemStack item = p.getItemInHand();
-			if(item.getType() == Material.POTION){
+		
 			ItemMeta meta = 	item.getItemMeta();
+			if(meta.hasDisplayName() && meta.hasLore()){
+				if(meta.getLore().size() > 3){
+					List<String> lore = meta.getLore();
+					Bukkit.broadcastMessage("checking bonus + " + lore.get(2));
+					
+					if(lore.get(2).equalsIgnoreCase("Bonus Effects")){
+						String effect1 = lore.get(2);
+						Bukkit.broadcastMessage("in bonus");
+						int starRank = plugin.getcookingRankLevel(lore.get(1));
+						plugin.setFoodEffects(p, effect1, starRank);
+						
+						if(lore.size() == 4){
+							String effect2 = lore.get(3);
+							plugin.setFoodEffects(p, effect2, starRank);
+						}
+						
+						if(lore.size() == 5){
+							String effect3 = lore.get(4);
+							plugin.setFoodEffects(p, effect3, starRank);
+						}
+						
+					}
+					
+				}
+			
+			
+			
+			if(item.getType() == Material.POTION){
 			if(meta.hasDisplayName()){
 				if(meta.getDisplayName().equalsIgnoreCase("Booner Brew")){
 					if(plugin.getConfig().contains("Drunk." + name)){
@@ -1341,6 +1222,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 							plugin.saveConfig();
 						}else{
 							p.sendMessage(ChatColor.YELLOW + "Maybe I should take this when I'm actually drunk");
+						}
 					}
 				}
 			}

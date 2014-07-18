@@ -37,6 +37,7 @@ import org.bukkit.entity.Wolf;
 import org.bukkit.inventory.FurnaceRecipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.material.Mushroom;
@@ -1561,6 +1562,7 @@ public class FiddyCraft extends JavaPlugin {
 	        this.hotMilk();
 	        this.boiledEgg();
 	        this.sweetMilk();
+	        this.flour();
 		}
 //COOKING RECIPE NAMES
 		public boolean isRecipe(String Resultname){
@@ -1582,34 +1584,35 @@ public class FiddyCraft extends JavaPlugin {
 			
 			ArrayList<String> foodlist = new ArrayList<String>();
 			ArrayList<String> itemlist = hashmap.get(hashmapkey);
-			Bukkit.broadcastMessage("displaynames = " +itemlist.toString());
+
 			String fn = sourceItemName;
-			Bukkit.broadcastMessage("inside hasIngredents");
+	
 	//MUSHROOM SOUP	
 		if(fn.equalsIgnoreCase("Mushroom Soup")){
 			Bukkit.broadcastMessage("mushroomSoup");
 			foodlist.add("Broth Powder");
-			Bukkit.broadcastMessage(ChatColor.GREEN + "item list" + itemlist.toString());
-			Bukkit.broadcastMessage(ChatColor.DARK_AQUA +"food list" + foodlist.toString());
 			if(itemlist.containsAll(foodlist)){
-				Bukkit.broadcastMessage("fl size " + foodlist.size()  );
-				Bukkit.broadcastMessage("true");
 				return true;
 			}else{
-				Bukkit.broadcastMessage("false");
 				return false;
 			}
 		}
 	//SWEET MILK
 		if(fn.equalsIgnoreCase("Sweet Milk")){
 			foodlist.add("Hot Milk");
-			Bukkit.broadcastMessage(ChatColor.GREEN + "item list" + itemlist.toString());
-			Bukkit.broadcastMessage(ChatColor.DARK_AQUA +"food list" + foodlist.toString());
 			if(itemlist.containsAll(foodlist)){
-				
 				return true;
 			}else{
 				Bukkit.broadcastMessage("false");
+				return false;
+			}
+		}
+		
+		if(fn.equalsIgnoreCase("Flour")){
+			boolean all = true;
+			if(itemlist.containsAll(foodlist) || all){	
+				return true;
+			}else{
 				return false;
 			}
 		}
@@ -1647,9 +1650,7 @@ public class FiddyCraft extends JavaPlugin {
 						return false;
 					}
 				}
-				
 			}
-			
 			return false;
 		}
 		
@@ -1740,6 +1741,22 @@ public class FiddyCraft extends JavaPlugin {
         getServer().addRecipe(sweetMilk);
 	}
 		
+	public void flour() {
+		 ItemStack item = new ItemStack(Material.SUGAR);
+		 ItemMeta imeta = item.getItemMeta();
+	       ArrayList<String> Lore = new ArrayList<String>();
+	       Lore.add("Flour for baking");
+	       imeta.setDisplayName("Flour");
+	       imeta.setLore(Lore);
+	       item.setItemMeta(imeta);
+	       
+		ShapelessRecipe flour = new ShapelessRecipe(item);
+		flour.addIngredient(Material.WHEAT);
+		Bukkit.addRecipe(flour);
+		}
+	
+
+	
 //BPOILED EGG
 	public void  boiledEgg(){
 		ItemStack BoiledEgg = new ItemStack(Material.EGG);
@@ -1824,18 +1841,138 @@ public class FiddyCraft extends JavaPlugin {
 		 ArrayList<String> b = this.setFoodBuff(failedDish);
 		 b.get(0);
 		 Lore.add(b.get(0));
+		 meta.setDisplayName("Failed Dish");
 		 meta.setLore(Lore);
+		 failedDish.setItemMeta(meta);
 		return failedDish;
 	}
+//SETTIN THE DISH
+	public ItemStack getDish(HashMap<String, Integer> foodRank, HashMap<String, Integer> foodTotal, ItemStack result){
+		ItemMeta rmeta = result.getItemMeta();
+		 int totalItems = foodTotal.get(rmeta.getDisplayName());
+		 int newrank = (int) foodRank.get(rmeta.getDisplayName()) / totalItems;
+		 String rankStar = this.setCookingRank(newrank);
+		 ArrayList<String> Lore = new ArrayList<String>();
+		 ItemStack newitem = new ItemStack(result.getType());
+		 ItemMeta nimeta = newitem.getItemMeta();
+		 Lore.add(rmeta.getLore().get(0));
+		 Lore.add(rankStar);
+		 Lore.add("Bonus Effects");
+		 ArrayList<String> b = this.setFoodBuff(result);
+		 b.get(0);
+		 Lore.add(b.get(0));
+		 nimeta.setDisplayName(rmeta.getDisplayName());
+		 nimeta.setLore(Lore);
+		 newitem.setItemMeta(nimeta);
+		 return newitem;
+	}
+//SETTIN RANKS AND CRAP
+	public void starRankSetup(ArrayList<Boolean> trueOnce,HashMap<String, Integer> foodRank, ArrayList<String> displayName, ItemStack i, HashMap<String,ArrayList<String>> playerCraft, ItemStack result, Player p, HashMap<String, Integer> foodTotal){
+		ItemMeta rmeta = result.getItemMeta();
 	
-	public ArrayList<String> setFoodBuff(ItemStack mainIngredent){
+		if(i.hasItemMeta() && i.getItemMeta().hasDisplayName()){
+			displayName.add(i.getItemMeta().getDisplayName());
+			playerCraft.put(p.getName(), displayName);
+		if(displayName.contains(rmeta.getDisplayName())){
+			displayName.remove(rmeta.getDisplayName());
+		}
+		trueOnce.add(true);
+		if(i.getItemMeta().hasLore()){
+			if(i.getItemMeta().getLore().size() > 1){
+				String ranking = i.getItemMeta().getLore().get(1);
+				int rlevel = this.getcookingRankLevel(ranking);
+			if(foodTotal.isEmpty()){
+					foodTotal.put(rmeta.getDisplayName(), 1);
+				}else{
+				 int old = foodTotal.get(rmeta.getDisplayName());
+				 foodTotal.put(rmeta.getDisplayName(), old + 1);
+				}
+			 if(foodRank.isEmpty()){
+			 	}else{
+				 int oldLevel = foodRank.get(rmeta.getDisplayName());
+				 int newlevel = oldLevel + rlevel;
+				 foodRank.put(rmeta.getDisplayName(), newlevel);
+			 	}
+	}else{
+		if(this.isaNoneFoodItem(i.getType()) == false){
+			int rlevel = 0;
+			 if(foodTotal.isEmpty()){
+				 foodTotal.put(rmeta.getDisplayName(), 1);
+			 }else{
+				 int old = foodTotal.get(rmeta.getDisplayName());
+				 foodTotal.put(rmeta.getDisplayName(), old + 1);
+			 }
+			 if(foodRank.isEmpty()){
+				 foodRank.put(rmeta.getDisplayName(), rlevel);
+			 }else{
+				 int oldLevel = foodRank.get(rmeta.getDisplayName());
+				 int newlevel = oldLevel + rlevel;
+			 foodRank.put(rmeta.getDisplayName(), newlevel);
+			 		}
+				}
+			}
+		}
+	}
+}
+//ADDING FOOD EFFECTS
+	public void setFoodEffects(Player p,String effect, int starRank){
+		int level = (int) starRank - 1;
+		int time = starRank * 600;
+		
+		Bukkit.broadcastMessage("in food effects + effect " + effect);
+		if(effect.equalsIgnoreCase("Strength")){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, time, level));
+			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.RED + "Stronger!");
+		}
+		
+		if(effect.equalsIgnoreCase("Health")){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, time, level));
+			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.DARK_GREEN + "Healther!");
+		}
+		if(effect.equalsIgnoreCase("Regeneration")){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, time, level));
+			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Like new!");
+		}
+		if(effect.equalsIgnoreCase("Speed")){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, time, level));
+			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Fast!");
+		}
+		
+		if(effect.equalsIgnoreCase("None")){
+			
+		}
+	}
+//CHECK IF ABLE TO MAKE THIS FOOD
+	public boolean canCraft(ItemStack result){
+		Bukkit.broadcastMessage("cancraft");
+		ArrayList<Material> noCraft = new ArrayList<Material>();
+		noCraft.add(Material.MUSHROOM_SOUP);
+		noCraft.add(Material.BREAD);
+		noCraft.add(Material.BAKED_POTATO);
+		noCraft.add(Material.PUMPKIN_PIE);
+		noCraft.add(Material.GOLDEN_APPLE);
+		noCraft.add(Material.COOKIE);
+		noCraft.add(Material.COOKED_BEEF);
+		noCraft.add(Material.COOKED_CHICKEN);
+		noCraft.add(Material.COOKED_FISH);
+		noCraft.add(Material.CAKE);
+		Material r = result.getType();
+		if(noCraft.contains(r) && result.hasItemMeta() == false && result.getItemMeta().hasDisplayName() == false){
+			Bukkit.broadcastMessage("false");
+			return false;
+		}else{
+			Bukkit.broadcastMessage("true");
+			return true;
+		}
+		
+	}
+//SET FOOD BUFF
+		public ArrayList<String> setFoodBuff(ItemStack mainIngredent){
 		Material item = mainIngredent.getType();
 		ItemMeta meta = mainIngredent.getItemMeta();
 		ArrayList<String> b = new ArrayList<String>();
-		
 		if(item == Material.RAW_BEEF || item == Material.RAW_CHICKEN ||item == Material.RAW_FISH){
 			b.add("Strength");
-			
 		}
 		
 		if(item == Material.MUSHROOM_SOUP && mainIngredent.hasItemMeta() && meta.hasDisplayName()){
