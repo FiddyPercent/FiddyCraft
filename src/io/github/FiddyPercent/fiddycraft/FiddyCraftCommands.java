@@ -3,6 +3,8 @@ package io.github.FiddyPercent.fiddycraft;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -847,35 +849,22 @@ public class FiddyCraftCommands implements CommandExecutor {
 //TEST COMMAND
 		if(cmd.getName().equalsIgnoreCase("rTest")){
 		Player p = (Player) sender;
+		ItemStack item = p.getItemInHand();
+		ItemMeta meta = item.getItemMeta();
 		
-		if(args.length != 1){
-			return false;
+		if(!meta.hasDisplayName()){
+			meta.setDisplayName(item.getType().toString());
 		}
+		HashMap<String, Integer> foodRank = new HashMap<String, Integer>() ;
+		foodRank.put(meta.getDisplayName(), 4);
+		HashMap<String, Integer> foodTotal = new HashMap<String, Integer>() ;
+		foodTotal.put(meta.getDisplayName(), 1);
+		ItemStack result = p.getItemInHand();
 		
-		if(p.getItemInHand().getType() != Material.AIR){
-			ItemStack hand = p.getItemInHand();
-			ItemMeta meta = hand.getItemMeta();
-			ArrayList<String> lore = new ArrayList<String>();
-			int rank = (int) Integer.parseInt(args[0]);
-			
-			
-			if(meta.hasLore()){
-				String lore1 = meta.getLore().get(0);
-				lore.add(lore1);
-				lore.add(plugin.setCookingRank(rank));
-			}else{
-				lore.add("whatever");
-				lore.add(plugin.setCookingRank(rank));
-			}
-			
-			meta.setLore(lore);
-			hand.setItemMeta(meta);
-			
-		}
+		p.setItemInHand(plugin.getDish(foodRank, foodTotal, result));
+	
 		
-		
-		
-		}
+	}
 		
 //RELEASE COMMAND
 		if(cmd.getName().equalsIgnoreCase("RELEASE")){

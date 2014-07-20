@@ -60,6 +60,8 @@ public class FiddyCraft extends JavaPlugin {
 	  private File PlayerInfoFile;
 	  private  FileConfiguration AnimalData;
 	  private File AnimalDataFile;
+	  private  FileConfiguration PlantInfo;
+	  private File PlantInfoFile;
 	  public final FiddyCraftListener fcl = new FiddyCraftListener(this);
 	  public HashMap<String, Boolean> TrialStart = new HashMap<String, Boolean>();
 	  public HashMap<String, Boolean> TrialReady = new HashMap<String, Boolean>();
@@ -103,6 +105,8 @@ public class FiddyCraft extends JavaPlugin {
         this.getLogger().info("FiddyCraft is Disabled");
         saveConfig();
         savePlayerInfo();
+        savePlantInfo();
+        saveAnimalData();
     	this.TrialStart.clear();
     	this.closingStatementdefense.clear();
     	this.closingStatementProsecution.clear();
@@ -117,6 +121,7 @@ public class FiddyCraft extends JavaPlugin {
     	loadConfig();
     	reloadPlayerInfo();
     	reloadAnimalData();
+    	reloadPlantInfo();
     	this.Recipes();
         this.getLogger().info("FiddyCraft is Enabled");
         getServer().getPluginManager().registerEvents(new FiddyCraftListener(this), this);
@@ -409,6 +414,38 @@ public class FiddyCraft extends JavaPlugin {
         return true;
     }
     
+    public void reloadPlantInfo() {
+        if (PlantInfoFile == null) {
+        	PlantInfoFile = new File(getDataFolder(), "PlantInfo.yml");
+        }
+        PlantInfo = YamlConfiguration.loadConfiguration(PlantInfoFile);
+        InputStream defConfigStream = this.getResource("PlantInfo.yml");
+        if (defConfigStream != null) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+            PlantInfo.setDefaults(defConfig);
+        }
+    }
+    public FileConfiguration getPlantInfo() {
+        if (PlantInfo == null) {
+            this.reloadPlantInfo();
+        }
+        return PlantInfo;
+    }
+    
+    public void savePlantInfo() {
+        if (PlantInfo == null || PlantInfoFile == null) {
+        	this.reloadPlantInfo();
+     
+        }
+        try {
+            getPlantInfo().save(PlantInfoFile);
+            Bukkit.broadcastMessage("saving");
+        } catch (IOException ex) {
+            this.getLogger().log(Level.SEVERE, "Could not save config to " + PlantInfoFile, ex);
+        }
+    }
+
+
 
     
     public static void setJailSentence(Player player, int sentence) {
@@ -1214,6 +1251,9 @@ public class FiddyCraft extends JavaPlugin {
 			}
 		}
 	}
+	
+	
+	
 	public void removeAnimal(Entity e){
 				Set<String> farmers =  this.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
 				for(String farmer : farmers){
@@ -1341,11 +1381,12 @@ public class FiddyCraft extends JavaPlugin {
 	public boolean isanimalAbletobePet(String uuid, String auuid){
 		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".isPet");
 	}
-	
+
 	public void setanimalAbletobePet(String uuid, String auuid, Boolean b){
 		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".isPet", b);
 		 this.saveAnimalData();
 	}
+//PLAY ANIMAL SOUND
 	public void playAnimalSound(Entity e, Player p){
 		String type = e.getType().toString();
 		Location loc = p.getLocation();
@@ -1370,7 +1411,7 @@ public class FiddyCraft extends JavaPlugin {
 		}
 		
 	}
-	
+//GET ALL FARM ANIMALS
 	public String getAllFarmAnimals(){
 		Player[] p = Bukkit.getOnlinePlayers();
 		for(Player player : p){
@@ -1389,7 +1430,7 @@ public class FiddyCraft extends JavaPlugin {
 			}
 		return null;
 	}
-	
+//ANIMAL FOOD SETTINGS
 	public boolean animalFood(Entity e, Material item){
 		
 		if(e instanceof Cow || e instanceof Horse || e instanceof Pig || e instanceof Sheep ){
@@ -1421,7 +1462,7 @@ public class FiddyCraft extends JavaPlugin {
 			return false;
 		}
 	}
-	
+//CHECK IF ANIMAL
 	public boolean isAnimalFood(Material item){
 		if(item == Material.HAY_BLOCK || item == Material.SEEDS || item == Material.ROTTEN_FLESH || item == Material.RAW_BEEF || item == Material.PORK
 				|| item == Material.RAW_FISH){
@@ -1430,7 +1471,7 @@ public class FiddyCraft extends JavaPlugin {
 			return false;
 		}
 	}
-	
+//NEW DAY
 	public void newDay(){
 	long Time = Bukkit.getWorld("world").getTime();
 	if(newday.isEmpty() || newday.get("newday") == false){
@@ -1454,6 +1495,7 @@ public class FiddyCraft extends JavaPlugin {
 		}
 	}
 }
+//ANIMAL EAT
 	public void animalEat(Player p, ItemStack i){
 		String uuid = p.getUniqueId().toString();
 		if(this.getAnimalData().contains("Farmer." + uuid)){
@@ -1474,6 +1516,7 @@ public class FiddyCraft extends JavaPlugin {
 				}
 			}
 		}
+//PET ANIMAL
 	public void petAnimal(Player p , Entity e){
 		String uuid = p.getUniqueId().toString();
 		String auuid = e.getUniqueId().toString();
@@ -1489,7 +1532,7 @@ public class FiddyCraft extends JavaPlugin {
 		}
 	}
 
-
+//SHOW ANIMAL INFORMATION
 	public void showAnimalInfo(Player p, Entity e){
 	if(this.checkifHasOwner(e.getUniqueId().toString())){
 		String auuid = e.getUniqueId().toString();
@@ -1504,7 +1547,7 @@ public class FiddyCraft extends JavaPlugin {
 		p.sendMessage(ChatColor.YELLOW + "Is lonely: "  + ChatColor.GREEN + this.isanimalAbletobePet(uuid, auuid));
 		}
 	}
-	
+//PUBLIC VOID WASH ANIMAL
 	public void washAnimal(Player p , Entity e){
 		String uuid = p.getUniqueId().toString();
 		String auuid = e.getUniqueId().toString();
@@ -1521,7 +1564,7 @@ public class FiddyCraft extends JavaPlugin {
 		}
 		}
 	}
-	
+//CHECK IF FOOD
 	public boolean isFood(ItemStack i){
 		Material item = i.getType();
 		if(item == Material.APPLE || item == Material.COOKED_CHICKEN ||item == Material.COOKED_FISH ||item == Material.COOKIE ||item == Material.GOLDEN_APPLE ||item == Material.APPLE ||
@@ -1535,7 +1578,7 @@ public class FiddyCraft extends JavaPlugin {
 			return false;
 		}
 	}
-	
+//IS COOKED FOOD
 	public boolean isCookedFood(Material food){
 		Material f = food;
 		if(f == Material.COOKED_BEEF || f == Material.COOKED_CHICKEN || f == Material.COOKED_FISH){
@@ -1545,8 +1588,8 @@ public class FiddyCraft extends JavaPlugin {
 		}
 	}
 	
-//
-	public boolean isaNoneFoodItem(Material item){
+//NON FOOD ITEM CHCEK
+	public boolean isaNonFoodItem(Material item){
 		Material i = item;
 		if(i == Material.WATER_BUCKET || i == Material.BOWL || i == Material.POTION){
 			return true;
@@ -1563,6 +1606,21 @@ public class FiddyCraft extends JavaPlugin {
 	        this.boiledEgg();
 	        this.sweetMilk();
 	        this.flour();
+	        this.hotRawChicken();
+	        this.spiceyChicken();
+	        this.breadDough();
+	        this.sweetBreadDough();
+	        this.butter();
+	        this.normalChicken();
+	        this.normalBread();
+	        this.PreparedFish();
+	        this.PreparedPorkChop();
+	        this.PreparedSteak();
+	        this.grilledfish();
+	        this.steak();
+	        this.porkchop();
+	        this.PreparedChicken();
+	        
 		}
 //COOKING RECIPE NAMES
 		public boolean isRecipe(String Resultname){
@@ -1572,7 +1630,20 @@ public class FiddyCraft extends JavaPlugin {
 			recipeNames.add("Mushroom Soup");
 			recipeNames.add("Hot Milk");
 			recipeNames.add("Sweet Milk");
-			
+			recipeNames.add("Raw Spicey Chicken");
+			recipeNames.add("Pork Chop");
+			recipeNames.add("Prepared Steak");
+			recipeNames.add("Prepared Pork Chop");
+			recipeNames.add("Prepared Fish");
+			recipeNames.add("Sweet Bread");
+			recipeNames.add("Steak");
+			recipeNames.add("Baked Bread");
+			recipeNames.add("Bread Dough");
+			recipeNames.add("Baked Chicken");
+			recipeNames.add("Baked Fish");
+			recipeNames.add("Butter");
+			recipeNames.add("Flour");
+			recipeNames.add("Spicey Chicken");
 			if(recipeNames.contains(Resultname)){
 				return true;
 			}else{
@@ -1589,7 +1660,7 @@ public class FiddyCraft extends JavaPlugin {
 	
 	//MUSHROOM SOUP	
 		if(fn.equalsIgnoreCase("Mushroom Soup")){
-			Bukkit.broadcastMessage("mushroomSoup");
+	////bukkit.broadcastMessage("mushroomSoup");
 			foodlist.add("Broth Powder");
 			if(itemlist.containsAll(foodlist)){
 				return true;
@@ -1603,7 +1674,7 @@ public class FiddyCraft extends JavaPlugin {
 			if(itemlist.containsAll(foodlist)){
 				return true;
 			}else{
-				Bukkit.broadcastMessage("false");
+		////bukkit.broadcastMessage("false");
 				return false;
 			}
 		}
@@ -1617,6 +1688,86 @@ public class FiddyCraft extends JavaPlugin {
 			}
 		}
 		
+		if(fn.equalsIgnoreCase("Raw Spicey Chicken")){
+			foodlist.add("Salt");
+			foodlist.add("Pepper");
+			foodlist.add("Cayenne");
+			if(itemlist.containsAll(foodlist)){	
+				return true;
+			}else{
+				return false;
+			}
+		}
+		
+		
+		if(fn.equalsIgnoreCase("Bread Dough")){
+			foodlist.add("Flour");
+			foodlist.add("Flour");
+			if(itemlist.containsAll(foodlist)){	
+				return true;
+			}else{
+				return false;
+			}
+		}
+		
+		if(fn.equalsIgnoreCase("Sweet Bread Dough")){
+			foodlist.add("Flour");
+			foodlist.add("Flour");
+			if(itemlist.containsAll(foodlist)){	
+				return true;
+			}else{
+				return false;
+			}
+		}
+		
+		if(fn.equalsIgnoreCase("Prepared Fish")){
+			foodlist.add("Salt");
+			foodlist.add("Pepper");
+			if(itemlist.containsAll(foodlist)){	
+				return true;
+			}else{
+				return false;
+			}
+		}
+		
+		if(fn.equalsIgnoreCase("Prepared Chicken")){
+			foodlist.add("Salt");
+			foodlist.add("Pepper");
+			if(itemlist.containsAll(foodlist)){	
+				return true;
+			}else{
+				return false;
+			}
+		}
+		if(fn.equalsIgnoreCase("Prepared Steak")){
+			foodlist.add("Salt");
+			foodlist.add("Pepper");
+			if(itemlist.containsAll(foodlist)){	
+				return true;
+			}else{
+				return false;
+			}
+		}
+		
+		if(fn.equalsIgnoreCase("Prepared Pork")){
+			foodlist.add("Salt");
+			foodlist.add("Pepper");
+			if(itemlist.containsAll(foodlist)){	
+				return true;
+			}else{
+				return false;
+			}
+		}
+		
+		
+		if(fn.equalsIgnoreCase("Butter")){
+			foodlist.add("Salt");
+			if(itemlist.containsAll(foodlist)){	
+				return true;
+			}else{
+				return false;
+			}
+		}
 		if(fn.equalsIgnoreCase("something")){
 			foodlist.add("this");
 			foodlist.add("this");
@@ -1654,7 +1805,7 @@ public class FiddyCraft extends JavaPlugin {
 			return false;
 		}
 		
-		
+//CAN BE SPICED
 		public boolean canBeSpiced(){
 			HashMap<String,ArrayList<String>> spiceables = new HashMap<String, ArrayList<String>>();
 			ArrayList<String> spicesNeeded = new ArrayList<String>();
@@ -1665,8 +1816,17 @@ public class FiddyCraft extends JavaPlugin {
 		
 //FURNACE INGREDENTS
 		public boolean hasFurnaceIngredents(String sourceName, String resultName){
-			String sn = sourceName;
+			String n = sourceName;
 			String rn = resultName;
+			
+			ArrayList<String> sN = new ArrayList<String>();
+			if(n == null){
+				sN.add("meh");
+			}else{
+				sN.add(n);
+			}
+			String sn = sN.get(0);
+			
 	//HOT MILK
 			if(rn.equalsIgnoreCase("Hot Milk")){
 				boolean canHaveAnyName = true;
@@ -1703,12 +1863,98 @@ public class FiddyCraft extends JavaPlugin {
 						return false;
 					}
 				}
+	//SPICEY CHICKEN
+			}else if(rn.equalsIgnoreCase("Spicey Chicken")){
+				boolean canHaveAnyName = false;
+				if(canHaveAnyName){
+					return true;
+				}else{
+					if(sn.equalsIgnoreCase("Raw Spicey Chicken")){
+					return true;
+					}else{
+						return false;
+					}
+				}
+			}else if(rn.equalsIgnoreCase("Baked Chicken")){
+				boolean canHaveAnyName = false;
+				if(canHaveAnyName){
+					return false;
+				}else{
+					if(sn.equalsIgnoreCase("Prepared Chicken")){
+					return true;
+					}else{
+						return false;
+					}
+				}
+			}else if(rn.equalsIgnoreCase("Baked Bread")){
+				boolean canHaveAnyName = false;
+				if(canHaveAnyName){
+					return false;
+				}else{
+					if(sn.equalsIgnoreCase("Bread Dough")){
+					return true;
+					}else{
+						return false;
+					}
+				}
+			}else if(rn.equalsIgnoreCase("Steak")){
+				boolean canHaveAnyName = false;
+				if(canHaveAnyName){
+					return true;
+				}else{
+					if(sn == null){
+						return false;
+					}
+					
+					//bukkit.broadcastMessage(ChatColor.RED + "source name steak = " + sn);
+					if(sn.equalsIgnoreCase("Prepared Steak") ){
+					return true;
+					}else{
+						return false;
+					}
+				}
+			}else if(rn.equalsIgnoreCase("Pork Chop")){
+				boolean canHaveAnyName = false;
+				//bukkit.broadcastMessage("in pork chop");
+				if(canHaveAnyName){
+					return false;
+				}else{
+					if(sn.equalsIgnoreCase("Prepared Pork Chop")){
+						//bukkit.broadcastMessage("true");
+					return true;
+					}else{
+						return false;
+					}
+				}
+			}else if(rn.equalsIgnoreCase("Baked Fish")){
+				boolean canHaveAnyName = false;
+				if(canHaveAnyName){
+					return false;
+				}else{
+					if(sn.equalsIgnoreCase("Prepared Fish")){
+					return true;
+					}else{
+						return false;
+					}
+				}
+			}else if(rn.equalsIgnoreCase("Sweet Bread")){
+				boolean canHaveAnyName = false;
+				if(canHaveAnyName){
+					return false;
+				}else{
+					if(sn.equalsIgnoreCase("Sweet Bread Dough")){
+					return true;
+					}else{
+						return false;
+					}
+				}
 			}else{
 				return false;
 			}
-			
-			
+
 		}
+		
+
 //COOKING RANK STARS TO INTS
 		public int getcookingRankLevel(String rank){
 			String r = rank;
@@ -1740,7 +1986,8 @@ public class FiddyCraft extends JavaPlugin {
         sweetMilk.setIngredient('M', Material.MILK_BUCKET);
         getServer().addRecipe(sweetMilk);
 	}
-		
+	
+//FLOUR
 	public void flour() {
 		 ItemStack item = new ItemStack(Material.SUGAR);
 		 ItemMeta imeta = item.getItemMeta();
@@ -1755,7 +2002,162 @@ public class FiddyCraft extends JavaPlugin {
 		Bukkit.addRecipe(flour);
 		}
 	
+//SPICEY RAW CHICKEN
+	public void hotRawChicken() {
+		 ItemStack item = new ItemStack(Material.RAW_CHICKEN);
+		 ItemMeta imeta = item.getItemMeta();
+	       ArrayList<String> Lore = new ArrayList<String>();
+	       Lore.add("Raw Spicey Chicken");
+	       imeta.setDisplayName("Raw Spicey Chicken");
+	       imeta.setLore(Lore);
+	       item.setItemMeta(imeta);
+	       
+		ShapelessRecipe hotRawChicken = new ShapelessRecipe(item);
+		hotRawChicken.addIngredient(Material.NETHER_STALK);
+		hotRawChicken.addIngredient(Material.PUMPKIN_SEEDS);
+		hotRawChicken.addIngredient(Material.MELON_SEEDS);
+		hotRawChicken.addIngredient(Material.RAW_CHICKEN);
+		Bukkit.addRecipe(hotRawChicken);
+		}
+//STEAK
+	public void PreparedSteak() {
+		 ItemStack item = new ItemStack(Material.RAW_BEEF);
+		 ItemMeta imeta = item.getItemMeta();
+	       ArrayList<String> Lore = new ArrayList<String>();
+	       Lore.add("Ready for Cooking");
+	       imeta.setDisplayName("Prepared Steak");
+	       imeta.setLore(Lore);
+	       item.setItemMeta(imeta);
+	       
+		ShapelessRecipe PreparedSteak = new ShapelessRecipe(item);
+		PreparedSteak.addIngredient(Material.PUMPKIN_SEEDS);
+		PreparedSteak.addIngredient(Material.MELON_SEEDS);
+		PreparedSteak.addIngredient(Material.RAW_BEEF);
+		Bukkit.addRecipe(PreparedSteak);
+		}
+//PORK CHOP
+	public void PreparedPorkChop() {
+		 ItemStack item = new ItemStack(Material.PORK);
+		 ItemMeta imeta = item.getItemMeta();
+	       ArrayList<String> Lore = new ArrayList<String>();
+	       Lore.add("Ready for Cooking");
+	       imeta.setDisplayName("Prepared Pork Chop");
+	       imeta.setLore(Lore);
+	       item.setItemMeta(imeta);
+		ShapelessRecipe PreparedPorkChop = new ShapelessRecipe(item);
+		PreparedPorkChop.addIngredient(Material.PUMPKIN_SEEDS);
+		PreparedPorkChop.addIngredient(Material.MELON_SEEDS);
+		PreparedPorkChop.addIngredient(Material.PORK);
+		Bukkit.addRecipe(PreparedPorkChop);
+		}
+//PREPAIRED FISH
+	public void PreparedFish() {
+		 ItemStack item = new ItemStack(Material.RAW_FISH);
+		 ItemMeta imeta = item.getItemMeta();
+	       ArrayList<String> Lore = new ArrayList<String>();
+	       Lore.add("Ready for Cooking");
+	       imeta.setDisplayName("Prepared Fish");
+	       imeta.setLore(Lore);
+	       item.setItemMeta(imeta);
+	       
+		ShapelessRecipe PreparedFish = new ShapelessRecipe(item);
+		PreparedFish.addIngredient(Material.PUMPKIN_SEEDS);
+		PreparedFish.addIngredient(Material.MELON_SEEDS);
+		PreparedFish.addIngredient(Material.RAW_FISH);
+		Bukkit.addRecipe(PreparedFish);
+		}
+	
+	public void PreparedChicken() {
+		 ItemStack item = new ItemStack(Material.RAW_CHICKEN);
+		 ItemMeta imeta = item.getItemMeta();
+	       ArrayList<String> Lore = new ArrayList<String>();
+	       Lore.add("Ready for Cooking");
+	       imeta.setDisplayName("Prepared Chicken");
+	       imeta.setLore(Lore);
+	       item.setItemMeta(imeta);
+	       
+		ShapelessRecipe PreparedFish = new ShapelessRecipe(item);
+		PreparedFish.addIngredient(Material.PUMPKIN_SEEDS);
+		PreparedFish.addIngredient(Material.MELON_SEEDS);
+		PreparedFish.addIngredient(Material.RAW_CHICKEN);
+		Bukkit.addRecipe(PreparedFish);
+		}
+//BREAD DOUGH
+	public void breadDough() {
+		 ItemStack item = new ItemStack(Material.INK_SACK, 1, (short) 9);
+		 ItemMeta imeta = item.getItemMeta();
+	       ArrayList<String> Lore = new ArrayList<String>();
+	       Lore.add("Bread Dough for making bread");
+	       imeta.setDisplayName("Bread milDough");
+	       imeta.setLore(Lore);
+	       item.setItemMeta(imeta);
+	       
+		ShapelessRecipe breadDough = new ShapelessRecipe(item);
+		breadDough.addIngredient(Material.PUMPKIN_SEEDS);
+		breadDough.addIngredient(Material.SUGAR);
+		breadDough.addIngredient(Material.SUGAR);
+		breadDough.addIngredient(Material.MILK_BUCKET);
+		breadDough.addIngredient(Material.EGG);
+		
+		Bukkit.addRecipe(breadDough);
+		}
+//BUTTER
+	public void butter() {
+		 ItemStack item = new ItemStack(Material.INK_SACK, 1,  (short) 11);
+		 ItemMeta imeta = item.getItemMeta();
+	       ArrayList<String> Lore = new ArrayList<String>();
+	       Lore.add("Butter made from milk");
+	       imeta.setDisplayName("Butter");
+	       imeta.setLore(Lore);
+	       item.setItemMeta(imeta);
+	       
+		ShapelessRecipe Butter = new ShapelessRecipe(item);
+		Butter.addIngredient(Material.PUMPKIN_SEEDS);
+		Butter.addIngredient(Material.MILK_BUCKET);
+		Bukkit.addRecipe(Butter);
+		}
+//SWEET BREAD DOUGH
+	public void sweetBreadDough() {
+		 ItemStack item = new ItemStack(Material.INK_SACK, 1,  (short) 13);
+		 ItemMeta imeta = item.getItemMeta();
+	       ArrayList<String> Lore = new ArrayList<String>();
+	       Lore.add("Bread Dough for making bread");
+	       imeta.setDisplayName("Sweet Bread Dough");
+	       imeta.setLore(Lore);
+	       item.setItemMeta(imeta);
+	       
+		ShapelessRecipe breadDough = new ShapelessRecipe(item);
+		breadDough.addIngredient(Material.PUMPKIN_SEEDS);
+		breadDough.addIngredient(Material.SUGAR);
+		breadDough.addIngredient(Material.SUGAR);
+		breadDough.addIngredient(Material.SUGAR);
+		breadDough.addIngredient(Material.MILK_BUCKET);
+		breadDough.addIngredient(Material.EGG);
+		
+		Bukkit.addRecipe(breadDough);
+		}
 
+	public void  sweetlBread(){
+		ItemStack BoiledEgg = new ItemStack(Material.BREAD);
+		ItemMeta meta = BoiledEgg.getItemMeta();
+		ArrayList<String> Lore = new ArrayList<String>();
+		meta.setDisplayName("Baked Bread");
+		Lore.add("Bread, thats about it");
+		meta.setLore(Lore);
+		BoiledEgg.setItemMeta(meta);
+		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(BoiledEgg), Material.INK_SACK, 9));
+	}
+	
+	public void  normalBread(){
+		ItemStack BoiledEgg = new ItemStack(Material.BREAD);
+		ItemMeta meta = BoiledEgg.getItemMeta();
+		ArrayList<String> Lore = new ArrayList<String>();
+		meta.setDisplayName("Baked Bread");
+		Lore.add("Bread, thats about it");
+		meta.setLore(Lore);
+		BoiledEgg.setItemMeta(meta);
+		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(BoiledEgg), Material.INK_SACK, 9));
+	}
 	
 //BPOILED EGG
 	public void  boiledEgg(){
@@ -1792,6 +2194,60 @@ public class FiddyCraft extends JavaPlugin {
 	        Broth.setItemMeta(broth);
 	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(Broth), Material.COOKED_CHICKEN));
 	}
+//SPICEY CHICKEN
+	public void spiceyChicken(){
+		   ItemStack item = new ItemStack(Material.COOKED_CHICKEN);
+	        ItemMeta meta = item.getItemMeta();
+	        ArrayList<String> Lore = new ArrayList<String>();
+	        Lore.add("Spicey Chicken careful its hot");
+	        meta.setLore(Lore);
+	        meta.setDisplayName("Spicey Chicken");
+	        item.setItemMeta(meta);
+	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(item), Material.RAW_CHICKEN));
+	}
+//NORMAL CHICKEN
+	public void normalChicken(){
+		   ItemStack item = new ItemStack(Material.COOKED_CHICKEN);
+	        ItemMeta meta = item.getItemMeta();
+	        ArrayList<String> Lore = new ArrayList<String>();
+	        Lore.add("Chicken, everyone loves chicken");
+	        meta.setLore(Lore);
+	        meta.setDisplayName("Baked Chicken");
+	        item.setItemMeta(meta);
+	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(item), Material.RAW_CHICKEN));
+	}
+	
+	public void steak(){
+		   ItemStack item = new ItemStack(Material.COOKED_BEEF);
+	        ItemMeta meta = item.getItemMeta();
+	        ArrayList<String> Lore = new ArrayList<String>();
+	        Lore.add("Steak, mmmm meaty");
+	        meta.setLore(Lore);
+	        meta.setDisplayName("Steak");
+	        item.setItemMeta(meta);
+	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(item), Material.RAW_BEEF));
+	}
+
+	public void porkchop(){
+		   ItemStack item = new ItemStack(Material.GRILLED_PORK);
+	        ItemMeta meta = item.getItemMeta();
+	        ArrayList<String> Lore = new ArrayList<String>();
+	        Lore.add("Pork in the big city");
+	        meta.setLore(Lore);
+	        meta.setDisplayName("Pork Chop");
+	        item.setItemMeta(meta);
+	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(item), Material.PORK));
+	}
+	public void grilledfish(){
+		   ItemStack item = new ItemStack(Material.COOKED_FISH);
+	        ItemMeta meta = item.getItemMeta();
+	        ArrayList<String> Lore = new ArrayList<String>();
+	        Lore.add("Smells fishy");
+	        meta.setLore(Lore);
+	        meta.setDisplayName("Baked Fish");
+	        item.setItemMeta(meta);
+	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(item), Material.RAW_FISH));
+	}
 	
 //MUSHROOM SOUP
 	@SuppressWarnings("deprecation")
@@ -1814,22 +2270,22 @@ public class FiddyCraft extends JavaPlugin {
 //SET COOKING RANK
 	public String setCookingRank(int number){
 		int r = number;
-		Bukkit.broadcastMessage("setting cooking rank");
+////bukkit.broadcastMessage("setting cooking rank");
 		if(r == 1){
 			return "*";
 		}else if(r == 2){
-			Bukkit.broadcastMessage("2" + " rank " + number);
+	////bukkit.broadcastMessage("2" + " rank " + number);
 			return "**";
 		}else if(r == 3){
 			return "***";
 		}else if(r >= 4){
 			return "****";
 		}else{
-			Bukkit.broadcastMessage("else" + " rank " + number);
+	////bukkit.broadcastMessage("else" + " rank " + number);
 			return "X";
 		}
 	}
-//failedDish
+//FAILED DISH
 	public ItemStack getFailedDish(){
 		 ItemStack failedDish = new ItemStack(Material.ROTTEN_FLESH);
 		 ItemMeta meta = failedDish.getItemMeta();
@@ -1838,9 +2294,16 @@ public class FiddyCraft extends JavaPlugin {
 		 Lore.add("Proof of bad cooking");
 		 Lore.add(rankStar);
 		 Lore.add("Bonus Effects");
-		 ArrayList<String> b = this.setFoodBuff(failedDish);
+		 ArrayList<String> b = this.setFoodBuff(failedDish, meta.getDisplayName(), 0 );
 		 b.get(0);
 		 Lore.add(b.get(0));
+		 if(b.size() > 1){
+			 Lore.add(b.get(1));
+			 
+			 if(b.size() > 2){
+				 Lore.add(b.get(2));
+			 }
+		 }
 		 meta.setDisplayName("Failed Dish");
 		 meta.setLore(Lore);
 		 failedDish.setItemMeta(meta);
@@ -1853,14 +2316,21 @@ public class FiddyCraft extends JavaPlugin {
 		 int newrank = (int) foodRank.get(rmeta.getDisplayName()) / totalItems;
 		 String rankStar = this.setCookingRank(newrank);
 		 ArrayList<String> Lore = new ArrayList<String>();
-		 ItemStack newitem = new ItemStack(result.getType());
+		 ItemStack newitem = result;
 		 ItemMeta nimeta = newitem.getItemMeta();
 		 Lore.add(rmeta.getLore().get(0));
 		 Lore.add(rankStar);
 		 Lore.add("Bonus Effects");
-		 ArrayList<String> b = this.setFoodBuff(result);
+		 ArrayList<String> b = this.setFoodBuff(result, rmeta.getDisplayName(), newrank);
 		 b.get(0);
 		 Lore.add(b.get(0));
+		 if(b.size() > 1){
+			 Lore.add(b.get(1));
+			 
+			 if(b.size() > 2){
+				 Lore.add(b.get(2));
+			 }
+		 }
 		 nimeta.setDisplayName(rmeta.getDisplayName());
 		 nimeta.setLore(Lore);
 		 newitem.setItemMeta(nimeta);
@@ -1894,7 +2364,7 @@ public class FiddyCraft extends JavaPlugin {
 				 foodRank.put(rmeta.getDisplayName(), newlevel);
 			 	}
 	}else{
-		if(this.isaNoneFoodItem(i.getType()) == false){
+		if(this.isaNonFoodItem(i.getType()) == false){
 			int rlevel = 0;
 			 if(foodTotal.isEmpty()){
 				 foodTotal.put(rmeta.getDisplayName(), 1);
@@ -1916,26 +2386,52 @@ public class FiddyCraft extends JavaPlugin {
 }
 //ADDING FOOD EFFECTS
 	public void setFoodEffects(Player p,String effect, int starRank){
-		int level = (int) starRank - 1;
-		int time = starRank * 600;
 		
-		Bukkit.broadcastMessage("in food effects + effect " + effect);
-		if(effect.equalsIgnoreCase("Strength")){
+		int level = (int) starRank ;
+		int time = starRank * 8000;
+		
+////bukkit.broadcastMessage("in food effects + effect " + effect);
+		if(effect.equalsIgnoreCase("Strength") && level != 0){
 			p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, time, level));
 			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.RED + "Stronger!");
 		}
 		
-		if(effect.equalsIgnoreCase("Health")){
+		if(effect.equalsIgnoreCase("Health") && level != 0){
 			p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, time, level));
 			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.DARK_GREEN + "Healther!");
 		}
-		if(effect.equalsIgnoreCase("Regeneration")){
+		if(effect.equalsIgnoreCase("Regeneration") && level != 0){
 			p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, time, level));
 			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Like new!");
 		}
-		if(effect.equalsIgnoreCase("Speed")){
+		if(effect.equalsIgnoreCase("Speed") && level != 0){
 			p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, time, level));
 			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Fast!");
+		}
+		
+		if(effect.equalsIgnoreCase("Heat Tolerance") && level != 0){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, time, level));
+			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.RED + "One with Fire!");
+		}
+		if(effect.equalsIgnoreCase("Jumpy") && level != 0){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, time, level));
+			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Like your bouncing off the walls!");
+		}
+		if(effect.equalsIgnoreCase("Saturation") && level != 0){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, time, level));
+			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.YELLOW + "Full!");
+		}
+		if(effect.equalsIgnoreCase("Healing") && level != 0){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, time, level));
+			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Restored!");
+		}
+		if(effect.equalsIgnoreCase("Miners Bonus") && level != 0){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, time, level));
+			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.YELLOW + "Like Mining!");
+		}
+		if(effect.equalsIgnoreCase("Strong Bones") && level != 0){
+			p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, time, level));
+			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Tough!");
 		}
 		
 		if(effect.equalsIgnoreCase("None")){
@@ -1944,7 +2440,7 @@ public class FiddyCraft extends JavaPlugin {
 	}
 //CHECK IF ABLE TO MAKE THIS FOOD
 	public boolean canCraft(ItemStack result){
-		Bukkit.broadcastMessage("cancraft");
+////bukkit.broadcastMessage("cancraft");
 		ArrayList<Material> noCraft = new ArrayList<Material>();
 		noCraft.add(Material.MUSHROOM_SOUP);
 		noCraft.add(Material.BREAD);
@@ -1955,26 +2451,54 @@ public class FiddyCraft extends JavaPlugin {
 		noCraft.add(Material.COOKED_BEEF);
 		noCraft.add(Material.COOKED_CHICKEN);
 		noCraft.add(Material.COOKED_FISH);
-		noCraft.add(Material.CAKE);
+		noCraft.add(Material.GRILLED_PORK);
+	    noCraft.add(Material.CAKE);
 		Material r = result.getType();
-		if(noCraft.contains(r) && result.hasItemMeta() == false && result.getItemMeta().hasDisplayName() == false){
-			Bukkit.broadcastMessage("false");
+		if(noCraft.contains(r) && result.hasItemMeta() == false && !result.getItemMeta().hasDisplayName()){
+			
 			return false;
 		}else{
-			Bukkit.broadcastMessage("true");
+		
 			return true;
 		}
-		
 	}
+
 //SET FOOD BUFF
-		public ArrayList<String> setFoodBuff(ItemStack mainIngredent){
+		public ArrayList<String> setFoodBuff(ItemStack mainIngredent, String itemName, int rank){
 		Material item = mainIngredent.getType();
 		ItemMeta meta = mainIngredent.getItemMeta();
 		ArrayList<String> b = new ArrayList<String>();
-		if(item == Material.RAW_BEEF || item == Material.RAW_CHICKEN ||item == Material.RAW_FISH){
-			b.add("Strength");
+		String in = itemName;
+		//bukkit.broadcastMessage(ChatColor.GOLD + itemName);
+		if(in != null){
+		if(in.contains("Spicey")){
+			b.add("Heat Tolerance");
 		}
 		
+		if(in.contains("Sweet")){
+			b.add("Jumpy");
+		}
+		
+		if(in.contains("Salty")){
+			b.add("Saturation");
+		}
+		
+		if(in.contains("Sour")){
+			b.contains("Night Eyes");
+		}
+		
+		if(in.contains("Bitter")){
+			b.add("Healing");
+		}
+		
+		if(in.contains("Miners")){
+			b.add("Miners Bonus");
+		}
+	//MEAT
+		if(item == Material.COOKED_BEEF || item == Material.COOKED_CHICKEN ||item == Material.COOKED_FISH){
+			b.add("Strength");
+		}
+	//SOUP	
 		if(item == Material.MUSHROOM_SOUP && mainIngredent.hasItemMeta() && meta.hasDisplayName()){
 			if(meta.getDisplayName().equalsIgnoreCase("Mushroom Soup")){
 				b.add("Health");
@@ -1982,9 +2506,18 @@ public class FiddyCraft extends JavaPlugin {
 				b.add("Regeneration");
 			}
 		}
-		
+	//SWEETS
 		if(item == Material.COOKIE || item == Material.CAKE || item == Material.PUMPKIN_PIE){
 			b.add("Speed");
+		}
+	//MILK
+		if(item == Material.MILK_BUCKET){
+			b.add("Strong Bones");
+		}
+	//VEGGIES
+		if(item == Material.BAKED_POTATO || item == Material.GOLDEN_CARROT){
+			b.add("Health");
+		}
 		}
 		
 		if(b.isEmpty()){

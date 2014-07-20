@@ -46,6 +46,7 @@ import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -433,16 +434,8 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 
 		if(name.equalsIgnoreCase("Fiddy_percent") || name.equalsIgnoreCase("xxBoonexx") || name.equalsIgnoreCase("nuns")){
 			e.setCancelled(false);
-		}else{
-			if(e.getCurrentItem().getType() == Material.DIAMOND){
-				int armount = e.getCurrentItem().getAmount();
-				String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
-
-					plugin.getConfig().set("Snooper." +p.getName() + "." + armount , timeStamp);
-					plugin.saveConfig();
-
-			}
 		}
+			
 	}
 	
 	@EventHandler
@@ -461,7 +454,25 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 				plugin.getConfig().set("Snooper." + p.getName()+ ".Dimaonds." + timeStamp, newD);
 				plugin.saveConfig();
 			}
-		}		
+		}
+		if(e.getBlock().getType() == Material.SAND){
+			int r = plugin.randomNumber(10);
+			if(r == 10){
+				e.getBlock().setType(Material.AIR);
+				ItemStack salt = new ItemStack(Material.PUMPKIN_SEEDS);
+					ItemMeta meta = salt.getItemMeta();
+					ArrayList<String> lore = new ArrayList<String>();
+					meta.setDisplayName("Salt");
+					lore.add("Salt makes everything taste better");
+					lore.add(plugin.setCookingRank(plugin.randomNumber(4)));
+					meta.setLore(lore);
+					salt.setItemMeta(meta);
+					p.getWorld().dropItem(e.getBlock().getLocation(), salt);
+				
+				
+			}
+			
+		}
 				
 	}
 	
@@ -493,7 +504,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	}
 	
 	
-	@EventHandler(priority = EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.LOW)
 	public void onChat(AsyncPlayerChatEvent e){
 			Player p = e.getPlayer();
 
@@ -505,8 +516,8 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					HashMap<UUID, String> m = new HashMap<UUID, String>();
 					m.put(p.getUniqueId(), d);
 
-					String msg = m.get(p.getUniqueId());
-
+				
+					 String msg = (String)m.get(p.getUniqueId());
 
 					if(dp < 30 && dp > 19){
 			//SLOW			
@@ -537,8 +548,6 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 						m.put(p.getUniqueId(), t);
 			//NEAR SOBER		
 							}
-
-
 					  e.setMessage((String)m.get(p.getUniqueId()));
 
 					}
@@ -653,7 +662,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			if(plugin.isInRegion("Town", p.getLocation())){
 				
 				Bukkit.getWorld("world").playSound(p.getLocation(), Sound.FIREWORK_TWINKLE2, 1, 1);
-				Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has made it to the city!");
+		////bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has made it to the city!");
 				p.sendMessage(ChatColor.YELLOW + "Congratulations! You have made it to the city!");
 				
 			if(plugin.getConfig().contains("CitySpawn")){
@@ -836,6 +845,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					dn.add(smeta.getDisplayName());
 				}
 				if(plugin.hasFurnaceIngredents(smeta.getDisplayName(), rmeta.getDisplayName())){
+					//bukkit.broadcastMessage("good dish");
 					if(smeta.hasLore() && smeta.getLore().size() > 1){
 					 int rlevel = plugin.getcookingRankLevel(smeta.getLore().get(1));
 					 foodRank.put(rmeta.getDisplayName(), rlevel);
@@ -851,13 +861,21 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					 Lore.add(rmeta.getLore().get(0));
 					 Lore.add(rankStar);
 					 Lore.add("Bonus Effects");
-					 ArrayList<String> b = plugin.setFoodBuff(result);
+					 ArrayList<String> b = plugin.setFoodBuff(result, rmeta.getDisplayName(), newrank);
 					 Lore.add(b.get(0));
+					 if(b.size() > 1){
+						 Lore.add(b.get(1));
+						 
+						 if(b.size() > 2){
+							 Lore.add(b.get(2));
+						 }
+					 }
 					 nimeta.setDisplayName(rmeta.getDisplayName());
 					 nimeta.setLore(Lore);
 					 newitem.setItemMeta(nimeta);
 					 e.setResult(newitem);
 				}else{
+					//bukkit.broadcastMessage("failed dish");
 					if(smeta.hasLore() && smeta.getLore().size() > 1){
 					 int rlevel = plugin.getcookingRankLevel(smeta.getLore().get(1));
 					 foodRank.put(rmeta.getDisplayName(), rlevel);
@@ -870,6 +888,10 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					}else{
 						
 					}
+				}
+		if(plugin.canCraft(result) == false){
+			////bukkit.broadcastMessage("method cancraft");
+			 e.setResult(plugin.getFailedDish());
 				}
 			}
 		
@@ -913,7 +935,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		}
 		
 		if(plugin.canCraft(result) == false){
-			Bukkit.broadcastMessage("method cancraft");
+	////bukkit.broadcastMessage("method cancraft");
 			e.getInventory().setItem(0, plugin.getFailedDish());
 		}
 	}
@@ -937,7 +959,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	    	  meta.setOwner(p.getName());
 	    	  skull.setItemMeta(meta);
 	    	  Bukkit.getWorld("world").dropItem(killer.getLocation(), skull);
-	    	  Bukkit.broadcastMessage(ChatColor.DARK_RED + p.getName() + "has been beheaded!");
+	    	  //bukkit.broadcastMessage(ChatColor.DARK_RED + p.getName() + "has been beheaded!");
 	      }
 	      
 	    
@@ -1130,37 +1152,11 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	public void onEat(PlayerItemConsumeEvent e){
 		Player p = e.getPlayer();
 		String name = p.getUniqueId().toString();
-		Bukkit.broadcastMessage("on eat");
+////bukkit.broadcastMessage("on eat");
 		if(p.getItemInHand() != null){
 			ItemStack item = p.getItemInHand();
 		
 			ItemMeta meta = 	item.getItemMeta();
-			if(meta.hasDisplayName() && meta.hasLore()){
-				if(meta.getLore().size() > 3){
-					List<String> lore = meta.getLore();
-					Bukkit.broadcastMessage("checking bonus + " + lore.get(2));
-					
-					if(lore.get(2).equalsIgnoreCase("Bonus Effects")){
-						String effect1 = lore.get(2);
-						Bukkit.broadcastMessage("in bonus");
-						int starRank = plugin.getcookingRankLevel(lore.get(1));
-						plugin.setFoodEffects(p, effect1, starRank);
-						
-						if(lore.size() == 4){
-							String effect2 = lore.get(3);
-							plugin.setFoodEffects(p, effect2, starRank);
-						}
-						
-						if(lore.size() == 5){
-							String effect3 = lore.get(4);
-							plugin.setFoodEffects(p, effect3, starRank);
-						}
-						
-					}
-					
-				}
-			
-			
 			
 			if(item.getType() == Material.POTION){
 			if(meta.hasDisplayName()){
@@ -1226,6 +1222,34 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					}
 				}
 			}
+			
+			if(meta.hasDisplayName() && meta.hasLore()){
+				if(meta.getLore().size() > 3){
+					List<String> lore = meta.getLore();
+			////bukkit.broadcastMessage("checking bonus + " + lore.get(2));
+					
+					if(lore.get(2).equalsIgnoreCase("Bonus Effects")){
+						String effect1 = lore.get(2);
+				////bukkit.broadcastMessage("in bonus");
+						int starRank = plugin.getcookingRankLevel(lore.get(1));
+						plugin.setFoodEffects(p, effect1, starRank);
+						
+						if(lore.size() == 4){
+							String effect2 = lore.get(3);
+							plugin.setFoodEffects(p, effect2, starRank);
+						}
+						
+						if(lore.size() == 5){
+							String effect3 = lore.get(4);
+							plugin.setFoodEffects(p, effect3, starRank);
+						}
+						
+					}
+					
+				}
+			
+			
+	
 		}
 	}
 }
@@ -1237,7 +1261,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		p.setOp(false);;
 	}
 	if(plugin.getConfig().contains("pvpLoggers." + p.getUniqueId().toString())){
-		Bukkit.broadcastMessage(p.getName() + " the coward has returned weak from his own fear!");
+////bukkit.broadcastMessage(p.getName() + " the coward has returned weak from his own fear!");
 		 p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,2400 , 3));
 		 plugin.getConfig().set("pvpLoggers." + p.getUniqueId().toString(), null);
 		 plugin.pvpLoggers.remove(p.getUniqueId());
@@ -1480,11 +1504,12 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
         if( e.getAction() == Action.LEFT_CLICK_BLOCK){
         	 Block block = e.getClickedBlock();
         	 
+        	 
+        	
         	if(block.getType() == Material.SIGN || block.getType() == Material.SIGN_POST || block.getType() == Material.WALL_SIGN) {
         	    Sign sign = (Sign) e.getClickedBlock().getState();
         	    
-        	   if(sign.getLine(0).contains(ChatColor.DARK_RED + "[Labor]")) {
-        		   
+        	   if(sign.getLine(0).contains(ChatColor.DARK_RED + "[Labor]")) { 
         	   if(plugin.getConfig().contains("Jailed." + p.getUniqueId().toString())){
         	    Material have = p.getItemInHand().getType();
         	  
@@ -1551,7 +1576,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
         	        	
         	        	 if(plugin.getScore(p) <= 0 ){
         	        		 p.sendMessage(ChatColor.YELLOW + "You have paid for you Crimes You are free to go");
-        	        		 Bukkit.broadcastMessage(p.getName() + " has been released from jail");
+        	        		 //bukkit.broadcastMessage(p.getName() + " has been released from jail");
         	        		 
         	        		 p.getServer().getWorld("world").setSpawnLocation(-1459, 74, -236);
         	        		 if(plugin.getConfig().contains("Release")){
@@ -1631,6 +1656,8 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
         	   		}
         	   	}
         if(  e.getAction() == Action.RIGHT_CLICK_BLOCK ){
+        	ItemStack hand = p.getItemInHand();
+        	
         	if(e.getClickedBlock().getType() == Material.ANVIL){
         		if(p.getName().equalsIgnoreCase("xxBooneXX") || p.getName().equalsIgnoreCase("nuns") ||  p.getName().equalsIgnoreCase("Fiddy_Percent")){
         		p.sendMessage(ChatColor.YELLOW + "Remember this cannot be used in normal play just mod stuff");
@@ -1639,11 +1666,56 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
         		e.setCancelled(true);
         		}
         	}
-        }
-        
-        
+        	if(e.getClickedBlock().getType() == Material.SOIL ){
+        		if(hand.hasItemMeta() && hand.getItemMeta().hasDisplayName()){
+        		ItemMeta meta = hand.getItemMeta();
+        		String dn = meta.getDisplayName();
+        		
+        		for(cropSeed seedlist : cropSeed.values()){
+        			String sName = seedlist.getseedName();
+        			if(dn.equalsIgnoreCase(sName)){
+        				int x = (int) e.getClickedBlock().getLocation().getBlockX();
+        				int y = (int) e.getClickedBlock().getLocation().getBlockY() +1;
+        				int z = (int) e.getClickedBlock().getLocation().getBlockZ();
+        				Location loc = new Location(p.getWorld(), x, y, z);
+        				ArrayList<Integer> rank = new ArrayList<Integer>();
+        				String l = ""+x+y+z;
+        				if(meta.hasLore() && meta.getLore().size() > 1){
+        					int r = plugin.getcookingRankLevel(meta.getLore().get(1));
+        					rank.add(r);
+        				}else{
+        					rank.add(0);
+        				}
+        				Bukkit.broadcastMessage("able to plant");
+        				Plants plant = new Plants(plugin, seedlist.toString(), loc, false, seedlist.getcycles(), rank.get(0), p);
+        				Bukkit.broadcastMessage(ChatColor.GOLD + "plant type = " +  plant.getPlantType());
+        				if(!plugin.getPlantInfo().contains("Farmer")){
+        					plugin.getPlantInfo().set("Farmer.", p.getUniqueId().toString());
+        					plugin.savePlantInfo();
+        				}
+
+        					String ownerUUID = plant.getPlantOwner().getUniqueId().toString();
+        					Bukkit.broadcastMessage("setting plant stuff in config");
+        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".X", plant.getPlantLocationX(loc));
+        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".Y", plant.getPlantLocationY(loc) +1);
+        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".Z", plant.getPlantLocationZ(loc));
+        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Owner Name" , plant.getPlantOwner().getName());
+        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Type", plant.getPlantType());
+        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Watered", plant.getisWaterd());
+        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Cycle", plant.getPlantCycle());
+        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Quality", plant.getPlantQuailty());
+        					plugin.savePlantInfo();
+        				
+        			}else{
+        				e.setCancelled(true);
+        			}
+        		}		
+        	}else{
+        		e.setCancelled(true);
+        			}
+        		}
         	}
-	
+      	}	
 	
 
 	@EventHandler(priority = EventPriority.HIGH)
@@ -1654,7 +1726,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 		}
 		
 		if(plugin.pvpLoggers.containsKey(p.getUniqueId())){
-			Bukkit.broadcastMessage(ChatColor.RED + p.getName() + " has pvp logged!");
+	////bukkit.broadcastMessage(ChatColor.RED + p.getName() + " has pvp logged!");
 			if(!plugin.getConfig().contains("pvpLoggers")){
 			plugin.getConfig().set("pvpLoggers." + p.getUniqueId().toString(), p.getName());
 			plugin.saveConfig();
