@@ -1261,7 +1261,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		p.setOp(false);;
 	}
 	if(plugin.getConfig().contains("pvpLoggers." + p.getUniqueId().toString())){
-////bukkit.broadcastMessage(p.getName() + " the coward has returned weak from his own fear!");
+		Bukkit.broadcastMessage(ChatColor.YELLOW + p.getName() + " the coward has returned weak from his own fear!");
 		 p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW,2400 , 3));
 		 plugin.getConfig().set("pvpLoggers." + p.getUniqueId().toString(), null);
 		 plugin.pvpLoggers.remove(p.getUniqueId());
@@ -1269,114 +1269,32 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	}
 	
 //New Players OnJoin
-if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayerInfo().contains("Players." + p.getUniqueId().toString()) == false){
+if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayerInfo().contains("Players." +
+p.getUniqueId().toString()) == false){
+	Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has logged in for the first time!");
 		if(plugin.getConfig().contains("Location." + "Start")){
-			double xs =  (double) plugin.getConfig().getDouble("Location." + "Start.X");
-			double ys =  (double) plugin.getConfig().getDouble("Location." + "Start.Y");
-			double zs =  (double) plugin.getConfig().getDouble("Location." + "Start.Z");
-			Location loc = new Location(p.getWorld(), xs,ys,zs);
-			p.teleport(loc);
-			Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "permissions setrank " + p.getUniqueId() +  " default");
-		
-			String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Name", p.getName());
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".StartDate", timeStamp);
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Job", "Unemployed");
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Injury", "None");
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Murders", 0);
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Arrests", 0);
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Convictions", 0);
-			plugin.savePlayerInfo();
-			plugin.saveConfig();
-			p.sendMessage(ChatColor.GREEN + "Welcome to FiddyCraft, you are now under the city if you wish to join make it to the city above you, good luck!");
-			
+			plugin.sendPlayerToSpawn(p);
 		}else{
 			double X = -1460.7532303124158;
 			double Y = 6.247856929346917;
 		    double Z = -169.29275434773174;
 		    Location locb = new Location(p.getWorld(), X,Y,Z);
 		    p.teleport(locb);
-			String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Name", p.getName());
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".StartDate", timeStamp);
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Job", "Unemployed");
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Injury", "None");
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Murders", 0);
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Arrests", 0);
-			plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Convictions", 0);
-			plugin.savePlayerInfo();
-			plugin.saveConfig();
-			p.sendMessage(ChatColor.GREEN + "Welcome to FiddyCraft, you are now under the city if you wish to join make it to the city above you, good luck!");
 		}
-	}
+			Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "permissions setrank " + p.getUniqueId() +  " default");
+			plugin.setNewPlayer(p);
+			p.sendMessage(ChatColor.GREEN + "Welcome to FiddyCraft, you are now under the city if you wish to join make it to the city above you, good luck!");
+			p.sendMessage(ChatColor.GRAY + "Pro tip: run forward in any direction and you can make it.");
+		}else{
+			
+		if(plugin.getPlayerInfo().contains("Players." + p.getUniqueId().toString() + ".Can Lawyer" ) == false){
+			p.sendMessage(ChatColor.GREEN + "Updating Player info");
+		
+			plugin.updateOldPlayerInfo(p);
+			}
+		}
 
-// Move Old Players to New System UUID
-	if(plugin.getPlayerInfo().contains("Players." +  p.getName())){
-
-		String startDate = plugin.getPlayerInfo().getString("Players." +p.getName()+ ".StartDate");
-		String job = plugin.getPlayerInfo().getString("Players." +p.getName()+ ".Job");
-		String Injury = plugin.getPlayerInfo().getString("Players." +p.getName()+ ".Injury");
-		int murder = plugin.getPlayerInfo().getInt("Players." +p.getName() + ".Murders");
-		int arrests = plugin.getPlayerInfo().getInt("Players." +p.getName() + ".Arrests");
-		int convicted = plugin.getPlayerInfo().getInt("Players." +p.getName() + ".Convictions");
-		
-		plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Name", p.getName());
-		plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".StartDate", startDate);
-		plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Job", job);
-		plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Injury", Injury);
-		plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Murders", murder);
-		plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Arrests", arrests);
-		plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Convictions", convicted);
-		plugin.savePlayerInfo();
-		plugin.saveConfig();
-		//REMOVE OLD PLAYERDATA BASED ON PLAYER NAME		
-				plugin.getPlayerInfo().set("Players." + p.getName(), null);
-				plugin.savePlayerInfo();
-				
 	}
-		
-
-// Move Old Police Officers to New System UUID 		
-	if(plugin.getPlayerInfo().contains("Officers." + p.getName())){
-		
-		String rank = plugin.getPlayerInfo().getString("Officers." +p.getName()+ ".Rank");
-		int deaths = plugin.getPlayerInfo().getInt("Officers." +p.getName() + ".Deaths");
-		int arrested = plugin.getPlayerInfo().getInt("Officers." +p.getName() + ".Arrested");
-		int conv = plugin.getPlayerInfo().getInt("Officers." +p.getName() + ".Convected");
-		plugin.getPlayerInfo().set("Officers." +p.getUniqueId()+ ".Name", p.getName());
-		plugin.getPlayerInfo().set("Officers." +p.getUniqueId()+ ".Rank", rank);
-		plugin.getPlayerInfo().set("Officers." +p.getUniqueId() + ".Deaths", deaths);
-		plugin.getPlayerInfo().set("Officers." +p.getUniqueId() + ".Arrested", arrested);
-		plugin.getPlayerInfo().set("Officers." +p.getUniqueId() + ".Convected", conv);
-		plugin.savePlayerInfo();
-		
-		// REMOVE OLD PLAYERDATA BASED ON PLAYER NAME		
-		plugin.getPlayerInfo().set("Officers." + p.getName(), null);
-		plugin.savePlayerInfo();
-	}
-		
-		
-//Move OLD LAWYER DATA TO NEW SYSTEM			
-	if(plugin.getPlayerInfo().contains("Lawyer." + p.getName())){
-		
-		String rank = plugin.getConfig().getString("Lawyer." + p.getName() + ".Rank");
-		int won = plugin.getConfig().getInt("Lawyer." + p.getName() + ".Won");
-		int lost = plugin.getConfig().getInt("Lawyer." + p.getName() + ".Lost");
-		int Trials = plugin.getConfig().getInt("Lawyer." + p.getName() + ".Trials");
-		
-		plugin.getPlayerInfo().set("Lawyer." +p.getUniqueId().toString()+ ".Name", p.getName());
-		plugin.getPlayerInfo().set("Lawyer." +p.getUniqueId().toString()+ ".Rank", rank);
-		plugin.getPlayerInfo().set("Lawyer." +p.getUniqueId().toString() + ".Won", won);
-		plugin.getPlayerInfo().set("Lawyer." +p.getUniqueId().toString() + ".Lost", lost);
-		plugin.getPlayerInfo().set("Lawyer." +p.getUniqueId().toString() + ".Trials", Trials);
-		plugin.savePlayerInfo();
-
-		// REMOVE OLD PLAYERDATA BASED ON PLAYER NAME		
-		plugin.getPlayerInfo().set("Lawyer." + p.getName(), null);
-		plugin.savePlayerInfo();
-		
-	}
-}
 	
 	
 	
@@ -1386,8 +1304,6 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 		if(p.isOp()){
 			if(event.getLine(0).equalsIgnoreCase("[Labor]")){
 				event.setLine(0, ChatColor.DARK_RED + "[Labor]" );
-				
-		
 			  p.sendMessage(ChatColor.GREEN + "Labor shop created");
 			}
 		}
@@ -1400,7 +1316,6 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 				event.setLine(0, ChatColor.DARK_PURPLE + "[Juke]" );
 				event.setLine(1,  "Punch 2 play" );
 			}
-			
 		}
 		
 		if(event.getLine(0).equalsIgnoreCase("ClubJ")){
@@ -1411,7 +1326,6 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 				event.setLine(0, ChatColor.DARK_PURPLE + "[Club Juke]" );
 				event.setLine(1,  "Punch 2 play" );
 			}
-			
 		}
 		
 		if(event.getLine(0).equalsIgnoreCase("Pro")){
@@ -1478,7 +1392,6 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 		}
 		
 		if(event.getSpawnReason() == SpawnReason.EGG || event.getSpawnReason() == SpawnReason.BREEDING){
-			
 			event.setCancelled(true);
 		}
 	}
@@ -1491,7 +1404,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 			if(p.getName().equalsIgnoreCase("secretfish98") || p.getName().equalsIgnoreCase("linkstheman12")){
 			String timeStamp = new SimpleDateFormat("MM/dd HH:mm").format(Calendar.getInstance().getTime());
 			String m = e.getMessage();
-			plugin.getConfig().set("Snooper.Commands", p.getName() + ". Command" + m +".timeStamp." + timeStamp );
+			plugin.getConfig().set("Snooper.Commands."+ p.getName(),  ". Command" + m +".timeStamp." + timeStamp );
 			plugin.saveConfig();
 			}
 		}
@@ -1500,11 +1413,8 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 	@EventHandler
     public void rightClicks(PlayerInteractEvent e){
         Player p = e.getPlayer();
-//took away right click e.getAction() == Action.RIGHT_CLICK_BLOCK ||
         if( e.getAction() == Action.LEFT_CLICK_BLOCK){
-        	 Block block = e.getClickedBlock();
-        	 
-        	 
+        	 Block block = e.getClickedBlock(); 
         	
         	if(block.getType() == Material.SIGN || block.getType() == Material.SIGN_POST || block.getType() == Material.WALL_SIGN) {
         	    Sign sign = (Sign) e.getClickedBlock().getState();
@@ -1602,8 +1512,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
         	        			 plugin.reloadConfig();
         	        			
         	     				 FiddyCraft.getScoreboard(p).clearSlot(DisplaySlot.SIDEBAR);
-        	     				 FiddyCraft.boards.remove(p.getName());
-        	     				 
+        	     				 FiddyCraft.boards.remove(p.getName()); 
         	        		 } 
         	        	 }
         	   		}
@@ -1644,18 +1553,16 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
         	    }
         	   
         	   if(sign.getLine(0).contains(ChatColor.DARK_PURPLE + "[Club Juke]")){
-     
-        	    	
         	    	BlockState bs = p.getWorld().getBlockAt(-1479, 70, -236).getState();
         	    			if(bs instanceof Jukebox) {	
-        	    	
         	    		((Jukebox) bs).setPlaying(Material.RECORD_8);
         	    	
         	    			}
         	    		}
         	   		}
         	   	}
-        if(  e.getAction() == Action.RIGHT_CLICK_BLOCK ){
+        
+        if( e.getAction() == Action.RIGHT_CLICK_BLOCK ){
         	ItemStack hand = p.getItemInHand();
         	
         	if(e.getClickedBlock().getType() == Material.ANVIL){
@@ -1670,50 +1577,27 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
         		if(hand.hasItemMeta() && hand.getItemMeta().hasDisplayName()){
         		ItemMeta meta = hand.getItemMeta();
         		String dn = meta.getDisplayName();
-        		
         		for(cropSeed seedlist : cropSeed.values()){
-        			String sName = seedlist.getseedName();
-        			if(dn.equalsIgnoreCase(sName)){
-        				int x = (int) e.getClickedBlock().getLocation().getBlockX();
-        				int y = (int) e.getClickedBlock().getLocation().getBlockY() +1;
-        				int z = (int) e.getClickedBlock().getLocation().getBlockZ();
-        				Location loc = new Location(p.getWorld(), x, y, z);
-        				ArrayList<Integer> rank = new ArrayList<Integer>();
-        				String l = ""+x+y+z;
-        				if(meta.hasLore() && meta.getLore().size() > 1){
-        					int r = plugin.getcookingRankLevel(meta.getLore().get(1));
-        					rank.add(r);
-        				}else{
-        					rank.add(0);
-        				}
-        				Bukkit.broadcastMessage("able to plant");
-        				Plants plant = new Plants(plugin, seedlist.toString(), loc, false, seedlist.getcycles(), rank.get(0), p);
-        				Bukkit.broadcastMessage(ChatColor.GOLD + "plant type = " +  plant.getPlantType());
-        				if(!plugin.getPlantInfo().contains("Farmer")){
-        					plugin.getPlantInfo().set("Farmer.", p.getUniqueId().toString());
-        					plugin.savePlantInfo();
-        				}
-
-        					String ownerUUID = plant.getPlantOwner().getUniqueId().toString();
-        					Bukkit.broadcastMessage("setting plant stuff in config");
-        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".X", plant.getPlantLocationX(loc));
-        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".Y", plant.getPlantLocationY(loc) +1);
-        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".Z", plant.getPlantLocationZ(loc));
-        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Owner Name" , plant.getPlantOwner().getName());
-        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Type", plant.getPlantType());
-        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Watered", plant.getisWaterd());
-        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Cycle", plant.getPlantCycle());
-        					plugin.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Quality", plant.getPlantQuailty());
-        					plugin.savePlantInfo();
-        				
+        			if(seedlist.getseedName().equalsIgnoreCase(dn)){
+        					plugin.plantNewSeed(p, e.getClickedBlock(), seedlist.toString(), hand);
+        					e.setCancelled(false);
         			}else{
+        				Bukkit.broadcastMessage("not a seed type");
         				e.setCancelled(true);
         			}
         		}		
         	}else{
+        		Bukkit.broadcastMessage("no displayname");
         		e.setCancelled(true);
         			}
         		}
+        	
+        	if(plugin.isGrowableBlock(e.getClickedBlock())){
+        		e.getClickedBlock().getLocation();
+        		
+        		
+        	}
+        		
         	}
       	}	
 	
@@ -1726,7 +1610,7 @@ if(!plugin.getPlayerInfo().contains("Players."+ p.getName()) && plugin.getPlayer
 		}
 		
 		if(plugin.pvpLoggers.containsKey(p.getUniqueId())){
-	////bukkit.broadcastMessage(ChatColor.RED + p.getName() + " has pvp logged!");
+	Bukkit.broadcastMessage(ChatColor.RED + p.getName() + " has pvp logged!");
 			if(!plugin.getConfig().contains("pvpLoggers")){
 			plugin.getConfig().set("pvpLoggers." + p.getUniqueId().toString(), p.getName());
 			plugin.saveConfig();

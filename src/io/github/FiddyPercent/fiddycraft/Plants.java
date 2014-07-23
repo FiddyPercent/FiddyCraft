@@ -1,7 +1,6 @@
 package io.github.FiddyPercent.fiddycraft;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 public class Plants {
 	private String plantType;
@@ -9,22 +8,22 @@ public class Plants {
 	private boolean isWaterd;
 	private int plantCycle;
 	private int quality;
-	private Player plantOwner;
-	
+	private String plantOwner;
 	public final FiddyCraft plugin;
 
-	public Plants(FiddyCraft plugin, String Type, Location plantLoc, boolean iswaterd, int pCycle, int qual, Player po){
+	public Plants(FiddyCraft plugin, String uuid,Location loc){
 		this.plugin = plugin;
-		plantType = Type;
-		plantLocation = plantLoc;
-		isWaterd = iswaterd;
-		plantCycle = pCycle;
-		quality = qual;
-		plantOwner = po;
+		plantType = plugin.getPlantInfo().getString("Farmer."+uuid + "." + plugin.getPlantLocationID(loc) + ".Plant Type");
+		plantLocation = plugin.getLocationFromString(plugin.getPlantLocationID(loc));
+		isWaterd = plugin.getPlantInfo().getBoolean("Farmer."+uuid + "." + plugin.getPlantLocationID(loc) + ".Watered" );
+		plantCycle = plugin.getPlantInfo().getInt("Farmer." +uuid+ "." +  plugin.getPlantLocationID(loc) + ".Plant Cycle");
+		quality = plugin.getPlantInfo().getInt("Farmer." + uuid + "." + plugin.getPlantLocationID(loc) + ".Plant Quality");
+		plantOwner = plugin.getPlantInfo().getString("Farmer." +uuid + "." + plugin.getPlantLocationID(loc) + ".Owner Name");
 	}
 
 	public String getPlantType(){
 		return plantType;
+		
 	}
 	
 	public Location getPlantLocation(){
@@ -43,10 +42,10 @@ public class Plants {
 		return quality;
 	}
 	
-	public Player getPlantOwner(){
+	public String getPlantOwner(){
 		return plantOwner;
 	}
-	
+
 	public void setPlantType(String type){
 		plantType = type;
 	}
@@ -67,19 +66,10 @@ public class Plants {
 		quality = q;
 	}
 	
-	public void setPlantOwner(Player owner){
+	public void setPlantOwner(String owner){
 		plantOwner = owner;
 	}
 	
-	public int getPlantLocationX(Location loc){
-		return loc.getBlockX();
-	}
+
 	
-	public int getPlantLocationY(Location loc){
-		return loc.getBlockY();
-	}
-	
-	public int getPlantLocationZ(Location loc){
-		return loc.getBlockZ();
-	}
 }

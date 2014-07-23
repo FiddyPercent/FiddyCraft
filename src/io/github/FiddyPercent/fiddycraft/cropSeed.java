@@ -24,17 +24,19 @@ public enum cropSeed {
 	
 	 private String seedName;
 	 private int cycles;
-	 
      private cropSeed(String seedName, int cycles) {
              this.seedName = seedName;
              this.cycles = cycles;
      }
     
-     public String getseedName() {
+     public String getseedName(){
              return seedName;
      }
 
-     public int getcycles() {
+     public int getcycles(){
          return cycles;
      }
+     
+ 
+  
 }

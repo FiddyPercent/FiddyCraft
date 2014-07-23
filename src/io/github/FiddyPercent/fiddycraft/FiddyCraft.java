@@ -3,7 +3,9 @@ package io.github.FiddyPercent.fiddycraft;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +22,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -162,6 +165,7 @@ public class FiddyCraft extends JavaPlugin {
         getCommand("EndStatement").setExecutor(new FiddyCraftCommands(this));
         getCommand("FireLawyer").setExecutor(new FiddyCraftCommands(this));
         getCommand("StopTrial").setExecutor(new FiddyCraftCommands(this));
+        getCommand("createSeed").setExecutor(new FiddyCraftCommands(this));
     	new Permission ("FiddyCraft.noob");
 		new Permission ("FiddyCraft.police");
 		new Permission ("FiddyCraft.assasin");
@@ -350,8 +354,136 @@ public class FiddyCraft extends JavaPlugin {
   		
   		this.getLogger().info(ChatColor.GREEN + "Right after Runnable");
     }
-
+    
+    public boolean isPlantOwned(Location loc){
+    	if(!this.getPlantInfo().contains("Farmers")){
+    		return false;
+    	}else{
+    		Set<String> pO = this.getPlantInfo().getConfigurationSection("Farmer").getKeys(false);
+    		for(String g :pO){
+    			if(this.getPlantInfo().contains("Farmer." +  ))
+    		}
+    	}
+    	return plantOwners;
+    	
+    }
+    
+    public void setNewPlayer(Player p ){
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Name", p.getName());
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() +".StartDate" , this.getTimeStamp());
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Job", "Unemployed");
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Arrests" , 0);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Convictions", 0);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Murders", 0);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Wanted", false);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".On Parol", false);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Pending Trial", false);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Can Lawyer", false);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Food Level", 2);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Crops", 16);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Animals", 4);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".AnimalList", null);
+    	this.savePlayerInfo();
+    }
+    
+    public void updateOldPlayerInfo(Player p){
+     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Wanted", false);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".On Parol", false);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Can Lawyer", false);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Pending Trial", false);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Food Level", 2);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Crops", 16);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Animals", 4);
+    	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".AnimalList", null);
+    	this.savePlayerInfo();
+    }
  
+    public void sendPlayerToSpawn(Player p){
+    	double xs =  (double) this.getConfig().getDouble("Location." + "Start.X");
+		double ys =  (double) this.getConfig().getDouble("Location." + "Start.Y");
+		double zs =  (double) this.getConfig().getDouble("Location." + "Start.Z");
+		Location loc = new Location(Bukkit.getWorld("world"), xs,ys,zs);
+		p.teleport(loc);
+    }
+    
+    public String getPlantLocationID(Location loc){
+    	int x = (int) loc.getBlockX();
+		int y = (int) loc.getBlockY();
+		int z = (int) loc.getBlockZ();
+		String l = x+":"+y+":"+z;
+    	return l;
+    }
+    
+    public Location getLocationFromString(String locationString){
+    	ArrayList<Integer> split = new ArrayList<Integer>();
+    	String[] sp = locationString.split(":");
+    	for(String s : sp){
+    		int u = Integer.parseInt(s);
+    		split.add(u);
+    	}
+    	Location loc = new Location(Bukkit.getWorld("world"), split.get(0), split.get(1), split.get(2));
+    	return loc;
+    }
+    
+    public boolean isGrowableBlock(Block b){
+    	Material bl = b.getType();
+    	if(bl == Material.GRASS || bl == Material.CROPS || bl == Material.LONG_GRASS || bl == Material.DEAD_BUSH 
+    			|| bl == Material.YELLOW_FLOWER || bl == Material.RED_ROSE || bl == Material.WHEAT || bl ==Material.PUMPKIN_STEM
+    			|| bl == Material.MELON_STEM || bl == Material.PUMPKIN || bl == Material.MELON_BLOCK || bl == Material.COCOA||
+    			bl == Material.CARROT || bl == Material.POTATO || bl == Material.SUGAR_CANE_BLOCK || bl == Material.NETHER_WARTS){
+    		return true;
+    	}else{
+    		return false;
+    	}
+    }
+    public void plantNewSeed(Player p, Block e, String plantType, ItemStack Seeds){
+    	
+    	//if(!this.getPlantInfo().contains("Farmer")){
+    	//	this.getPlantInfo().set("Farmer.", p.getUniqueId().toString());
+    	//	this.savePlantInfo();
+		//}
+    	
+    	
+    	ItemMeta meta = Seeds.getItemMeta();
+    	cropSeed cs = cropSeed.valueOf(plantType);
+    	int cyc = cs.getcycles();
+    	int x = (int) e.getLocation().getBlockX();
+		int y = (int) e.getLocation().getBlockY() +1;
+		int z = (int) e.getLocation().getBlockZ();
+		String l = x+":"+y+":"+z;
+    	String ownerUUID = p.getUniqueId().toString();
+		Bukkit.broadcastMessage("setting plant stuff in config");
+		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".X", x);
+		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".Y", y);
+		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".Z",z);
+		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Owner Name" , p.getName());
+		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Type",plantType);
+		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Watered",false);
+		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Cycle",cyc);
+		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Quality", this.setCookingRank(this.getcookingRankLevel(meta.getLore().get(1))));
+		this.savePlantInfo();
+    }
+    
+    public boolean matchesSeedType(String seedType){
+		String dn = seedType;
+		cropSeed[] cpv = cropSeed.values();
+		for(cropSeed seedlist : cpv){
+			String sName = seedlist.toString().toLowerCase();
+			Bukkit.broadcastMessage(sName);
+			if(dn.equalsIgnoreCase(sName)){
+					return true;
+			}else{
+				return false;
+			}
+		}
+		return false;
+    }
+    
+    public String getTimeStamp(){
+    	String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
+    	return timeStamp;
+    }
+    
     public void loadConfig(){
         getConfig().options().copyDefaults(true);
         saveConfig();
@@ -496,7 +628,7 @@ public class FiddyCraft extends JavaPlugin {
         }
     }
 	
-  
+//SET JAIL SCORE
 	public void newJailScore(Player p, int itemvalue){
     	
           int oldSentence = this.getScore(p);
@@ -512,7 +644,7 @@ public class FiddyCraft extends JavaPlugin {
     	int newscore = currentscore - itemvalue;
     	score.setScore(newscore);
     }
-    
+//GET JAIL SCORE
     public int getScore(Player p){
     	Scoreboard board = getScoreboard(p);
     	Objective objective = board.getObjective(p.getName());
@@ -530,22 +662,15 @@ public class FiddyCraft extends JavaPlugin {
 	public void takeOne(Player p, ItemStack i){
 		if(p.getItemInHand().getType() == i.getType()){
 			  if(p.getItemInHand().getAmount() == 1){
-				 
 			p.setItemInHand(new ItemStack(Material.AIR));
-	          
-	           
 	           Bukkit.getWorld("world").playSound(p.getLocation(), Sound.ITEM_PICKUP, 1, 1);
 	           p.updateInventory();
 	          }else{
 	             
 	          if(p.getItemInHand().getAmount() > 1){
 	            p.getItemInHand().setAmount(p.getItemInHand().getAmount() - 1);
-	          
-	           
-	 
 	          }
-	        }
-			
+	        }	
 		}
 	}
 	
@@ -572,7 +697,6 @@ public class FiddyCraft extends JavaPlugin {
 	}
 	
 	public boolean isPlayer(String name){
-	
 	 for(Player p: Bukkit.getOnlinePlayers()){
 	       if(p.getName().equalsIgnoreCase(name)){
 	    	   return true;
@@ -585,13 +709,9 @@ public class FiddyCraft extends JavaPlugin {
 		ItemStack[] it = p.getInventory().getContents();
 		int n = 0;
 		for(ItemStack y : it){
-			
 			if(y != null){
 				String stuff = y.getType().toString();
-			
 			if(stuff.equalsIgnoreCase("Potion")){
-				
-				
 				PotionMeta pm = (PotionMeta) y.getItemMeta();
 				
 				potlore.add("Finger Prints Results:");
@@ -599,27 +719,20 @@ public class FiddyCraft extends JavaPlugin {
 				
 				List<String> list = potlore.subList(0, 1);
 				
-				
-				
 				pm.getDisplayName();
 				
 				pm.setLore(list);
 				n++;
-				
-				
-				
 				}
 			}
 		}
 		items.add("Number of potions " + n);
-	
 	}
 	
 
 	
 	
 	public boolean isInRegion(String areaName, Location loc){
-		
 		if(!this.getConfig().contains("Regions."+areaName)){
 		return false;	
 		}
@@ -630,8 +743,6 @@ public class FiddyCraft extends JavaPlugin {
 		ArrayList<Integer> y = new ArrayList<Integer>();
 		ArrayList<Integer> Z = new ArrayList<Integer>();
 		ArrayList<Integer> z = new ArrayList<Integer>();
-		
-		
 		
 		int x1 = (int) this.getConfig().getDouble("Regions." + areaName +".X");
 		int y1 = (int) this.getConfig().getDouble("Regions." + areaName +".Y");
@@ -684,31 +795,21 @@ public class FiddyCraft extends JavaPlugin {
 			y.clear();
 			Z.clear();
 			z.clear();
-			
 			return true;
-			
-			
 		}else{
-		
-		
 		return false;
 		}
 	}
 	
 	
 	public void nearMessage(Player p, String msg){
-
 		List<Entity> near = p.getNearbyEntities(25, 15, 25);
-		
 		for(Entity y : near){
 			if(y instanceof Player){
-				
 				Player c = (Player) y;
-				
 				c.sendMessage(msg);
 			}
 		}
-		
 	}
 	
 	
@@ -1005,7 +1106,6 @@ public class FiddyCraft extends JavaPlugin {
 			this.AnimalData.set("Farmer."+ owner + ".Name", p.getName());
 			this.saveAnimalData();
 		}
-		
 			if(this.canHaveMoreAnimals(p)){
 			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Name", meta.getDisplayName());
 			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Owner", p.getName());
@@ -1018,9 +1118,6 @@ public class FiddyCraft extends JavaPlugin {
 			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".isPet", true );
 			this.saveAnimalData();
 			p.sendMessage(ChatColor.BLUE + "You now own " + meta.getDisplayName() + "!");
-		
-		
-		
 			}else{
 				p.sendMessage(ChatColor.RED + "You Have to many animals you cannot claim anymore");
 			}
@@ -1028,14 +1125,11 @@ public class FiddyCraft extends JavaPlugin {
 	
 //CHECK IF CAN DROP PRODUCE
 	public boolean canDropProduce(Player p, Entity e){
-		
 		if(!this.AnimalData.contains("AnimalCoolDown")){
 			return true;
-		}else{
-		
+			}else{
 		if(this.AnimalData.contains("AnimalCoolDown." + e.getUniqueId().toString())){
 			int timeLeft = this.AnimalData.getInt("AnimalCoolDown." + e.getUniqueId().toString());
-			
 			if(timeLeft > 10){
 				LivingEntity animal = (LivingEntity) e;
 				p.sendMessage(ChatColor.YELLOW + animal.getCustomName() + " looks like it needs to rest a bit more.");
@@ -2137,6 +2231,7 @@ public class FiddyCraft extends JavaPlugin {
 		Bukkit.addRecipe(breadDough);
 		}
 
+	@SuppressWarnings("deprecation")
 	public void  sweetlBread(){
 		ItemStack BoiledEgg = new ItemStack(Material.BREAD);
 		ItemMeta meta = BoiledEgg.getItemMeta();
@@ -2148,6 +2243,7 @@ public class FiddyCraft extends JavaPlugin {
 		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(BoiledEgg), Material.INK_SACK, 9));
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void  normalBread(){
 		ItemStack BoiledEgg = new ItemStack(Material.BREAD);
 		ItemMeta meta = BoiledEgg.getItemMeta();

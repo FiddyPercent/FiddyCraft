@@ -742,15 +742,20 @@ public class FiddyCraftCommands implements CommandExecutor {
 //MyInfo		
 		if(cmd.getName().equalsIgnoreCase("myInfo")){
 			Player p = (Player) sender;
+			FcPlayers fc = new FcPlayers(plugin, p);
 		if(plugin.getPlayerInfo().contains("Players." + p.getUniqueId().toString())){
 			p.sendMessage(ChatColor.GREEN + "#####################################################");
-			p.sendMessage(ChatColor.GREEN + "Name: " + ChatColor.YELLOW + p.getName() + ChatColor.GREEN + "    Join date: " + ChatColor.YELLOW + plugin.getPlayerInfo().getString("Players." + p.getUniqueId().toString()+ ".StartDate"));
-			p.sendMessage(ChatColor.GREEN + "Job: " + ChatColor.YELLOW + plugin.getPlayerInfo().getString("Players." + p.getUniqueId().toString()+ ".Job"));
-			p.sendMessage(ChatColor.GREEN + "Killed: " + ChatColor.YELLOW + plugin.getPlayerInfo().getString("Players." + p.getUniqueId().toString()+ ".Murders"));
-			p.sendMessage(ChatColor.GREEN + "Arrests: " + ChatColor.YELLOW + plugin.getPlayerInfo().getString("Players." + p.getUniqueId().toString()+ ".Arrests"));
-			p.sendMessage(ChatColor.GREEN + "Convictions: " + ChatColor.YELLOW + plugin.getPlayerInfo().getString("Players." + p.getUniqueId().toString()+ ".Convictions"));
+			p.sendMessage(ChatColor.GREEN + "Name: " + ChatColor.YELLOW + p.getName());
+			p.sendMessage(ChatColor.GREEN + "Join date: " + ChatColor.YELLOW + fc.getStartDate());
+			p.sendMessage(ChatColor.GREEN + "Normal Job: " + ChatColor.YELLOW + fc.getPlayerJob());
+			p.sendMessage(ChatColor.BLUE + "Can Lawyer: " + ChatColor.GOLD + fc.canLawyer());
+			p.sendMessage(ChatColor.BLUE + "Pending Trial: " + ChatColor.GOLD + fc.getisPendingTrial());
+			p.sendMessage(ChatColor.DARK_GRAY + "On Parole: " + ChatColor.DARK_RED + fc.getIsOnParol());
+			p.sendMessage(ChatColor.DARK_GRAY + "Players Killed: " + ChatColor.DARK_RED + fc.getPlayersKilled()); 
+			p.sendMessage(ChatColor.DARK_GRAY + "Times Arrested: " + ChatColor.DARK_RED + fc.getTimesArrested());
+			p.sendMessage(ChatColor.DARK_GRAY + "Times Convicted: " + ChatColor.DARK_RED + fc.getTimesConvicted());
+			p.sendMessage(ChatColor.DARK_GRAY + "Wanted for a crime: " + ChatColor.DARK_RED + fc.getIsWanted());
 			p.sendMessage(ChatColor.GREEN + "#####################################################");
-			
 		}
 	}
 
@@ -1183,7 +1188,49 @@ public class FiddyCraftCommands implements CommandExecutor {
 			}
 		return true;
 				}
+		
+//SETTING SEED INFO
+		if(cmd.getName().equalsIgnoreCase("createSeed")){
+			Player p = (Player) sender;
+			if(args.length != 3){
+				p.sendMessage(ChatColor.RED + "Not enough arguments");
+				return false;
+			}
+			
+			if(p.getItemInHand().getType() == Material.AIR){
+				p.sendMessage(ChatColor.RED + "Must be holding an item");
+				return false;
+			}
+			
+			if(p.isOp() == false){
+				p.sendMessage(ChatColor.RED + "you must be OP to do this fool get your life right!");
+				return false;
+			}
+			String seedType = args[0];
+			String description = args[1];
+			int rank = Integer.parseInt(args[2]);
+			
+			if(plugin.matchesSeedType(seedType) == false){
+				p.sendMessage(ChatColor.RED + "does not match any known seed type");
+				return false;
+			}
+			Bukkit.broadcastMessage("working");
+			ItemStack seed = new ItemStack(p.getItemInHand().getType());
+			ItemMeta meta = seed.getItemMeta();
+			ArrayList<String> lore = new ArrayList<String>();
+			meta.setDisplayName(seedType + " Seeds");
+			lore.add("Growth Seasons: " +  description);
+			lore.add(plugin.setCookingRank(rank));
+			meta.setLore(lore);
+			seed.setItemMeta(meta);
+			p.setItemInHand(seed);
+			p.sendMessage(ChatColor.GREEN + "set item information");
+		}
+		
 		return true;
 		
 		}
+	
+	
+	
 }
