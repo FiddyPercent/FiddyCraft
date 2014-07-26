@@ -2,6 +2,7 @@ package io.github.FiddyPercent.fiddycraft;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -32,6 +34,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -46,7 +49,6 @@ import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -58,6 +60,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerShearEntityEvent;
+import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -258,8 +261,20 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
  				
  			}
 	
-
+//STOP PLANT GROWTH 
+	@EventHandler
+	public void stopGrow(BlockGrowEvent e){
+		e.setCancelled(true);
+	}
 	
+	@EventHandler
+	public void stopBoneMeal(StructureGrowEvent e){
+		if (e.isFromBonemeal()){
+			e.setCancelled(true);
+		}
+	
+		
+	}
 //SHEAR SHEEP EVENT
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onShear(PlayerShearEntityEvent e){
@@ -442,6 +457,24 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	public void blockBreak(BlockBreakEvent e){
 		Player p = e.getPlayer();
 		String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH").format(Calendar.getInstance().getTime());
+		
+		if(plugin.isGrowableBlock(e.getBlock())){
+			if(plugin.isPlantOwned(e.getBlock().getLocation())){
+				if(plugin.isPlayerPlantOwner(p, e.getBlock().getLocation())){
+					Plants plant = new Plants(plugin, p.getUniqueId().toString(), e.getBlock().getLocation());
+					
+					Bukkit.broadcastMessage("Removed plant data");
+					plant.removePlantInfo();
+					if(plant.getPlantCycle() == 1){
+					p.getWorld().dropItem(e.getBlock().getLocation(), plant.dropProduce());
+					}
+				}else{
+					p.sendMessage(ChatColor.RED + "Can't destroy other players plants");
+					e.setCancelled(true);
+				}
+			}
+		}
+		
 		
 		if(e.getBlock().getType() == Material.DIAMOND_ORE){
 			if(!plugin.getConfig().contains("Snooper." + p.getName() + ".Diamonds." + timeStamp)){
@@ -1576,28 +1609,66 @@ p.getUniqueId().toString()) == false){
         	if(e.getClickedBlock().getType() == Material.SOIL ){
         		if(hand.hasItemMeta() && hand.getItemMeta().hasDisplayName()){
         		ItemMeta meta = hand.getItemMeta();
-        		String dn = meta.getDisplayName();
-        		for(cropSeed seedlist : cropSeed.values()){
-        			if(seedlist.getseedName().equalsIgnoreCase(dn)){
-        					plugin.plantNewSeed(p, e.getClickedBlock(), seedlist.toString(), hand);
+        		String dn = meta.getDisplayName();	
+       		 	ArrayList<cropSeed> test = new ArrayList<cropSeed>(Arrays.asList(cropSeed.values()));
+       		 	String meh = dn.toUpperCase().replace(" SEEDS", "").replace(" ", "_").replace("SEEDS", "");
+       		 	Bukkit.broadcastMessage(ChatColor.RED + meh + " old " + dn);
+       		 	if(test.toString().contains(meh)){
+        			if(plugin.canPlantThis(p, dn)){
+        				//Bukkit.broadcastMessage(ChatColor.GOLD + " a seed type" + meh);
+        					plugin.plantNewSeed(p, e.getClickedBlock(), meh, hand);
         					e.setCancelled(false);
+        					Plants pt = new Plants(plugin, p.getUniqueId().toString(), e.getClickedBlock().getLocation());
+        					pt.setFirstPlanting();
         			}else{
-        				Bukkit.broadcastMessage("not a seed type");
         				e.setCancelled(true);
+        				p.sendMessage(ChatColor.RED + "You cannot plant this type of seed yet.");
+        				p.sendMessage("You can plant " + plugin.getPlayerPlantAbleList(p).split("~"));
+        				
         			}
+        			
+        			}else{
+        				//Bukkit.broadcastMessage("not a seed type = " + meh  + "list " + test.toString());
+        				e.setCancelled(true);
         		}		
         	}else{
-        		Bukkit.broadcastMessage("no displayname");
+        		//Bukkit.broadcastMessage("no displayname");
         		e.setCancelled(true);
         			}
         		}
         	
-        	if(plugin.isGrowableBlock(e.getClickedBlock())){
-        		e.getClickedBlock().getLocation();
-        		
+        	if(plugin.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.AIR){
+        		Location loc = e.getClickedBlock().getLocation();
+        		if(plugin.isPlantOwned(loc)){
+        			//Bukkit.broadcastMessage("this plant is owned");
+        			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + plugin.getPlantLocationID(loc))){
+        				Plants pl = new Plants(plugin, p.getUniqueId().toString(), loc);
+        				//Bukkit.broadcastMessage("you own this plant");
+        				p.sendMessage(ChatColor.DARK_GREEN + "Plant Type: " + ChatColor.YELLOW + pl.getPlantType().toLowerCase());
+        				p.sendMessage(ChatColor.DARK_GREEN + "Is Watered: " + ChatColor.YELLOW + pl.getisWaterd());
+        				p.sendMessage(ChatColor.DARK_GREEN + "Plant Growth Cycle: " +  ChatColor.YELLOW +pl.getPlantCycle());
+        				//p.sendMessage(ChatColor.GREEN + "this" +);
+        				
+        			}else{
+        				
+        			}
+        		}
         		
         	}
-        		
+       
+        	if(plugin.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.GLASS_BOTTLE){
+        		Location loc = e.getClickedBlock().getLocation();
+        		if(plugin.isPlantOwned(loc)){
+        			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + plugin.getPlantLocationID(loc))){
+        				Plants pl = new Plants(plugin, p.getUniqueId().toString(), loc);
+        				pl.setIsWatered(true);
+        				Bukkit.getWorld("world").playEffect(loc, Effect.POTION_BREAK, 0);
+        			}
+        		}else{
+            		e.setCancelled(true);
+    				p.sendMessage(ChatColor.YELLOW + "Looks like this plant was planted by someone");
+        	}
+        		}
         	}
       	}	
 	

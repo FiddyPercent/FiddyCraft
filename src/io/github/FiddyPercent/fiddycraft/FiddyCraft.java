@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -356,19 +357,75 @@ public class FiddyCraft extends JavaPlugin {
     }
     
     public boolean isPlantOwned(Location loc){
-    	if(!this.getPlantInfo().contains("Farmers")){
+    	if(!this.getPlantInfo().contains("Farmer")){
     		return false;
     	}else{
     		Set<String> pO = this.getPlantInfo().getConfigurationSection("Farmer").getKeys(false);
     		for(String g :pO){
-    			if(this.getPlantInfo().contains("Farmer." +  ))
+    			
+    			if(this.getPlantInfo().contains("Farmer." +  g + ".Plants." +this.getPlantLocationID(loc))){
+    				return true;
+    			}else{
+    				return false;
+    			}
     		}
     	}
-    	return plantOwners;
+    	return false;
     	
     }
     
+    public String getPlayerPlantAbleList(Player p){
+    	FcPlayers fc = new FcPlayers(this, p);
+    	if(fc.getPlayerJob().equalsIgnoreCase("Farmer")){
+    		FcFarmers fm = new FcFarmers(this, p);
+    		String rank = fm.getRank();
+    		if(rank.equalsIgnoreCase("Farmer")){
+    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:";
+    	    	String extra = fc.getGrowableList();
+    	    	return base+extra;
+    		}else if(rank.equalsIgnoreCase("Great Farmer")){
+    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:POPPY:ALLIUM:MELON:";
+    	    	String extra = fc.getGrowableList();
+    	    	return base+extra;
+    		}else if(rank.equalsIgnoreCase("Legendary Farmer")){
+    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:POPPY:ALLIUM:MELON:";
+    	    	String extra = fc.getGrowableList();
+    	    	return base+extra;
+    		}else{
+    			String base = "WHEAT:RED_TULIP:ORANGE_TULIP:PINK_TULIP:WHITE_TULIP:DANDELION:";
+    	    	String extra = fc.getGrowableList();
+    	    	return base+extra;
+    		}
+    	}else{
+    	String base = "WHEAT:RED_TULIP:ORANGE_TULIP:PINK_TULIP:WHITE_TULIP:DANDELION:";
+    	String extra = fc.getGrowableList();
+    	return base+extra;
+    	}
+    }
+    
+    public boolean canPlantThis(Player p,String seedName){
+    	
+    	String list = this.getPlayerPlantAbleList(p);
+    	ArrayList<String> l = new ArrayList<String>();
+
+    	String[] li = list.split("~");
+    	for(String i : li){
+    		l.add(i);
+    	}
+    	String sn = seedName.replace(" Seeds", "").replace(" ", "_").toUpperCase();
+    
+    	if(l.toString().contains(sn)){
+    		return true;
+    	}else{
+    		return false;
+    	}
+    }
+    
     public void setNewPlayer(Player p ){
+    	if(!this.getPlayerInfo().contains("Players.")){
+    		this.getPlayerInfo().set("Players", "Yo mama");
+    		this.savePlayerInfo();
+    	}
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Name", p.getName());
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() +".StartDate" , this.getTimeStamp());
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".Job", "Unemployed");
@@ -383,6 +440,9 @@ public class FiddyCraft extends JavaPlugin {
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Crops", 16);
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Animals", 4);
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".AnimalList", null);
+    	this.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Recipe List",null);
+    	this.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Growable List", this.getPlayerPlantAbleList(p));
+		this.getPlayerInfo().set("Players." + p.getUniqueId().toString() + ".Gov Job","None");
     	this.savePlayerInfo();
     }
     
@@ -395,6 +455,9 @@ public class FiddyCraft extends JavaPlugin {
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Crops", 16);
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Animals", 4);
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".AnimalList", null);
+    	this.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Recipe List",null);
+    	this.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Growable List", this.getPlayerPlantAbleList(p));
+		this.getPlayerInfo().set("Players." + p.getUniqueId().toString() + ".Gov Job","None");
     	this.savePlayerInfo();
     }
  
@@ -410,39 +473,52 @@ public class FiddyCraft extends JavaPlugin {
     	int x = (int) loc.getBlockX();
 		int y = (int) loc.getBlockY();
 		int z = (int) loc.getBlockZ();
-		String l = x+":"+y+":"+z;
+		String l = x+"~"+y+"~"+z;
     	return l;
     }
     
     public Location getLocationFromString(String locationString){
+    	
     	ArrayList<Integer> split = new ArrayList<Integer>();
-    	String[] sp = locationString.split(":");
+    	String[] sp = locationString.split("~");
+    	
     	for(String s : sp){
+    		
     		int u = Integer.parseInt(s);
     		split.add(u);
     	}
     	Location loc = new Location(Bukkit.getWorld("world"), split.get(0), split.get(1), split.get(2));
     	return loc;
     }
-    
-    public boolean isGrowableBlock(Block b){
-    	Material bl = b.getType();
-    	if(bl == Material.GRASS || bl == Material.CROPS || bl == Material.LONG_GRASS || bl == Material.DEAD_BUSH 
-    			|| bl == Material.YELLOW_FLOWER || bl == Material.RED_ROSE || bl == Material.WHEAT || bl ==Material.PUMPKIN_STEM
-    			|| bl == Material.MELON_STEM || bl == Material.PUMPKIN || bl == Material.MELON_BLOCK || bl == Material.COCOA||
-    			bl == Material.CARROT || bl == Material.POTATO || bl == Material.SUGAR_CANE_BLOCK || bl == Material.NETHER_WARTS){
+    public boolean isPlayerPlantOwner(Player p, Location loc){
+    	if(this.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + this.getPlantLocationID(loc))){
     		return true;
     	}else{
     		return false;
     	}
     }
+    public boolean isGrowableBlock(Block b){
+    	Material bl = b.getType();
+    	//Bukkit.broadcastMessage("Block type = " + bl.toString());
+    	if(bl == Material.GRASS || bl == Material.CROPS || bl == Material.LONG_GRASS || bl == Material.DEAD_BUSH 
+    			|| bl == Material.YELLOW_FLOWER || bl == Material.RED_ROSE || bl == Material.WHEAT || bl ==Material.PUMPKIN_STEM
+    			|| bl == Material.MELON_STEM || bl == Material.PUMPKIN || bl == Material.MELON_BLOCK || bl == Material.COCOA||
+    			bl == Material.CARROT || bl == Material.POTATO || bl == Material.SUGAR_CANE_BLOCK || bl == Material.NETHER_WARTS ){
+    		//Bukkit.broadcastMessage("pass");
+    		return true;
+    	}else{
+    		Bukkit.broadcastMessage("False man not an itme");
+    		return false;
+    	}
+    }
     public void plantNewSeed(Player p, Block e, String plantType, ItemStack Seeds){
     	
-    	//if(!this.getPlantInfo().contains("Farmer")){
-    	//	this.getPlantInfo().set("Farmer.", p.getUniqueId().toString());
-    	//	this.savePlantInfo();
-		//}
+    if(!this.getPlantInfo().contains("Farmer")){
+    		this.getPlantInfo().set("Farmer.", p.getUniqueId().toString());
+    		this.savePlantInfo();
+		}
     	
+ ;
     	
     	ItemMeta meta = Seeds.getItemMeta();
     	cropSeed cs = cropSeed.valueOf(plantType);
@@ -450,33 +526,31 @@ public class FiddyCraft extends JavaPlugin {
     	int x = (int) e.getLocation().getBlockX();
 		int y = (int) e.getLocation().getBlockY() +1;
 		int z = (int) e.getLocation().getBlockZ();
-		String l = x+":"+y+":"+z;
+		String l = x+"~"+y+"~"+z;
     	String ownerUUID = p.getUniqueId().toString();
 		Bukkit.broadcastMessage("setting plant stuff in config");
-		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".X", x);
-		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".Y", y);
-		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Location" + ".Z",z);
-		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Owner Name" , p.getName());
-		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Type",plantType);
-		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Watered",false);
-		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Cycle",cyc);
-		this.getPlantInfo().set("Farmer." + ownerUUID + "." + l + ".Plant Quality", this.setCookingRank(this.getcookingRankLevel(meta.getLore().get(1))));
+		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Location" + ".X", x);
+		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Location" + ".Y", y);
+		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Location" + ".Z",z);
+		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Owner Name" , p.getName());
+		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Type",plantType);
+		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Watered",false);
+		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Cycle",cyc);
+		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Quality", this.setCookingRank(this.getcookingRankLevel(meta.getLore().get(1))));
+		this.getPlantInfo().set("Farmer." +ownerUUID + ".Plants."  + l + ".Healthy", true);
+		this.getPlantInfo().set("Farmer." +ownerUUID + ".Plants."  + l + ".Fertilized", false);
 		this.savePlantInfo();
     }
     
     public boolean matchesSeedType(String seedType){
 		String dn = seedType;
-		cropSeed[] cpv = cropSeed.values();
-		for(cropSeed seedlist : cpv){
-			String sName = seedlist.toString().toLowerCase();
-			Bukkit.broadcastMessage(sName);
-			if(dn.equalsIgnoreCase(sName)){
+		 ArrayList<cropSeed> test = new ArrayList<cropSeed>(Arrays.asList(cropSeed.values()));
+		 String meh = dn.toUpperCase().replace(" ", "_");
+		 if(test.toString().contains(meh)){
 					return true;
 			}else{
 				return false;
-			}
 		}
-		return false;
     }
     
     public String getTimeStamp(){
@@ -1107,15 +1181,15 @@ public class FiddyCraft extends JavaPlugin {
 			this.saveAnimalData();
 		}
 			if(this.canHaveMoreAnimals(p)){
-			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Name", meta.getDisplayName());
-			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Owner", p.getName());
-			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".OwnerID", owner );
-			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".HeartPoints", 0 );
-			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Hunger", true );
-			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Thirst", true);
-			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Healthy", true );
-			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".Brushed", false );
-			this.AnimalData.set("Farmer."+ owner + "." +  pet + ".isPet", true );
+			this.AnimalData.set("Farmer."+ owner + ".Animals." +  pet + ".Name", meta.getDisplayName());
+			this.AnimalData.set("Farmer."+ owner + ".Animals." +  pet + ".Owner", p.getName());
+			this.AnimalData.set("Farmer."+ owner + ".Animals." +  pet + ".OwnerID", owner );
+			this.AnimalData.set("Farmer."+ owner + ".Animals." +  pet + ".HeartPoints", 0 );
+			this.AnimalData.set("Farmer."+ owner + ".Animals." +  pet + ".Hunger", true );
+			this.AnimalData.set("Farmer."+ owner + ".Animals." +  pet + ".Thirst", true);
+			this.AnimalData.set("Farmer."+ owner + ".Animals." +  pet + ".Healthy", true );
+			this.AnimalData.set("Farmer."+ owner + ".Animals." +  pet + ".Brushed", false );
+			this.AnimalData.set("Farmer."+ owner + ".Animals." +  pet + ".isPet", true );
 			this.saveAnimalData();
 			p.sendMessage(ChatColor.BLUE + "You now own " + meta.getDisplayName() + "!");
 			}else{
@@ -1153,7 +1227,7 @@ public class FiddyCraft extends JavaPlugin {
 		Set<String> farmList =  this.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
 	//getting the farmers animals
 		for(String l : farmList){
-			Set<String> t =  this.getAnimalData().getConfigurationSection("Farmer." + l).getKeys(false);
+			Set<String> t =  this.getAnimalData().getConfigurationSection("Farmer." + l + ".Animals.").getKeys(false);
 			
 			for(String FarmAnimals : t){
 				allAnimals.add(FarmAnimals);
@@ -1181,7 +1255,7 @@ public class FiddyCraft extends JavaPlugin {
 	public void DropProduce(Player p, Entity animal){
 		String owner = p.getUniqueId().toString();
 		String pet = animal.getUniqueId().toString();
-		double hp = this.AnimalData.getInt("Farmer." + owner + "." +  pet + ".HeartPoints" );
+		double hp = this.AnimalData.getInt("Farmer." + owner + ".Animals." +  pet + ".HeartPoints" );
 	//COW
 		if(animal instanceof Cow){
 			int drop = this.randomNumber(2);
@@ -1298,10 +1372,10 @@ public class FiddyCraft extends JavaPlugin {
 	public void addheartPoint(Entity e, Player p, double  hp){
 		String owner = p.getUniqueId().toString();
 		String pet = e.getUniqueId().toString();
-		double oldhp =	this.AnimalData.getDouble("Farmer."+ owner +"." +  pet + ".HeartPoints" );
+		double oldhp =	this.AnimalData.getDouble("Farmer."+ owner +".Animals." +  pet + ".HeartPoints" );
 		double newhp = hp + oldhp;
 		double roundOff = Math.round(newhp * 100.0) / 100.0;
-		this.AnimalData.set("Farmer."+ owner +"." +  pet + ".HeartPoints", roundOff );
+		this.AnimalData.set("Farmer."+ owner +".Animals." +  pet + ".HeartPoints", roundOff );
 		this.saveAnimalData();
 	}
 //CHECK IF IS ANIMAL
@@ -1327,7 +1401,7 @@ public class FiddyCraft extends JavaPlugin {
 				if(this.getAnimalData().contains("Farmer." + player.getUniqueId().toString())){
 				String l = player.getUniqueId().toString();	
 		
-				Set<String> t =  this.getAnimalData().getConfigurationSection("Farmer." + l).getKeys(false);
+				Set<String> t =  this.getAnimalData().getConfigurationSection("Farmer." + l + ".Animals.").getKeys(false);
 				for(String aL : t){
 					
 					if(this.getAnimalData().contains("AnimalCoolDown." + aL)){
@@ -1356,7 +1430,7 @@ public class FiddyCraft extends JavaPlugin {
 					for(String farmanimal : farmeranimals){
 						if(farmanimal.equalsIgnoreCase(e.getUniqueId().toString())){
 							LivingEntity le = (LivingEntity) e;
-							this.getAnimalData().set("Farmer." + farmer +"."+ farmanimal, null);
+							this.getAnimalData().set("Farmer." + farmer +".Animals."+ farmanimal, null);
 							Player[] p = Bukkit.getOnlinePlayers();
 							for(Player online : p){
 							if(online.getUniqueId().toString().equalsIgnoreCase(farmer)){
@@ -1395,61 +1469,61 @@ public class FiddyCraft extends JavaPlugin {
 	}
 
 	public boolean getanimalHunger(String uuid, String auuid){
-		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".Hunger");
+		return this.AnimalData.getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Hunger");
 	}
 	
 	public void setanimalHunger(String uuid, String auuid, boolean b){
-		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".Hunger", b);
+		 this.AnimalData.set("Farmer."+ uuid + ".Animals." +  auuid + ".Hunger", b);
 		 this.saveAnimalData();
 	}
 	
 	public boolean getanimalThirst(String uuid, String auuid){
-		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".Thirst");
+		return this.AnimalData.getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Thirst");
 	}
 	
 	public void setanimalThirst(String uuid, String auuid, boolean b){
-		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".Thirst", b);
+		 this.AnimalData.set("Farmer."+ uuid + ".Animals." +  auuid + ".Thirst", b);
 		 this.saveAnimalData();
 	}
 	
 	public double getanimalHeartPoints(String uuid, String auuid){
-		return this.AnimalData.getDouble("Farmer."+ uuid + "." +  auuid + ".HeartPoints");
+		return this.AnimalData.getDouble("Farmer."+ uuid + ".Animals." +  auuid + ".HeartPoints");
 	}
 	
 	public void setanimalHeartPoints(String uuid, String auuid, Double d){
-		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".HeartPoints", d);
+		 this.AnimalData.set("Farmer."+ uuid + ".Animals." +  auuid + ".HeartPoints", d);
 		 this.saveAnimalData();
 	}
 	
 	public boolean isanimalWashed(String uuid, String auuid){
-		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".Brushed");
+		return this.AnimalData.getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Brushed");
 	}
 	
 	public void setanimalWashed(String uuid, String auuid, Boolean b){
-		this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".Brushed", b);
+		this.AnimalData.set("Farmer."+ uuid + ".Animals." +  auuid + ".Brushed", b);
 		this.saveAnimalData();
 	}
 	public boolean isanimalHealthy(String uuid, String auuid){
-		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".Healthy");
+		return this.AnimalData.getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Healthy");
 	}
 	
 	public void setanimalHealth(String uuid, String auuid, Boolean b){
-		this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".Healthy", b);
+		this.AnimalData.getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Healthy", b);
 		this.saveAnimalData();
 	}
 	public String getanimalName(String uuid, String auuid){
-		return this.AnimalData.getString("Farmer."+ uuid + "." +  auuid + ".Name");
+		return this.AnimalData.getString("Farmer."+ uuid + ".Animals." +  auuid + ".Name");
 	}
 	
 	public void setanimalName(String uuid, String auuid, String name){
-		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".Name", name);
+		 this.AnimalData.set("Farmer."+ uuid + ".Animals." +  auuid + ".Name", name);
 		 this.saveAnimalData();
 	}
 	public String getanimalOwner(String auuid){
 		Set<String> farmers = this.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
 		for(String farmer : farmers){
-			if(this.getAnimalData().contains("Farmer." + farmer +"." + auuid)){
-				return this.AnimalData.getString("Farmer."+ farmer + "." +  auuid + ".Owner");
+			if(this.getAnimalData().contains("Farmer." + farmer +".Animals." + auuid)){
+				return this.AnimalData.getString("Farmer."+ farmer + ".Animals." +  auuid + ".Owner");
 			}else{
 				return "Unknown";
 			}
@@ -1462,8 +1536,8 @@ public class FiddyCraft extends JavaPlugin {
 	public String getanimalOwnerID(String auuid){
 		Set<String> farmers = this.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
 		for(String farmer : farmers){
-			if(this.getAnimalData().contains("Farmer." + farmer +"." + auuid)){
-				return this.AnimalData.getString("Farmer."+ farmer + "." +  auuid + ".OwnerID");
+			if(this.getAnimalData().contains("Farmer." + farmer +".Animals." + auuid)){
+				return this.AnimalData.getString("Farmer."+ farmer + ".Animals." +  auuid + ".OwnerID");
 			}else{
 				return "Unknown";
 			}
@@ -1473,11 +1547,11 @@ public class FiddyCraft extends JavaPlugin {
 		
 	}
 	public boolean isanimalAbletobePet(String uuid, String auuid){
-		return this.AnimalData.getBoolean("Farmer."+ uuid + "." +  auuid + ".isPet");
+		return this.AnimalData.getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".isPet");
 	}
 
 	public void setanimalAbletobePet(String uuid, String auuid, Boolean b){
-		 this.AnimalData.set("Farmer."+ uuid + "." +  auuid + ".isPet", b);
+		 this.AnimalData.set("Farmer."+ uuid + ".Animals." +  auuid + ".isPet", b);
 		 this.saveAnimalData();
 	}
 //PLAY ANIMAL SOUND
@@ -1570,12 +1644,13 @@ public class FiddyCraft extends JavaPlugin {
 	long Time = Bukkit.getWorld("world").getTime();
 	if(newday.isEmpty() || newday.get("newday") == false){
 		if(Time > 23000){
+			Bukkit.broadcastMessage("NEW DAY");
 			Player[] p = Bukkit.getOnlinePlayers();
 			for(Player player : p){
 				if(this.getAnimalData().contains("Farmer." + player.getUniqueId().toString())){
 				String farmer = player.getUniqueId().toString();	
 		
-				Set<String> animals =  this.getAnimalData().getConfigurationSection("Farmer." + farmer).getKeys(false);
+				Set<String> animals =  this.getAnimalData().getConfigurationSection("Farmer." + farmer + ".Animals").getKeys(false);
 				for(String animal : animals){
 					
 					this.setanimalHunger(farmer, animal, true);
@@ -1584,6 +1659,37 @@ public class FiddyCraft extends JavaPlugin {
 					this.setanimalAbletobePet(farmer, animal, true);
 					newday.put("newday", true);
 					}
+				}
+				if(this.getPlantInfo().contains("Farmer." + player.getUniqueId().toString())){
+					Bukkit.broadcastMessage("NEW PLANT CYCLE");
+					String farmer = player.getUniqueId().toString();
+					Set<String> plants =  this.getPlantInfo().getConfigurationSection("Farmer." + farmer + ".Plants").getKeys(false);
+					for(String plant : plants){
+						Plants pt = new Plants(this, farmer, this.getLocationFromString(plant));
+						if(!this.isGrowableBlock(pt.getPlantLocation().getBlock())){
+							pt.removePlantInfo();
+							Bukkit.broadcastMessage("removing plant");
+						}
+						if(pt.getisWaterd() || Bukkit.getWorld("world").hasStorm()){
+							Bukkit.broadcastMessage("WATERED");
+							int newcycle = pt.getPlantCycle() -1;
+							pt.setPlantCycle(newcycle);
+							pt.setIsWatered(false);
+							pt.changePlantCycle();
+							Bukkit.broadcastMessage(ChatColor.GOLD + "Changed CYCLE!");
+						}else{
+							if(pt.isHealthy()){
+								pt.setHealth(false);
+							}else{
+								int r = randomNumber(10);
+								if(r == 5){
+									pt.killPlant();
+									Bukkit.broadcastMessage(ChatColor.GOLD + "DEAD PLANT");
+								}
+							}
+						}
+					}
+					
 				}
 			}
 		}

@@ -5,8 +5,8 @@ public enum cropSeed {
 	CARROT("Carrot Seeds", 9),
 	PUMPKIN("Pumpkin Seeds", 15),
 	MELON("Melon Seeds", 12),
-	POTATO("Potato Seeds", 10 ),
-	WHEAT("Wheat Seeds", 7),
+	POTATO("Potato Seeds", 9 ),
+	WHEAT("Wheat Seeds", 8),
 	ROSE("Rose Seeds", 8),
 	LILAC("Lilac Seeds", 8),
 	PEONY("Peony Seeds", 9),
@@ -16,9 +16,9 @@ public enum cropSeed {
 	DANDELION("Dandelion Seeds", 5),
 	OXEYE_DAISY("Oxeye Dasiy Seeds", 6),
 	PINK_TULIP("Pink Tulip Seeds", 5),
-	WHITE_TULIP("White Tulip Seeds", 6),
-	ORANGE_TULIP("Orange Tulip Seeds", 6),
-	RED_TULIP("Red Tulip Seeds", 6),
+	WHITE_TULIP("White Tulip Seeds", 5),
+	ORANGE_TULIP("Orange Tulip Seeds", 5),
+	RED_TULIP("Red Tulip Seeds", 5),
 	AZURE_BLUET("Azure Bluet Seeds", 8),
 	PEPPER("Pepper Plant Seeds", 10); 
 	
@@ -36,6 +36,7 @@ public enum cropSeed {
      public int getcycles(){
          return cycles;
      }
+     
      
  
   

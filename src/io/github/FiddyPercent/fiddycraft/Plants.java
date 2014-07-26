@@ -1,6 +1,13 @@
 package io.github.FiddyPercent.fiddycraft;
 
+import java.util.ArrayList;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class Plants {
 	private String plantType;
@@ -10,66 +17,373 @@ public class Plants {
 	private int quality;
 	private String plantOwner;
 	public final FiddyCraft plugin;
+	private String ownerUUID;
+	private boolean isHealthy;
+	private Boolean isFertilized;
 
 	public Plants(FiddyCraft plugin, String uuid,Location loc){
 		this.plugin = plugin;
-		plantType = plugin.getPlantInfo().getString("Farmer."+uuid + "." + plugin.getPlantLocationID(loc) + ".Plant Type");
+		plantType = plugin.getPlantInfo().getString("Farmer."+uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Plant Type");
 		plantLocation = plugin.getLocationFromString(plugin.getPlantLocationID(loc));
-		isWaterd = plugin.getPlantInfo().getBoolean("Farmer."+uuid + "." + plugin.getPlantLocationID(loc) + ".Watered" );
-		plantCycle = plugin.getPlantInfo().getInt("Farmer." +uuid+ "." +  plugin.getPlantLocationID(loc) + ".Plant Cycle");
-		quality = plugin.getPlantInfo().getInt("Farmer." + uuid + "." + plugin.getPlantLocationID(loc) + ".Plant Quality");
-		plantOwner = plugin.getPlantInfo().getString("Farmer." +uuid + "." + plugin.getPlantLocationID(loc) + ".Owner Name");
+		isWaterd = plugin.getPlantInfo().getBoolean("Farmer."+uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Watered" );
+		plantCycle = plugin.getPlantInfo().getInt("Farmer." +uuid+ ".Plants." +  plugin.getPlantLocationID(loc) + ".Plant Cycle");
+		quality = plugin.getPlantInfo().getInt("Farmer." + uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Plant Quality");
+		plantOwner = plugin.getPlantInfo().getString("Farmer." +uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Owner Name");
+		isHealthy = plugin.getPlantInfo().getBoolean("Farmer." +uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Healthy");
+		isFertilized = plugin.getPlantInfo().getBoolean("Farmer." +uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Fertilized");
+		ownerUUID = uuid;
 	}
 
 	public String getPlantType(){
 		return plantType;
-		
 	}
-	
 	public Location getPlantLocation(){
 		return plantLocation;
 	}
-	
 	public boolean getisWaterd(){
 		return isWaterd;
 	}
-	
 	public int getPlantCycle(){
 		return plantCycle;
 	}
-	
 	public int getPlantQuailty(){
 		return quality;
 	}
-	
 	public String getPlantOwner(){
 		return plantOwner;
 	}
-
+	public boolean isfertilized(){
+		return isFertilized;
+	}
+	public boolean isHealthy(){
+		return isHealthy;
+	}
+	public void setfertilized(boolean b){
+		plugin.getPlantInfo().set("Farmer." +ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Fertilized", b);
+		plugin.savePlantInfo();
+	}
+	public void setHealth(boolean b){
+		plugin.getPlantInfo().set("Farmer." +ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Healthy", b);
+		plugin.savePlantInfo();
+	}
+	
 	public void setPlantType(String type){
-		plantType = type;
+		plugin.getPlantInfo().set("Farmer."+ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Plant Type", type.toUpperCase());
+		plugin.savePlantInfo();
 	}
-	
-	public void setPlantLocation(Location l){
-		plantLocation = l;
-	}
-	
+
 	public void setIsWatered(boolean b){
-		isWaterd = b;
+		plugin.getPlantInfo().set("Farmer."+ ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Watered", b );
+		plugin.savePlantInfo();
 	}
 	
 	public void setPlantCycle(int pcl){
-		plantCycle = pcl;
+		if(pcl < 0){
+			plugin.getPlantInfo().set("Farmer." +ownerUUID+ ".Plants." +  plugin.getPlantLocationID(plantLocation) + ".Plant Cycle", 1);
+		}else{
+		plugin.getPlantInfo().set("Farmer." +ownerUUID+ ".Plants." +  plugin.getPlantLocationID(plantLocation) + ".Plant Cycle", pcl);
+		}
+		plugin.savePlantInfo();
 	}
 	
 	public void setPlantQuality(int q){
-		quality = q;
+		if(q < 0){
+			plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Plant Quality", 0);
+		}else{
+		plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Plant Quality", q);
+		}
+		plugin.savePlantInfo();
 	}
 	
-	public void setPlantOwner(String owner){
-		plantOwner = owner;
+	@SuppressWarnings("deprecation")
+	public void changePlantCycle(){
+		ArrayList<String> pnt = new ArrayList<String>();
+		String[] cys = this.getCropCycleString().split("~");
+		for(String pc: cys){
+			pnt.add(pc);
+		}
+		Bukkit.broadcastMessage(" plant cycle = " + this.getPlantCycle() + "array size = " + pnt.size());
+		
+		
+		int cycle = pnt.size() - (this.getPlantCycle() - 1);
+		String state = pnt.get(cycle);
+		Block b = Bukkit.getWorld("world").getBlockAt(this.getPlantLocation());
+		Bukkit.broadcastMessage("Chaning state");
+		switch(state){
+		case "ST1":
+			b.setTypeIdAndData(105, (byte)0, true);
+			break;
+		case "ST2":
+			b.setTypeIdAndData(105, (byte)1, true);
+			break;
+		case "ST3":
+			b.setTypeIdAndData(105, (byte)2, true);
+			break;
+		case "ST4":
+			b.setTypeIdAndData(105, (byte)3, true);
+			break;
+		case "ST5":
+			b.setTypeIdAndData(105, (byte)4, true);
+			break;
+		case "ST6":
+			b.setTypeIdAndData(105, (byte)5, true);
+			break;
+		case "ST7":
+			b.setTypeIdAndData(105, (byte)6, true);
+			break;
+		case "ST8":
+			b.setTypeIdAndData(105, (byte)7, true);
+			break;
+		case "S":
+			b.setTypeIdAndData(59, (byte)0, true);
+			break;
+		case "G":
+			b.setTypeIdAndData(59, (byte)1, true);
+			break;
+		case "VSM":
+			b.setTypeIdAndData(59, (byte)2, true);
+			break;
+		case "SM":
+			b.setTypeIdAndData(59, (byte)3, true);
+			break;
+		case "MED":
+			b.setTypeIdAndData(59, (byte)4, true);
+			break;
+		case "T":
+			b.setTypeIdAndData(59, (byte)5, true);
+			break;
+		case "VT":
+			b.setTypeIdAndData(59, (byte)6, true);
+			break;
+		case "OXEYE":
+			b.setTypeIdAndData(38, (byte)8, true);
+			break;
+		case "WHEAT":
+			b.setTypeIdAndData(59, (byte)7, true);
+			break;
+		case "WHITE_TULIP":
+			b.setTypeIdAndData(38, (byte)6, true);
+			break;
+		case "ORANGE_TULIP":
+			b.setTypeIdAndData(38, (byte)5, true);
+			break;
+		case "PINK_TULIP":
+			b.setTypeIdAndData(38, (byte)7, true);
+			break;
+		case "RED_TULIP":
+			b.setTypeIdAndData(38, (byte)6, true);
+			break;
+		case "POPPY":
+			b.setTypeIdAndData(38, (byte)0, true);
+			break;
+		case "BLUE_ORCHID":
+			b.setTypeIdAndData(38, (byte)1, true);
+			break;
+		case "ALLIUM":
+			b.setTypeIdAndData(38, (byte)2, true);
+			break;
+		case "AZURE_BLUET":
+			b.setTypeIdAndData(38, (byte)3, true);
+			break;
+		case "CARROT":
+			b.setType(Material.CARROT_ITEM);
+			break;
+		case "POTATO":
+			b.setType(Material.POTATO_ITEM);
+			break;
+		case "PUMPKIN":
+			b.setType(Material.PUMPKIN);
+			break;
+		case "MELON":
+			b.setType(Material.MELON);
+			break;
+		case "TG":
+			b.setType(Material.LONG_GRASS);
+			break;
+		case "VTG":
+			b.setTypeIdAndData(105, (byte)2, true);
+			break;
+		case "ROSE":
+			b.setTypeIdAndData(105, (byte)4, true);
+			break;
+		case "LILAC":
+			b.setTypeIdAndData(105, (byte)1, true);
+			break;
+		case "PEONY":
+			b.setTypeIdAndData(105, (byte)5, true);
+			break;
+		case "SUNFLOWER":
+			b.setTypeIdAndData(105, (byte)0, true);
+			break;
+		case "LF":
+			b.setTypeIdAndData(105, (byte)3, true);
+			break;
+		case "F":
+			b.setTypeIdAndData(31, (byte)2, true);
+			break;
+		case "DANDELION":
+			b.setTypeIdAndData(105, (byte)3, true);
+			break;
+		case "FAIL":
+			this.killPlant();
+			break;
+		}
+	} 
+	public ItemStack dropProduce(){
+	ItemStack goods = this.getPlantItemStack();
+	ItemMeta meta = goods.getItemMeta();
+	ArrayList<String> lore = new ArrayList<String>();
+	String rank = plugin.setCookingRank(this.getPlantQuailty());
+	lore.add(rank);
+	meta.setLore(lore);
+	goods.setItemMeta(meta);
+		return goods;
 	}
 	
+	@SuppressWarnings("deprecation")
+	public void setFirstPlanting(){
+		if(this.getPlantType().equalsIgnoreCase("MELON") || this.getPlantType().equalsIgnoreCase("PUMPKIN")){
+			Block b = Bukkit.getWorld("world").getBlockAt(this.getPlantLocation());
+			b.setTypeIdAndData(105, (byte)0, true);
+		}else{
+			Block b = Bukkit.getWorld("world").getBlockAt(this.getPlantLocation());
+			b.setTypeIdAndData(59, (byte)0, true);
+		}
+	}
 
+	
+	public void killPlant(){
+		Bukkit.getWorld("world").getBlockAt(this.getPlantLocation()).setType(Material.DEAD_BUSH);
+		this.removePlantInfo();
+	}
+	public void removePlantInfo(){
+		plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation), null); 
+	}
+	public String getCropCycleString( ){
+		if(this.getPlantType().equalsIgnoreCase(cropSeed.OXEYE_DAISY.toString())){
+			return "ST1~ST2~ST3~ST4~ST5~OXEYE";
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.WHEAT.toString())){
+			return "S~G~VSM~SM~MED~T~TV~WHEAT";
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.WHITE_TULIP.toString()) || this.getPlantType().equalsIgnoreCase(cropSeed.ORANGE_TULIP.toString())
+				|| this.getPlantType().equalsIgnoreCase(cropSeed.PINK_TULIP.toString()) || this.getPlantType().equalsIgnoreCase(cropSeed.RED_TULIP.toString())){
+			return "ST1~ST2~ST3~ST4~" + this.getPlantType();
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.CARROT.toString())){
+			return "ST1~S~S~G~G~VSM~VSM~MED~CARROT";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.POTATO.toString())){
+			return "ST1~S~S~G~G~VSM~VSM~MED~POTATO";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.PUMPKIN.toString())){
+			return "ST1~STI~ST2~ST2~ST3~ST3~ST4~ST4~ST5~ST5~ST6~ST6~ST7~ST7~PUMPKIN";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.MELON.toString())){
+				return "STI~ST2~ST2~ST3~ST3~ST4~ST4~ST5~ST5~ST6~ST7~MELON";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.ROSE.toString())){
+			return "S~G~VSM~SM~TG~TG~VTG~ROSE";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.LILAC.toString())){
+			return "S~G~VSM~SM~TG~TG~VTG~LILIAC";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.PEONY.toString())){
+			return "S~G~VSM~SM~SM~TG~TG~VTG~PEONY";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.ALLIUM.toString())){
+			return "STI~ST2~ST2~ST3~ST3~ST4~ST4~ST5~ST5~ST6~ALLIUM";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.BLUE_ORCHID.toString())){
+			return "STI~ST2~ST3~ST4~ST5~ST6~BLUE_ORCHID";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.POPPY.toString())){
+			return "STI~ST2~ST2~ST3~ST3~ST4~ST4~ST5~POPPY";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.DANDELION.toString())){
+			return "STI~ST2~ST3~ST4~DANDELION";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.AZURE_BLUET.toString())){
+			return "STI~ST2~ST3~ST4~ST5~ST6~ST7~AZURE_BLUET";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.PEPPER.toString())){
+			return "STI~ST2~ST3~ST4~ST5~ST6~ST7~F~F~LF";
+		}else{
+			return "FAIL";
+		}
+	}
+	
+	private ItemStack getPlantItemStack(){
+		if(this.getPlantType().equalsIgnoreCase(cropSeed.ALLIUM.toString())){
+			ItemStack item = new ItemStack(Material.RED_ROSE, 1 , (short) 2);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.AZURE_BLUET.toString())){
+			ItemStack item = new ItemStack(Material.RED_ROSE, 1 , (short) 3);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.BLUE_ORCHID.toString())){
+			ItemStack item = new ItemStack(Material.RED_ROSE, 1 , (short) 1);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.CARROT.toString())){
+			ItemStack item = new ItemStack(Material.CARROT_ITEM);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.DANDELION.toString())){
+			ItemStack item = new ItemStack(Material.YELLOW_FLOWER);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.LILAC.toString())){
+			ItemStack item = new ItemStack(Material.getMaterial(175), 1 , (short) 1);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.MELON.toString())){
+			ItemStack item = new ItemStack(Material.MELON_BLOCK);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.ORANGE_TULIP.toString())){
+			ItemStack item = new ItemStack(Material.RED_ROSE, 1 , (short) 5);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.OXEYE_DAISY.toString())){
+			ItemStack item = new ItemStack(Material.RED_ROSE, 1 , (short) 8);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.PEONY.toString())){
+			ItemStack item = new ItemStack(Material.getMaterial(175), 1 , (short) 5);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.PINK_TULIP.toString())){
+			ItemStack item = new ItemStack(Material.RED_ROSE, 1 , (short) 7);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.POPPY.toString())){
+			ItemStack item = new ItemStack(Material.RED_ROSE, 1 , (short) 0);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.POTATO.toString())){
+			ItemStack item = new ItemStack(Material.POTATO_ITEM);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.PEPPER.toString())){
+			ItemStack item = new ItemStack(Material.MELON_SEEDS, 3);
+			ItemMeta meta = item.getItemMeta();
+			meta.setDisplayName("Pepper");
+			item.setItemMeta(meta);
+			return item;
+		}
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.PUMPKIN.toString())){
+			ItemStack item = new ItemStack(Material.PUMPKIN);
+			return item;
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.RED_TULIP.toString())){
+			ItemStack item = new ItemStack(Material.RED_ROSE, 1 , (short) 4);
+			return item;
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.ROSE.toString())){
+			ItemStack item = new ItemStack(Material.RED_ROSE);
+			return item;
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.ROSE.toString())){
+			ItemStack item = new ItemStack(Material.getMaterial(175), 1 , (short) 4);
+			return item;
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.WHEAT.toString())){
+			ItemStack item = new ItemStack(Material.WHEAT);
+			return item;
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.WHITE_TULIP.toString())){
+			ItemStack item = new ItemStack(Material.RED_ROSE, 1 , (short) 6);
+			return item;
+		}else{
+				ItemStack item = new ItemStack(Material.DEAD_BUSH);
+				
+				return item;
+			}
+		}
+	
 	
 }

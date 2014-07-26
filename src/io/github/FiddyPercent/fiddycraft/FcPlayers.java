@@ -2,11 +2,12 @@ package io.github.FiddyPercent.fiddycraft;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.bukkit.entity.Player;
 
 public class FcPlayers {
-	private String Name;
+	public String Name;
 	private int maxAnimals;
 	private int maxCrops;
 	private int maxFoodLevel;
@@ -23,12 +24,16 @@ public class FcPlayers {
 	public final FiddyCraft plugin;
 	private Player p;
 	private String StartDate;
-	private List<?> allPlayers;
+	private Set<String> allPlayers;
+	private String recipeList;
+	private String growableList;
+	private String GovenmentJob;
+	private Set<String> listAnimals;
 	
-	public FcPlayers(FiddyCraft plugin, Player P){
+	public FcPlayers(FiddyCraft plugin, Player P){ 
 		this.plugin = plugin;
 		Player p = P;
-		allPlayers = (List<?>) plugin.getPlayerInfo().getConfigurationSection("Players").getKeys(false);
+		allPlayers = plugin.getPlayerInfo().getConfigurationSection("Players").getKeys(false);
 		Name = p.getName();
 		StartDate = plugin.getPlayerInfo().getString("Players." +p.getUniqueId().toString()+ ".StartDate");
 		maxAnimals =  plugin.getPlayerInfo().getInt("Players." +p.getUniqueId().toString()+ ".Max Animals");
@@ -44,6 +49,10 @@ public class FcPlayers {
 		playerJob = plugin.getPlayerInfo().getString("Players." +p.getUniqueId().toString()+ ".Job");
 		animalList = (ArrayList<?>) plugin.getPlayerInfo().getList("Players." +p.getUniqueId().toString()+ ".Animals");
 		pendingTrial = plugin.getPlayerInfo().getBoolean("Players." +p.getUniqueId().toString()+ ".Pending Trial");
+		recipeList = plugin.getPlayerInfo().getString("Players."+ p.getUniqueId().toString() + ".Recipe List");
+		growableList = plugin.getPlayerInfo().getString("Players."+ p.getUniqueId().toString() + ".Growable List");
+		GovenmentJob = plugin.getPlayerInfo().getString("Players." + p.getUniqueId().toString() + ".Gov Job");
+		listAnimals = plugin.getAnimalData().getConfigurationSection("Farmer." + p.getUniqueId() + ".Animals" ).getKeys(false);
 	}
 	public String getfcPlayerName(){
 		return p.getName();
@@ -90,6 +99,13 @@ public class FcPlayers {
 	public boolean getisPendingTrial(){
 		return pendingTrial;
 	}
+	public String getRecipeList(){
+		return recipeList;
+	}
+	public String getGrowableList(){
+		return growableList;
+	}
+
 	public void setMaxAnimals(int mAnimals){
 		plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Animals", mAnimals);
 		plugin.savePlayerInfo();
@@ -149,5 +165,36 @@ public class FcPlayers {
 	public void setPendingTrial(boolean pending){
 		plugin.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Pending Trial", pending);
 		 plugin.savePlayerInfo();
+	}
+	public void addRecipeToList(String recipe){
+		String old = this.getRecipeList();
+		String newlist = old  + ":" + recipe;
+		plugin.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Recipe List", newlist);
+		plugin.savePlayerInfo();
+	}
+	public void removeRecipeFromList(String recipe){
+		String old = this.getRecipeList();
+		String newlist = old.replace(":"+ recipe, "");
+		plugin.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Recipe List", newlist);
+		plugin.savePlayerInfo();
+	}
+	public void addToGrowableList(String plant){
+		String old = this.getRecipeList();
+		String newlist = old  + ":" + plant;
+		plugin.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Growable List", newlist);
+		plugin.savePlayerInfo();
+	}
+	public void removeFromGrowableList(String plant){
+		String old = this.getRecipeList();
+		String newlist = old.replace(":"+ plant, "");
+		plugin.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Growable List", newlist);
+		plugin.savePlayerInfo();
+	}
+	public String getGovenmentJob() {
+		return GovenmentJob;
+	}
+	public void setGovenmentJob(String govjob) {
+		plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() + ".Gov Job", govjob);
+		plugin.savePlayerInfo();
 	}
 }

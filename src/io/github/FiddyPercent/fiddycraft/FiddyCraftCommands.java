@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -854,22 +856,57 @@ public class FiddyCraftCommands implements CommandExecutor {
 //TEST COMMAND
 		if(cmd.getName().equalsIgnoreCase("rTest")){
 		Player p = (Player) sender;
-		ItemStack item = p.getItemInHand();
-		ItemMeta meta = item.getItemMeta();
+	//if(args[0] == "roodrank"){
+	//	ItemStack item = p.getItemInHand();
+	//	ItemMeta meta = item.getItemMeta();
+	//	
+	//	if(!meta.hasDisplayName()){
+	//		meta.setDisplayName(item.getType().toString());
+	//	}
+	//	HashMap<String, Integer> foodRank = new HashMap<String, Integer>() ;
+	//	foodRank.put(meta.getDisplayName(), 4);
+	//	HashMap<String, Integer> foodTotal = new HashMap<String, Integer>() ;
+	//	foodTotal.put(meta.getDisplayName(), 1);
+	//	ItemStack result = p.getItemInHand();
 		
-		if(!meta.hasDisplayName()){
-			meta.setDisplayName(item.getType().toString());
-		}
-		HashMap<String, Integer> foodRank = new HashMap<String, Integer>() ;
-		foodRank.put(meta.getDisplayName(), 4);
-		HashMap<String, Integer> foodTotal = new HashMap<String, Integer>() ;
-		foodTotal.put(meta.getDisplayName(), 1);
-		ItemStack result = p.getItemInHand();
-		
-		p.setItemInHand(plugin.getDish(foodRank, foodTotal, result));
+	//	p.setItemInHand(plugin.getDish(foodRank, foodTotal, result));
+	//}
 	
+	if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString())){
+		
+	
+		 plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Exp", 0);
+		 plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Rank", "Legendary Farmer");
+		 plugin.savePlayerInfo();
+		FcFarmers fcf = new FcFarmers(plugin, p);
+		//fcf.setFarmerRank("Legendary Farmer");
+		Bukkit.broadcastMessage("NEW PLANT CYCLE");
+		String farmer = p.getUniqueId().toString();
+		Set<String> plants =  plugin.getPlantInfo().getConfigurationSection("Farmer." + farmer + ".Plants").getKeys(false);
+		for(String plant : plants){
+			Plants pt = new Plants(plugin, farmer, plugin.getLocationFromString(plant));
+			if(pt.getisWaterd()){
+				Bukkit.broadcastMessage("WATERED");
+				int newcycle = pt.getPlantCycle() -1;
+				pt.setPlantCycle(newcycle);
+				pt.setIsWatered(false);
+				pt.changePlantCycle();
+				Bukkit.broadcastMessage(ChatColor.GOLD + "Changed CYCLE!");
+			}else{
+				if(pt.isHealthy()){
+					pt.setHealth(false);
+				}else{
+					int r = plugin.randomNumber(10);
+					if(r == 5){
+						pt.killPlant();
+						Bukkit.broadcastMessage(ChatColor.GOLD + "DEAD PLANT");
+					}
+				}
+			}
+		}
 		
 	}
+}
 		
 //RELEASE COMMAND
 		if(cmd.getName().equalsIgnoreCase("RELEASE")){
