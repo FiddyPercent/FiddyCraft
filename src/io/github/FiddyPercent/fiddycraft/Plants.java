@@ -10,7 +10,7 @@ import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-public class Plants {
+public class Plants  {
 	private String plantType;
 	private Location plantLocation;
 	private boolean isWaterd;
@@ -79,7 +79,7 @@ public class Plants {
 	}
 	
 	public void setPlantCycle(int pcl){
-		if(pcl < 0){
+		if(pcl <= 0){
 			plugin.getPlantInfo().set("Farmer." +ownerUUID+ ".Plants." +  plugin.getPlantLocationID(plantLocation) + ".Plant Cycle", 1);
 		}else{
 		plugin.getPlantInfo().set("Farmer." +ownerUUID+ ".Plants." +  plugin.getPlantLocationID(plantLocation) + ".Plant Cycle", pcl);
@@ -103,13 +103,21 @@ public class Plants {
 		for(String pc: cys){
 			pnt.add(pc);
 		}
-		Bukkit.broadcastMessage(" plant cycle = " + this.getPlantCycle() + "array size = " + pnt.size());
 		
-		
-		int cycle = pnt.size() - (this.getPlantCycle() - 1);
+		ArrayList<Integer> check = new ArrayList<Integer>();
+		int cy = this.getPlantCycle() - 1;
+		if(cy <= 0){
+			check.add(1);
+		}else{
+			check.add(0);
+		}
+		int cycle = pnt.size() - cy - check.get(0);
+		Bukkit.broadcastMessage("plant cycle = " +cy + " array size = " + pnt.size() + " arraysize - cy " + cycle);
 		String state = pnt.get(cycle);
 		Block b = Bukkit.getWorld("world").getBlockAt(this.getPlantLocation());
 		Bukkit.broadcastMessage("Chaning state");
+		Location loc = plugin.getFirstPlantLocation(this.getPlantLocation());
+		Block topblock = Bukkit.getWorld("world").getBlockAt(loc);
 		switch(state){
 		case "ST1":
 			b.setTypeIdAndData(105, (byte)0, true);
@@ -172,7 +180,7 @@ public class Plants {
 			b.setTypeIdAndData(38, (byte)7, true);
 			break;
 		case "RED_TULIP":
-			b.setTypeIdAndData(38, (byte)6, true);
+			b.setTypeIdAndData(38, (byte)4, true);
 			break;
 		case "POPPY":
 			b.setTypeIdAndData(38, (byte)0, true);
@@ -187,37 +195,44 @@ public class Plants {
 			b.setTypeIdAndData(38, (byte)3, true);
 			break;
 		case "CARROT":
-			b.setType(Material.getMaterial(141));
+			b.setTypeIdAndData(141, (byte)7, true);
 			break;
 		case "POTATO":
-			b.setType(Material.getMaterial(142));
+			b.setTypeIdAndData(142, (byte)7, true);
 			break;
 		case "PUMPKIN":
 			b.setType(Material.PUMPKIN);
 			break;
 		case "MELON":
-			b.setType(Material.MELON);
+			b.setType(Material.MELON_BLOCK);
 			break;
 		case "TG":
-			b.setType(Material.LONG_GRASS);
+			b.setTypeIdAndData(31, (byte) 1, true);
+			topblock.setTypeIdAndData(175, (byte) 8, true);
 			break;
 		case "VTG":
-			b.setTypeIdAndData(105, (byte)2, true);
+			b.setTypeIdAndData(175, (byte)2, true);
+			topblock.setTypeIdAndData(175, (byte) 8, true);
 			break;
 		case "ROSE":
-			b.setTypeIdAndData(105, (byte)4, true);
+			b.setTypeIdAndData(175, (byte) 4, false);
+			topblock.setTypeIdAndData(175, (byte) 8, true);
 			break;
 		case "LILAC":
-			b.setTypeIdAndData(105, (byte)1, true);
+			b.setTypeIdAndData(175, (byte)1, false);
+			topblock.setTypeIdAndData(175, (byte) 8, true);
 			break;
 		case "PEONY":
-			b.setTypeIdAndData(105, (byte)5, true);
+			b.setTypeIdAndData(175, (byte)5, false);
+			topblock.setTypeIdAndData(175, (byte) 8, true);
 			break;
 		case "SUNFLOWER":
-			b.setTypeIdAndData(105, (byte)0, true);
+			b.setTypeIdAndData(175, (byte)0, false);
+			topblock.setTypeIdAndData(175, (byte) 8, true);
 			break;
 		case "LF":
-			b.setTypeIdAndData(105, (byte)3, true);
+			b.setTypeIdAndData(175, (byte)3, true);
+			topblock.setTypeIdAndData(175, (byte) 8, true);
 			break;
 		case "F":
 			b.setTypeIdAndData(31, (byte)2, true);
@@ -231,6 +246,7 @@ public class Plants {
 		}
 	} 
 	public ItemStack dropProduce(){
+		if(this.getPlantCycle() <= 1){
 	ItemStack goods = this.getPlantItemStack();
 	ItemMeta meta = goods.getItemMeta();
 	ArrayList<String> lore = new ArrayList<String>();
@@ -239,7 +255,12 @@ public class Plants {
 	meta.setLore(lore);
 	goods.setItemMeta(meta);
 		return goods;
+	}else{
+		Bukkit.broadcastMessage("dropped air");
+		ItemStack d = new ItemStack(Material.AIR);
+		return d;
 	}
+}
 	
 	@SuppressWarnings("deprecation")
 	public void setFirstPlanting(){
@@ -258,6 +279,10 @@ public class Plants {
 		Bukkit.getWorld("world").getBlockAt(this.getPlantLocation()).setType(Material.DEAD_BUSH);
 		this.removePlantInfo();
 	}
+	public void growWeed(){
+		Bukkit.getWorld("world").getBlockAt(this.getPlantLocation()).setTypeIdAndData(106, (byte) 0, false);
+		this.removePlantInfo();
+	}
 	public void removePlantInfo(){
 		plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation), null); 
 	}
@@ -268,9 +293,14 @@ public class Plants {
 		else if(this.getPlantType().equalsIgnoreCase(cropSeed.WHEAT.toString())){
 			return "S~G~VSM~SM~MED~T~TV~WHEAT";
 		}
-		else if(this.getPlantType().equalsIgnoreCase(cropSeed.WHITE_TULIP.toString()) || this.getPlantType().equalsIgnoreCase(cropSeed.ORANGE_TULIP.toString())
-				|| this.getPlantType().equalsIgnoreCase(cropSeed.PINK_TULIP.toString()) || this.getPlantType().equalsIgnoreCase(cropSeed.RED_TULIP.toString())){
-			return "ST1~ST2~ST3~ST4~" + this.getPlantType().toString();
+		else if(this.getPlantType().equalsIgnoreCase(cropSeed.WHITE_TULIP.toString())){
+			return "ST1~ST2~ST3~ST4~WHITE_TULIP";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.ORANGE_TULIP.toString())){
+			return "ST1~ST2~ST3~ST4~ORANGE_TULIP";
+		}else if( this.getPlantType().equalsIgnoreCase(cropSeed.PINK_TULIP.toString())){
+			return "ST1~ST2~ST3~ST4~PINK_TULIP";
+		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.RED_TULIP.toString())){
+			return "ST1~ST2~ST3~ST4~RED_TULIP";
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.CARROT.toString())){
 			return "ST1~S~S~G~G~VSM~VSM~MED~CARROT";
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.POTATO.toString())){
@@ -367,9 +397,6 @@ public class Plants {
 			return item;
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.RED_TULIP.toString())){
 			ItemStack item = new ItemStack(Material.RED_ROSE, 1 , (short) 4);
-			return item;
-		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.ROSE.toString())){
-			ItemStack item = new ItemStack(Material.RED_ROSE);
 			return item;
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.ROSE.toString())){
 			ItemStack item = new ItemStack(Material.getMaterial(175), 1 , (short) 4);

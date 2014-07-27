@@ -466,6 +466,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					Bukkit.broadcastMessage("Removed plant data");
 					plant.removePlantInfo();
 					if(plant.getPlantCycle() == 1){
+						plugin.addExpFarmer(p, .02);
 					p.getWorld().dropItem(e.getBlock().getLocation(), plant.dropProduce());
 					}
 				}else{
@@ -1617,6 +1618,7 @@ p.getUniqueId().toString()) == false){
         			if(plugin.canPlantThis(p, dn)){
         				//Bukkit.broadcastMessage(ChatColor.GOLD + " a seed type" + meh);
         					plugin.plantNewSeed(p, e.getClickedBlock(), meh, hand);
+        					plugin.addExpFarmer(p, .01);
         					e.setCancelled(false);
         					Plants pt = new Plants(plugin, p.getUniqueId().toString(), plugin.getFirstPlantLocation(e.getClickedBlock().getLocation()));
         					pt.setFirstPlanting();
@@ -1632,12 +1634,13 @@ p.getUniqueId().toString()) == false){
         				e.setCancelled(true);
         		}		
         	}else{
-        		//Bukkit.broadcastMessage("no displayname");
+        		if(plugin.isASeed(p.getItemInHand())){
         		e.setCancelled(true);
         			}
         		}
+        	}
         	
-        	if(plugin.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.AIR){
+        	else if(plugin.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.AIR){
         		Location loc = e.getClickedBlock().getLocation();
         		if(plugin.isPlantOwned(loc)){
         			//Bukkit.broadcastMessage("this plant is owned");
@@ -1655,19 +1658,54 @@ p.getUniqueId().toString()) == false){
         		}
         		
         	}
-       
-        	if(plugin.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.GLASS_BOTTLE){
+        	
+        	else if(plugin.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.getMaterial(373)){
         		Location loc = e.getClickedBlock().getLocation();
         		if(plugin.isPlantOwned(loc)){
         			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + plugin.getPlantLocationID(loc))){
         				Plants pl = new Plants(plugin, p.getUniqueId().toString(), loc);
+        				if(pl.getisWaterd()){
         				pl.setIsWatered(true);
+        				plugin.addExpFarmer(p, .01);
+        				Bukkit.getWorld("world").playEffect(loc, Effect.POTION_BREAK, 0);
+        				}
         				Bukkit.getWorld("world").playEffect(loc, Effect.POTION_BREAK, 0);
         			}
         		}else{
             		e.setCancelled(true);
     				p.sendMessage(ChatColor.YELLOW + "Looks like this plant was planted by someone");
-        	}
+        			}
+        		
+        		}else if(plugin.isGrowableBlock(e.getClickedBlock())){
+        			
+        			if( p.getItemInHand() == plugin.getfertilizerItem()){
+        			Location loc = e.getClickedBlock().getLocation();
+            		if(plugin.isPlantOwned(loc)){
+            			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + plugin.getPlantLocationID(loc))){
+            				Plants pl = new Plants(plugin, p.getUniqueId().toString(), loc);	
+            			if(!pl.isfertilized()){	 
+            				plugin.takeOne(p, plugin.getfertilizerItem());
+            				pl.setfertilized(true);
+            				int q =pl.getPlantQuailty();
+            				plugin.addExpFarmer(p, .03);
+            				if(q > 4){
+            					
+            				}else{
+            					pl.setPlantQuality(q +1);
+            				}
+            				p.sendMessage(ChatColor.DARK_GREEN + "Plant fertilized!");
+            				int r = plugin.randomNumber(20);
+            				
+            				if(r == 3){
+            					p.sendMessage(ChatColor.ITALIC + "You hands feel warm and smelly");
+            				}
+            			}else{
+            				p.sendMessage(ChatColor.YELLOW + "This is already fertilized");
+            			}
+            				 
+            				}
+            			}
+            		}
         		}
         	}
       	}	

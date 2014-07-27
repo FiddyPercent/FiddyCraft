@@ -511,11 +511,20 @@ public class FiddyCraft extends JavaPlugin {
     	if(bl == Material.GRASS || bl == Material.CROPS || bl == Material.LONG_GRASS || bl == Material.DEAD_BUSH 
     			|| bl == Material.YELLOW_FLOWER || bl == Material.RED_ROSE || bl == Material.WHEAT || bl ==Material.PUMPKIN_STEM
     			|| bl == Material.MELON_STEM || bl == Material.PUMPKIN || bl == Material.MELON_BLOCK || bl == Material.COCOA||
-    			bl == Material.CARROT || bl == Material.POTATO || bl == Material.SUGAR_CANE_BLOCK || bl == Material.NETHER_WARTS ){
+    			bl == Material.CARROT || bl == Material.POTATO || bl == Material.SUGAR_CANE_BLOCK || bl == Material.NETHER_WARTS || bl == Material.getMaterial(175) ){
     		//Bukkit.broadcastMessage("pass");
     		return true;
     	}else{
     		Bukkit.broadcastMessage("False man not an itme");
+    		return false;
+    	}
+    }
+    public boolean isASeed(ItemStack item){
+    	Material m = item.getType();
+    	if(m == Material.SEEDS || m == Material.PUMPKIN_SEEDS || m == Material.CARROT_ITEM || m == Material.POTATO_ITEM ||
+    			m == Material.MELON_SEEDS){
+    		return true;
+    	}else{
     		return false;
     	}
     }
@@ -540,10 +549,32 @@ public class FiddyCraft extends JavaPlugin {
 		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Type",plantType);
 		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Watered",false);
 		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Cycle",cyc);
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Quality", this.setCookingRank(this.getcookingRankLevel(meta.getLore().get(1))));
+		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Quality", this.getcookingRankLevel(meta.getLore().get(1)));
 		this.getPlantInfo().set("Farmer." +ownerUUID  + ".Plants." + l + ".Healthy", true);
 		this.getPlantInfo().set("Farmer." +ownerUUID  + ".Plants." + l + ".Fertilized", false);
 		this.savePlantInfo();
+    }
+    
+    public ItemStack getfertilizerItem(){
+    	ItemStack fertilized = new ItemStack(Material.DIRT, 1 , (short) 2);
+		ItemMeta meta = fertilized.getItemMeta();
+		meta.setDisplayName("fertilizer");
+		ArrayList<String> lore = new ArrayList<String>();
+		lore.add("Good Old Fresh Steaming Manure");
+		meta.setLore(lore);
+		fertilized.setItemMeta(meta);
+		return fertilized;
+    }
+    
+    public void addExpFarmer(Player p, double add){
+    	FcPlayers fcp = new FcPlayers(this, p);
+    if(fcp.getPlayerJob().equalsIgnoreCase("Farmer")){	
+    	FcFarmers fc = new FcFarmers(this, p);
+    	
+    	double e = fc.getExp();
+    	double ex = e + add;
+    	fc.setExp(ex);
+    }
     }
     
     public boolean matchesSeedType(String seedType){
@@ -1684,6 +1715,12 @@ public class FiddyCraft extends JavaPlugin {
 							}
 							pt.setIsWatered(false);
 							pt.changePlantCycle();
+							
+							int r = this.randomNumber(20);
+							if(r == 2 && pt.isfertilized() == false){
+								pt.growWeed();
+								Bukkit.broadcastMessage(ChatColor.GREEN +"Weed");
+							}
 							Bukkit.broadcastMessage(ChatColor.GOLD + "Changed CYCLE!");
 						}else{
 							if(pt.isHealthy()){
