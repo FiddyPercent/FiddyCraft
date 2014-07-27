@@ -3,6 +3,7 @@ package io.github.FiddyPercent.fiddycraft;
 import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -23,7 +24,7 @@ public class Plants {
 
 	public Plants(FiddyCraft plugin, String uuid,Location loc){
 		this.plugin = plugin;
-		plantType = plugin.getPlantInfo().getString("Farmer."+uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Plant Type");
+		plantType = plugin.getPlantInfo().getString("Farmer."+ uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Plant Type");               
 		plantLocation = plugin.getLocationFromString(plugin.getPlantLocationID(loc));
 		isWaterd = plugin.getPlantInfo().getBoolean("Farmer."+uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Watered" );
 		plantCycle = plugin.getPlantInfo().getInt("Farmer." +uuid+ ".Plants." +  plugin.getPlantLocationID(loc) + ".Plant Cycle");
@@ -186,10 +187,10 @@ public class Plants {
 			b.setTypeIdAndData(38, (byte)3, true);
 			break;
 		case "CARROT":
-			b.setType(Material.CARROT_ITEM);
+			b.setType(Material.getMaterial(141));
 			break;
 		case "POTATO":
-			b.setType(Material.POTATO_ITEM);
+			b.setType(Material.getMaterial(142));
 			break;
 		case "PUMPKIN":
 			b.setType(Material.PUMPKIN);
@@ -242,6 +243,7 @@ public class Plants {
 	
 	@SuppressWarnings("deprecation")
 	public void setFirstPlanting(){
+		Bukkit.broadcastMessage(ChatColor.RED + this.getPlantType());
 		if(this.getPlantType().equalsIgnoreCase("MELON") || this.getPlantType().equalsIgnoreCase("PUMPKIN")){
 			Block b = Bukkit.getWorld("world").getBlockAt(this.getPlantLocation());
 			b.setTypeIdAndData(105, (byte)0, true);
@@ -268,7 +270,7 @@ public class Plants {
 		}
 		else if(this.getPlantType().equalsIgnoreCase(cropSeed.WHITE_TULIP.toString()) || this.getPlantType().equalsIgnoreCase(cropSeed.ORANGE_TULIP.toString())
 				|| this.getPlantType().equalsIgnoreCase(cropSeed.PINK_TULIP.toString()) || this.getPlantType().equalsIgnoreCase(cropSeed.RED_TULIP.toString())){
-			return "ST1~ST2~ST3~ST4~" + this.getPlantType();
+			return "ST1~ST2~ST3~ST4~" + this.getPlantType().toString();
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.CARROT.toString())){
 			return "ST1~S~S~G~G~VSM~VSM~MED~CARROT";
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.POTATO.toString())){

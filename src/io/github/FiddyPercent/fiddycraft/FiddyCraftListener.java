@@ -1618,7 +1618,7 @@ p.getUniqueId().toString()) == false){
         				//Bukkit.broadcastMessage(ChatColor.GOLD + " a seed type" + meh);
         					plugin.plantNewSeed(p, e.getClickedBlock(), meh, hand);
         					e.setCancelled(false);
-        					Plants pt = new Plants(plugin, p.getUniqueId().toString(), e.getClickedBlock().getLocation());
+        					Plants pt = new Plants(plugin, p.getUniqueId().toString(), plugin.getFirstPlantLocation(e.getClickedBlock().getLocation()));
         					pt.setFirstPlanting();
         			}else{
         				e.setCancelled(true);

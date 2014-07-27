@@ -24,6 +24,7 @@ public class FcFarmers extends FcPlayers implements ExperienceAble {
 	
 	public void setFarmerRank(String rank){
 		plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Rank", rank);
+		
 		plugin.savePlayerInfo();
 	}
 	public String getJobType(){

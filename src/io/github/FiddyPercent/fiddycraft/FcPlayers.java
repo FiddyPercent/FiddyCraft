@@ -32,7 +32,7 @@ public class FcPlayers {
 	
 	public FcPlayers(FiddyCraft plugin, Player P){ 
 		this.plugin = plugin;
-		Player p = P;
+		p = P;
 		allPlayers = plugin.getPlayerInfo().getConfigurationSection("Players").getKeys(false);
 		Name = p.getName();
 		StartDate = plugin.getPlayerInfo().getString("Players." +p.getUniqueId().toString()+ ".StartDate");

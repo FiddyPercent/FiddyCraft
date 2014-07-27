@@ -380,15 +380,15 @@ public class FiddyCraft extends JavaPlugin {
     		FcFarmers fm = new FcFarmers(this, p);
     		String rank = fm.getRank();
     		if(rank.equalsIgnoreCase("Farmer")){
-    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:";
+    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:WHEAT:RED_TULIP:ORANGE_TULIP:PINK_TULIP:WHITE_TULIP:DANDELION";
     	    	String extra = fc.getGrowableList();
     	    	return base+extra;
     		}else if(rank.equalsIgnoreCase("Great Farmer")){
-    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:POPPY:ALLIUM:MELON:";
+    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:POPPY:ALLIUM:MELON:RED_TULIP:ORANGE_TULIP:PINK_TULIP:WHITE_TULIP:WHEAT";
     	    	String extra = fc.getGrowableList();
     	    	return base+extra;
     		}else if(rank.equalsIgnoreCase("Legendary Farmer")){
-    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:POPPY:ALLIUM:MELON:";
+    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:POPPY:ALLIUM:MELON:PUMPKIN;PEPPER:RED_TULIP:ORANGE_TULIP:PINK_TULIP:WHITE_TULIP:WHEAT:ROSE:BLUE_ORCHID";
     	    	String extra = fc.getGrowableList();
     	    	return base+extra;
     		}else{
@@ -477,6 +477,14 @@ public class FiddyCraft extends JavaPlugin {
     	return l;
     }
     
+    public Location getFirstPlantLocation(Location loc){
+    	int x = (int) loc.getBlockX();
+		int y = (int) loc.getBlockY() + 1;
+		int z = (int) loc.getBlockZ();
+		Location l = new Location(Bukkit.getWorld("world"), x,y,z);
+    	return l;
+    }
+    
     public Location getLocationFromString(String locationString){
     	
     	ArrayList<Integer> split = new ArrayList<Integer>();
@@ -512,14 +520,10 @@ public class FiddyCraft extends JavaPlugin {
     	}
     }
     public void plantNewSeed(Player p, Block e, String plantType, ItemStack Seeds){
-    	
     if(!this.getPlantInfo().contains("Farmer")){
     		this.getPlantInfo().set("Farmer.", p.getUniqueId().toString());
     		this.savePlantInfo();
 		}
-    	
- ;
-    	
     	ItemMeta meta = Seeds.getItemMeta();
     	cropSeed cs = cropSeed.valueOf(plantType);
     	int cyc = cs.getcycles();
@@ -537,8 +541,8 @@ public class FiddyCraft extends JavaPlugin {
 		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Watered",false);
 		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Cycle",cyc);
 		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Quality", this.setCookingRank(this.getcookingRankLevel(meta.getLore().get(1))));
-		this.getPlantInfo().set("Farmer." +ownerUUID + ".Plants."  + l + ".Healthy", true);
-		this.getPlantInfo().set("Farmer." +ownerUUID + ".Plants."  + l + ".Fertilized", false);
+		this.getPlantInfo().set("Farmer." +ownerUUID  + ".Plants." + l + ".Healthy", true);
+		this.getPlantInfo().set("Farmer." +ownerUUID  + ".Plants." + l + ".Fertilized", false);
 		this.savePlantInfo();
     }
     
@@ -1672,8 +1676,12 @@ public class FiddyCraft extends JavaPlugin {
 						}
 						if(pt.getisWaterd() || Bukkit.getWorld("world").hasStorm()){
 							Bukkit.broadcastMessage("WATERED");
+							if(pt.getPlantCycle() <= 1){
+								pt.setPlantCycle(1);
+							}else{
 							int newcycle = pt.getPlantCycle() -1;
 							pt.setPlantCycle(newcycle);
+							}
 							pt.setIsWatered(false);
 							pt.changePlantCycle();
 							Bukkit.broadcastMessage(ChatColor.GOLD + "Changed CYCLE!");

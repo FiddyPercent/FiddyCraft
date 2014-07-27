@@ -874,10 +874,13 @@ public class FiddyCraftCommands implements CommandExecutor {
 	
 	if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString())){
 		
-	
-		 plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Exp", 0);
-		 plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Rank", "Legendary Farmer");
-		 plugin.savePlayerInfo();
+		FcPlayers fcp = new FcPlayers(plugin,p);
+		fcp.setPlayerJob("Farmer");
+		
+		plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Exp", 0);
+		plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Rank", "Legendary Farmer");
+		 
+		plugin.savePlayerInfo();
 		FcFarmers fcf = new FcFarmers(plugin, p);
 		//fcf.setFarmerRank("Legendary Farmer");
 		Bukkit.broadcastMessage("NEW PLANT CYCLE");
