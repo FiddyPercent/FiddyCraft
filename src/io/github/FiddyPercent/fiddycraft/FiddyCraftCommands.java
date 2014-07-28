@@ -77,8 +77,8 @@ public class FiddyCraftCommands implements CommandExecutor {
 				plugin.Prosecutor.add(Prosecutor);
 				plugin.Judge.add(p.getName());
 				
-				Bukkit.broadcastMessage(ChatColor.GOLD + " The trial for " + defendant + " will start soon");
-				Bukkit.broadcastMessage(ChatColor.GOLD + "If you would like to be a jury use "+ ChatColor.AQUA + " /JoinJury " +ChatColor.GOLD+ "no one who takes place in the trial can hear chat outside of /msg");
+				//Bukkit.broadcastMessage(ChatColor.GOLD + " The trial for " + defendant + " will start soon");
+				//Bukkit.broadcastMessage(ChatColor.GOLD + "If you would like to be a jury use "+ ChatColor.AQUA + " /JoinJury " +ChatColor.GOLD+ "no one who takes place in the trial can hear chat outside of /msg");
 				
 				
 				Player d = Bukkit.getPlayer(defendant);
@@ -117,7 +117,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 			
 			if(plugin.TrialReady.isEmpty()){
 				p.sendMessage("use /trial to set up the trial first");
-				Bukkit.broadcastMessage( "TrialStart is empty");
+				//Bukkit.broadcastMessage( "TrialStart is empty");
 				return false;
 			}
 			
@@ -149,7 +149,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 			}
 			
 			
-			Bukkit.broadcastMessage(ChatColor.GOLD + "The Trial For " + defentant + " has started" );
+			//Bukkit.broadcastMessage(ChatColor.GOLD + "The Trial For " + defentant + " has started" );
 			plugin.TrialStart.put("Trial", true);
 			
 			plugin.openingStatementProsecution.put("Trial", 1200);
@@ -200,7 +200,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 			String defendant = plugin.defendant.get(0);
 			
 			if(verdict.equalsIgnoreCase("NotGuilty")){
-				Bukkit.broadcastMessage(ChatColor.GOLD + defendant  + " has been Found NOT GUILTY");
+				//Bukkit.broadcastMessage(ChatColor.GOLD + defendant  + " has been Found NOT GUILTY");
 				double pm = plugin.economy.getPlayerMoneyDouble(prosecutor);
 				double newmon = pm +1000;
     			plugin.economy.setPlayerMoney(prosecutor, newmon, false);
@@ -212,7 +212,7 @@ public class FiddyCraftCommands implements CommandExecutor {
     				
     			}
 			}else{
-				Bukkit.broadcastMessage(ChatColor.GOLD + defendant + " has been found GUILTY");
+				//Bukkit.broadcastMessage(ChatColor.GOLD + defendant + " has been found GUILTY");
 				double pm = plugin.economy.getPlayerMoneyDouble(prosecutor);
 				double newmon = pm +2000;
     			plugin.economy.setPlayerMoney(prosecutor, newmon, false);
@@ -266,7 +266,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 		Player p = (Player) sender;
 		if(plugin.TrialReady.get("Trial") == true || plugin.TrialStart.get("Trial") == true){
 		if(p.isOp() || plugin.Judge.contains(p.getName())){
-		Bukkit.broadcastMessage(ChatColor.GOLD + "Trial has ben Canceled");
+		//Bukkit.broadcastMessage(ChatColor.GOLD + "Trial has ben Canceled");
 		
 		plugin.TrialStart.clear();
 		plugin.closingStatementdefense.clear();
@@ -875,26 +875,29 @@ public class FiddyCraftCommands implements CommandExecutor {
 	if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString())){
 		
 		FcPlayers fcp = new FcPlayers(plugin,p);
-		fcp.setPlayerJob("Farmer");
+		//fcp.setPlayerJob("Farmer");
 		
-		plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Exp", 0);
-		plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Rank", "Legendary Farmer");
+		//plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Exp", 0);
+		//plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Rank", "Legendary Farmer");
 		 
-		plugin.savePlayerInfo();
+		//plugin.savePlayerInfo();
 		FcFarmers fcf = new FcFarmers(plugin, p);
 		//fcf.setFarmerRank("Legendary Farmer");
-		Bukkit.broadcastMessage("NEW PLANT CYCLE");
+		//Bukkit.broadcastMessage("NEW PLANT CYCLE");
 		String farmer = p.getUniqueId().toString();
 		Set<String> plants =  plugin.getPlantInfo().getConfigurationSection("Farmer." + farmer + ".Plants").getKeys(false);
 		for(String plant : plants){
 			Plants pt = new Plants(plugin, farmer, plugin.getLocationFromString(plant));
 			if(pt.getisWaterd()){
-				Bukkit.broadcastMessage("WATERED");
+				//Bukkit.broadcastMessage("WATERED");
 				int newcycle = pt.getPlantCycle() -1;
+				if(pt.isHealthy()){
+					pt.addPlantExp(1);
+				}
 				pt.setPlantCycle(newcycle);
 				pt.setIsWatered(false);
 				pt.changePlantCycle();
-				Bukkit.broadcastMessage(ChatColor.GOLD + "Changed CYCLE!");
+				//Bukkit.broadcastMessage(ChatColor.GOLD + "Changed CYCLE!");
 			}else{
 				if(pt.isHealthy()){
 					pt.setHealth(false);
@@ -902,7 +905,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 					int r = plugin.randomNumber(10);
 					if(r == 5){
 						pt.killPlant();
-						Bukkit.broadcastMessage(ChatColor.GOLD + "DEAD PLANT");
+						//Bukkit.broadcastMessage(ChatColor.GOLD + "DEAD PLANT");
 					}
 				}
 			}
@@ -933,7 +936,7 @@ public class FiddyCraftCommands implements CommandExecutor {
         	plugin.saveConfig();
 			 if(plugin.getScore(target) <= 0 ){
         		 target.sendMessage(ChatColor.YELLOW + "You have been given a pardon. You are free to go");
-        		 Bukkit.broadcastMessage(target.getName() + " has been released from jail");
+        		 //Bukkit.broadcastMessage(target.getName() + " has been released from jail");
         		 
         		 target.getServer().getWorld("world").setSpawnLocation(-1459, 74, -236);
         		 if(plugin.getConfig().contains("Release")){
@@ -992,7 +995,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 				Location locT = target.getLocation();
 				target.getWorld().strikeLightningEffect(locT);
 				target.sendMessage(ChatColor.DARK_RED + "You have been sentenced to " + args[1] + " units of labor in prison you sick scum");
-				Bukkit.broadcastMessage(ChatColor.GREEN + "Sent " + target.getName() + " to jail till "  + args[1] + " labor units have been completed.");
+				//Bukkit.broadcastMessage(ChatColor.GREEN + "Sent " + target.getName() + " to jail till "  + args[1] + " labor units have been completed.");
 				target.teleport(loc);
 				ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
 				BookMeta bm = (BookMeta) book.getItemMeta();
@@ -1254,7 +1257,7 @@ public class FiddyCraftCommands implements CommandExecutor {
 				p.sendMessage(ChatColor.RED + "does not match any known seed type");
 				return false;
 			}
-			Bukkit.broadcastMessage("working");
+			//Bukkit.broadcastMessage("working");
 			ItemStack seed = new ItemStack(p.getItemInHand().getType());
 			ItemMeta meta = seed.getItemMeta();
 			ArrayList<String> lore = new ArrayList<String>();

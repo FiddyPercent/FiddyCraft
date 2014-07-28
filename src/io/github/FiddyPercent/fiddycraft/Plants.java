@@ -6,7 +6,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -21,9 +23,11 @@ public class Plants  {
 	private String ownerUUID;
 	private boolean isHealthy;
 	private Boolean isFertilized;
+	private int plantExp;
 
 	public Plants(FiddyCraft plugin, String uuid,Location loc){
 		this.plugin = plugin;
+		plantExp = plugin.getPlantInfo().getInt("Farmer."+ uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Plant EXP");
 		plantType = plugin.getPlantInfo().getString("Farmer."+ uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Plant Type");               
 		plantLocation = plugin.getLocationFromString(plugin.getPlantLocationID(loc));
 		isWaterd = plugin.getPlantInfo().getBoolean("Farmer."+uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Watered" );
@@ -92,8 +96,14 @@ public class Plants  {
 			plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Plant Quality", 0);
 		}else{
 		plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Plant Quality", q);
-		}
 		plugin.savePlantInfo();
+		}
+	}
+	
+	public void addPlantQuailty(int q){
+		int p = this.getPlantQuailty();
+		int L = p + q;
+		this.setPlantQuality(L);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -112,12 +122,13 @@ public class Plants  {
 			check.add(0);
 		}
 		int cycle = pnt.size() - cy - check.get(0);
-		Bukkit.broadcastMessage("plant cycle = " +cy + " array size = " + pnt.size() + " arraysize - cy " + cycle);
+		//Bukkit.broadcastMessage("plant cycle = " +cy + " array size = " + pnt.size() + " arraysize - cy " + cycle);
 		String state = pnt.get(cycle);
 		Block b = Bukkit.getWorld("world").getBlockAt(this.getPlantLocation());
-		Bukkit.broadcastMessage("Chaning state");
+		//Bukkit.broadcastMessage("Chaning state");
 		Location loc = plugin.getFirstPlantLocation(this.getPlantLocation());
 		Block topblock = Bukkit.getWorld("world").getBlockAt(loc);
+		double x =  pnt.size() / 100;
 		switch(state){
 		case "ST1":
 			b.setTypeIdAndData(105, (byte)0, true);
@@ -196,15 +207,27 @@ public class Plants  {
 			break;
 		case "CARROT":
 			b.setTypeIdAndData(141, (byte)7, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
+			break;
+		case "CT":
+			b.setTypeIdAndData(141, (byte)6, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
+			break;
+		case "PT":
+			b.setTypeIdAndData(142, (byte)6, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "POTATO":
 			b.setTypeIdAndData(142, (byte)7, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "PUMPKIN":
 			b.setType(Material.PUMPKIN);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "MELON":
 			b.setType(Material.MELON_BLOCK);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "TG":
 			b.setTypeIdAndData(31, (byte) 1, true);
@@ -217,28 +240,35 @@ public class Plants  {
 		case "ROSE":
 			b.setTypeIdAndData(175, (byte) 4, false);
 			topblock.setTypeIdAndData(175, (byte) 8, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "LILAC":
 			b.setTypeIdAndData(175, (byte)1, false);
 			topblock.setTypeIdAndData(175, (byte) 8, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "PEONY":
 			b.setTypeIdAndData(175, (byte)5, false);
 			topblock.setTypeIdAndData(175, (byte) 8, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "SUNFLOWER":
 			b.setTypeIdAndData(175, (byte)0, false);
 			topblock.setTypeIdAndData(175, (byte) 8, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "LF":
 			b.setTypeIdAndData(175, (byte)3, true);
 			topblock.setTypeIdAndData(175, (byte) 8, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "F":
 			b.setTypeIdAndData(31, (byte)2, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "DANDELION":
 			b.setTypeIdAndData(105, (byte)3, true);
+			plugin.addExpFarmer(Bukkit.getPlayer(this.getPlantOwner()), x);
 			break;
 		case "FAIL":
 			this.killPlant();
@@ -256,7 +286,7 @@ public class Plants  {
 	goods.setItemMeta(meta);
 		return goods;
 	}else{
-		Bukkit.broadcastMessage("dropped air");
+		//Bukkit.broadcastMessage("dropped air");
 		ItemStack d = new ItemStack(Material.AIR);
 		return d;
 	}
@@ -264,7 +294,7 @@ public class Plants  {
 	
 	@SuppressWarnings("deprecation")
 	public void setFirstPlanting(){
-		Bukkit.broadcastMessage(ChatColor.RED + this.getPlantType());
+		//Bukkit.broadcastMessage(ChatColor.RED + this.getPlantType());
 		if(this.getPlantType().equalsIgnoreCase("MELON") || this.getPlantType().equalsIgnoreCase("PUMPKIN")){
 			Block b = Bukkit.getWorld("world").getBlockAt(this.getPlantLocation());
 			b.setTypeIdAndData(105, (byte)0, true);
@@ -302,9 +332,9 @@ public class Plants  {
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.RED_TULIP.toString())){
 			return "ST1~ST2~ST3~ST4~RED_TULIP";
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.CARROT.toString())){
-			return "ST1~S~S~G~G~VSM~VSM~MED~CARROT";
+			return "ST1~S~S~G~G~VSM~VSM~CT~CARROT";
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.POTATO.toString())){
-			return "ST1~S~S~G~G~VSM~VSM~MED~POTATO";
+			return "ST1~S~S~G~G~VSM~VSM~PT~POTATO";
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.PUMPKIN.toString())){
 			return "ST1~STI~ST2~ST2~ST3~ST3~ST4~ST4~ST5~ST5~ST6~ST6~ST7~ST7~PUMPKIN";
 		}else if(this.getPlantType().equalsIgnoreCase(cropSeed.MELON.toString())){
@@ -413,6 +443,50 @@ public class Plants  {
 				return item;
 			}
 		}
+
+	public int getPlantExp() {
+		return plantExp;
+	}
+
+	public void addPlantExp(int add) {
+		int  o = this.getPlantExp();
+		int n = o + add;
+		this.setPlantExp(n);
+		this.checkGoodFarmingBonus();
+	}
+
+	public void setPlantExp(int exp) {
+		plugin.getPlantInfo().set("Farmer."+ ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Plant EXP", exp);
+		plugin.savePlantInfo();
+	}
 	
+	public void checkGoodFarmingBonus(){
+		ArrayList<String> p = new ArrayList<String>();
+		this.getCropCycleString();
+		String[] cys = this.getCropCycleString().split("~");
+		for(String pc: cys){
+			p.add(pc);
+		}
+		
+		if((p.size() -2) == this.getPlantExp()){
+			this.addPlantQuailty(1);
+		}else{
+			//Bukkit.broadcastMessage(p.size() + " = size & pnt exp = " +this.getPlantExp());
+		}
+	}
 	
+	public void checkbonus(){
+		ArrayList<String> p = new ArrayList<String>();
+		this.getCropCycleString();
+		String[] cys = this.getCropCycleString().split("~");
+		for(String pc: cys){
+			p.add(pc);
+		}
+		
+		if((p.size() -1) == this.getPlantExp()){
+		Player player = Bukkit.getPlayer(this.getPlantOwner());
+		player.sendMessage(ChatColor.GREEN + "GOOD FARMING BONUS");
+		player.playSound(player.getLocation(), Sound.LEVEL_UP, 1, 1);
+		}
+	}
 }

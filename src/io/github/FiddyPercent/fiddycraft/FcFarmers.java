@@ -2,6 +2,8 @@ package io.github.FiddyPercent.fiddycraft;
 
 import java.util.Set;
 
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class FcFarmers extends FcPlayers implements ExperienceAble {
@@ -13,6 +15,7 @@ public class FcFarmers extends FcPlayers implements ExperienceAble {
 	
 	public FcFarmers(FiddyCraft plugin, Player p) {
 		super(plugin,p);
+		this.p = p;
 		allFarmers = plugin.getPlantInfo().getConfigurationSection("Farmer").getKeys(false);
 		exp = plugin.getPlayerInfo().getDouble("Players." + p.getUniqueId().toString() +".Farmer Exp");
 		Rank = plugin.getPlayerInfo().getString("Players." + p.getUniqueId().toString() +".Farmer Rank");
@@ -41,14 +44,19 @@ public class FcFarmers extends FcPlayers implements ExperienceAble {
 	}
 	
 	public void setExp(Double ex){
-		plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Exp", ex);
+		Bukkit.broadcastMessage(ex + " exp");
+		double roundOff = Math.round(ex * 100.0) / 100.0;
+		plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Exp", roundOff);
 		plugin.savePlayerInfo();
+		this.rankup(roundOff);
 	}
 	
 	public Set<String> getAllFarmers(){
 		return allFarmers;
 	}
 
+	
+	
 	@Override
 	public double getCurrentExp() {
 		return exp;
@@ -65,6 +73,27 @@ public class FcFarmers extends FcPlayers implements ExperienceAble {
 	public void removeExp(double removedExp) {
 		double newexp = exp - removedExp;
 		this.setExp(newexp);
+		
+	}
+
+	@Override
+	public void rankup(double exp) {
+		
+		if(exp < 50){
+		//add a tag thing here;
+			this.setFarmerRank("Farmer");
+		}else if(exp > 49 && exp < 150){
+			if(this.getRank().equalsIgnoreCase("Farmer")){
+				Bukkit.broadcastMessage( ChatColor.GREEN + this.getfcPlayerName() + " is now a Great Farmer!");
+			}
+			this.setFarmerRank("Great Farmer");
+		}else if(exp > 149){
+			if(this.getRank().equalsIgnoreCase("Great Farmer")){
+				Bukkit.broadcastMessage(ChatColor.GOLD +  this.getfcPlayerName() + " is now a Legendary Farmer!");
+			}
+			this.setFarmerRank("Legendary Farmer");
+		}
+		
 		
 	}
 	

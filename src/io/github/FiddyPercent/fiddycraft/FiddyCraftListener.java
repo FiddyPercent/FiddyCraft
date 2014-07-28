@@ -25,6 +25,7 @@ import org.bukkit.entity.Cow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Sheep;
@@ -75,16 +76,16 @@ public class FiddyCraftListener implements Listener{
 	
 	HashMap<UUID, ItemStack> thug = new HashMap<UUID, ItemStack>();
 	public String NotOwner = ChatColor.RED + "I do not own this animal";
-	public final FiddyCraft plugin;
+	private final FiddyCraft plugin;
 	 
 	public FiddyCraftListener(FiddyCraft plugin){
 	this.plugin = plugin;
 	}
 	
-	
-ArrayList<UUID> PendingTrial = new ArrayList<UUID>();
-ArrayList<UUID> PVPDeath = new ArrayList<UUID>();
-HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
+
+	ArrayList<UUID> PendingTrial = new ArrayList<UUID>();
+	ArrayList<UUID> PVPDeath = new ArrayList<UUID>();
+	HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	
 
 	@EventHandler(priority = EventPriority.HIGH)
@@ -279,12 +280,14 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onShear(PlayerShearEntityEvent e){
 		Player p = e.getPlayer();
+		animalUtility au = new animalUtility(plugin);
 	if(e.getEntity() instanceof Sheep){
-		if(plugin.isAnimalOwner(p, e.getEntity())){
+		if(au.isAnimalOwner(p, e.getEntity())){
+			Animals a = new Animals(plugin, p.getUniqueId().toString(), e.getEntity().getUniqueId().toString());
 			e.setCancelled(true);
-			if(plugin.canDropProduce(p, e.getEntity())){
-			plugin.DropProduce(p, e.getEntity());
-			plugin.addheartPoint(e.getEntity(), p, .01);
+			if(a.canDropProduce(p, e.getEntity())){
+			a.dropProduce(p, e.getEntity());
+			a.addHeartPoint(.01);
 			}
 		}else{
 			e.setCancelled(true);
@@ -295,12 +298,12 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 //Feed animal and drop item
 	@EventHandler(priority = EventPriority.LOW)
 	public void onDropItem(PlayerDropItemEvent e){
+		animalUtility au = new animalUtility(plugin);
 		Player p = e.getPlayer();
 		if(e.getItemDrop().getItemStack() instanceof ItemStack){
 		ItemStack item =  e.getItemDrop().getItemStack();
-		if(plugin.isAnimalFood(item.getType())){
-			plugin.animalEat(p, item);
-			
+		if(au.isAnimalFood(item.getType())){
+			au.animalEat(p, item);
 		}
 	}
 }
@@ -310,6 +313,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	public void noDyingWool(SheepDyeWoolEvent e) {
 		e.setCancelled(true);
 	}
+	
 
 	
 //USE OF MILK BUCKET
@@ -317,7 +321,8 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	public void animalgoods(PlayerInteractEntityEvent e) {
 		Player p = e.getPlayer();
 //CLAMING ANIMAL
-			if ((plugin.isAnimal(e.getRightClicked()) && (p.getItemInHand()
+		animalUtility au = new animalUtility(plugin);
+			if ((au.isAnimal(e.getRightClicked()) && (p.getItemInHand()
 					.getType().equals(Material.NAME_TAG)))) {
 				ItemStack item = p.getItemInHand();
 				ItemMeta meta = item.getItemMeta();
@@ -325,23 +330,23 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 				if(item.hasItemMeta() == false){
 					p.sendMessage(ChatColor.YELLOW + "I need to put a  name on this name tag /Name <Pick Animal Name>");
 				}else{
-					if(plugin.checkifHasOwner(e.getRightClicked().getUniqueId().toString())){
+					if(au.checkifHasOwner(e.getRightClicked().getUniqueId().toString())){
 						p.sendMessage(ChatColor.RED + "This animal already has an owner");
 						e.setCancelled(true);
 					}else{
-					plugin.claimAnimal(p, e.getRightClicked(), meta);
+					au.claimAnimal(p, e.getRightClicked(), meta);
 					}
 				}
 			}
 			
-			if(plugin.isAnimal(e.getRightClicked()) && (p.getItemInHand()
+			if(au.isAnimal(e.getRightClicked()) && (p.getItemInHand()
 					.getType().equals(Material.BUCKET) && e.getRightClicked() instanceof Cow)){
-				
-				if(plugin.isAnimalOwner(p, e.getRightClicked())){
-				if(plugin.canDropProduce(p, e.getRightClicked())){
+				if(au.isAnimalOwner(p, e.getRightClicked())){
+					Animals a = new Animals(plugin, p.getUniqueId().toString(), e.getRightClicked().getUniqueId().toString());
+				if(a.canDropProduce(p, e.getRightClicked())){
 					e.setCancelled(true);
-					plugin.DropProduce(p, e.getRightClicked());
-					plugin.addheartPoint(e.getRightClicked(), p, .01);
+					a.canDropProduce(p, e.getRightClicked());
+					a.addHeartPoint(.01);
 				}else{
 					e.setCancelled(true);
 				}
@@ -353,10 +358,11 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			}
 			
 			 if(e.getRightClicked() instanceof Chicken  &&  p.getItemInHand().getType().equals(Material.AIR)){
-				 if(plugin.isAnimalOwner(p, e.getRightClicked())){
-						if(plugin.canDropProduce(p, e.getRightClicked())){	
-					 plugin.DropProduce(p, e.getRightClicked());
-					 plugin.addheartPoint(e.getRightClicked(), p, .01);
+				 if(au.isAnimalOwner(p, e.getRightClicked())){
+					 Animals a = new Animals(plugin, p.getUniqueId().toString(), e.getRightClicked().getUniqueId().toString());
+						if(a.canDropProduce(p, e.getRightClicked())){	
+					 a.canDropProduce(p, e.getRightClicked());
+					 a.addHeartPoint(.01);
 						}else{
 							e.setCancelled(true);
 						}
@@ -365,19 +371,22 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 						p.sendMessage(ChatColor.RED + "You do not own this animal and cannot gather eggs from it");
 				 }
 			 }
-			 if ((plugin.isAnimal(e.getRightClicked()) && (p.getItemInHand().getType().equals(Material.PAPER)))) {
-				 plugin.showAnimalInfo(p, e.getRightClicked());
-			 }
 			 
-			 if ((plugin.isAnimal(e.getRightClicked()) && (p.getItemInHand()
+			 if(au.isAnimal(e.getRightClicked()) && au.isAnimalOwner(p, e.getRightClicked())){
+			 if(p.getItemInHand().getType().equals(Material.PAPER)) {
+				 au.showAnimalInfo(p, e.getRightClicked());
+			 }
+			 Animals a = new Animals(plugin, p.getUniqueId().toString(), e.getRightClicked().getUniqueId().toString());
+			 if ((au.isAnimal(e.getRightClicked()) && (p.getItemInHand()
 						.getType().equals(Material.SPONGE)))) {
-				 plugin.washAnimal(p, e.getRightClicked());
+				 a.washAnimal(p, e.getRightClicked());
 			 }
 			 
-			 if ((plugin.isAnimal(e.getRightClicked()) && (p.getItemInHand()
+			 if ((au.isAnimal(e.getRightClicked()) && (p.getItemInHand()
 						.getType().equals(Material.AIR)))) {
-				 plugin.petAnimal(p, e.getRightClicked());
+				 a.petAnimal(p, e.getRightClicked());
 			 }
+			}
 	}
 	
 	@EventHandler
@@ -457,18 +466,22 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	public void blockBreak(BlockBreakEvent e){
 		Player p = e.getPlayer();
 		String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH").format(Calendar.getInstance().getTime());
-		
+
 		if(plugin.isGrowableBlock(e.getBlock())){
 			if(plugin.isPlantOwned(e.getBlock().getLocation())){
 				if(plugin.isPlayerPlantOwner(p, e.getBlock().getLocation())){
 					Plants plant = new Plants(plugin, p.getUniqueId().toString(), e.getBlock().getLocation());
+					//Bukkit.broadcastMessage("Removed plant data");
 					
-					Bukkit.broadcastMessage("Removed plant data");
 					plant.removePlantInfo();
 					if(plant.getPlantCycle() == 1){
+						plant.checkbonus();
 						plugin.addExpFarmer(p, .02);
+						e.setCancelled(true);
+						e.getBlock().setType(Material.AIR);
 					p.getWorld().dropItem(e.getBlock().getLocation(), plant.dropProduce());
 					}
+					
 				}else{
 					p.sendMessage(ChatColor.RED + "Can't destroy other players plants");
 					e.setCancelled(true);
@@ -510,7 +523,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 				
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void itemPickup(PlayerPickupItemEvent e){
 		ItemStack item =  e.getItem().getItemStack();
 		Player p = e.getPlayer();
@@ -533,6 +546,18 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 						e.setCancelled(true);
 					}
 				}
+				if(item.getItemMeta().getDisplayName().equalsIgnoreCase("remove")){
+					e.getItem().remove();
+					e.setCancelled(true);
+				}
+			}
+		}
+		
+		if(!item.hasItemMeta()){
+			Material it = item.getType();
+			if(it == Material.SEEDS || it == Material.PUMPKIN_SEEDS || it == Material.MELON_SEEDS || it == Material.EGG){
+				e.getItem().remove();
+				e.setCancelled(true);
 			}
 		}
 	}
@@ -595,11 +620,12 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 
 	@EventHandler
 	public void EntityDeath(EntityDeathEvent event){
+		animalUtility au = new animalUtility(plugin);
 		String entityName = event.getEntityType().toString();
 		Entity e = event.getEntity();
-		if(plugin.isAnimal(e)){
-			if(plugin.checkifHasOwner(e.getUniqueId().toString())){
-				plugin.removeAnimal(e);
+		if(au.isAnimal(e)){
+			if(au.checkifHasOwner(e.getUniqueId().toString())){
+				au.removeAnimal(e);
 			}
 		}
 		
@@ -696,7 +722,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			if(plugin.isInRegion("Town", p.getLocation())){
 				
 				Bukkit.getWorld("world").playSound(p.getLocation(), Sound.FIREWORK_TWINKLE2, 1, 1);
-		////bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has made it to the city!");
+		Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has made it to the city!");
 				p.sendMessage(ChatColor.YELLOW + "Congratulations! You have made it to the city!");
 				
 			if(plugin.getConfig().contains("CitySpawn")){
@@ -879,7 +905,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					dn.add(smeta.getDisplayName());
 				}
 				if(plugin.hasFurnaceIngredents(smeta.getDisplayName(), rmeta.getDisplayName())){
-					//bukkit.broadcastMessage("good dish");
+					////Bukkit.broadcastMessage("good dish");
 					if(smeta.hasLore() && smeta.getLore().size() > 1){
 					 int rlevel = plugin.getcookingRankLevel(smeta.getLore().get(1));
 					 foodRank.put(rmeta.getDisplayName(), rlevel);
@@ -909,7 +935,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					 newitem.setItemMeta(nimeta);
 					 e.setResult(newitem);
 				}else{
-					//bukkit.broadcastMessage("failed dish");
+					////Bukkit.broadcastMessage("failed dish");
 					if(smeta.hasLore() && smeta.getLore().size() > 1){
 					 int rlevel = plugin.getcookingRankLevel(smeta.getLore().get(1));
 					 foodRank.put(rmeta.getDisplayName(), rlevel);
@@ -924,7 +950,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 					}
 				}
 		if(plugin.canCraft(result) == false){
-			////bukkit.broadcastMessage("method cancraft");
+			//////Bukkit.broadcastMessage("method cancraft");
 			 e.setResult(plugin.getFailedDish());
 				}
 			}
@@ -969,7 +995,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 		}
 		
 		if(plugin.canCraft(result) == false){
-	////bukkit.broadcastMessage("method cancraft");
+	//////Bukkit.broadcastMessage("method cancraft");
 			e.getInventory().setItem(0, plugin.getFailedDish());
 		}
 	}
@@ -993,7 +1019,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	    	  meta.setOwner(p.getName());
 	    	  skull.setItemMeta(meta);
 	    	  Bukkit.getWorld("world").dropItem(killer.getLocation(), skull);
-	    	  //bukkit.broadcastMessage(ChatColor.DARK_RED + p.getName() + "has been beheaded!");
+	    	  ////Bukkit.broadcastMessage(ChatColor.DARK_RED + p.getName() + "has been beheaded!");
 	      }
 	      
 	    
@@ -1186,7 +1212,7 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 	public void onEat(PlayerItemConsumeEvent e){
 		Player p = e.getPlayer();
 		String name = p.getUniqueId().toString();
-////bukkit.broadcastMessage("on eat");
+//////Bukkit.broadcastMessage("on eat");
 		if(p.getItemInHand() != null){
 			ItemStack item = p.getItemInHand();
 		
@@ -1260,11 +1286,11 @@ HashMap<String, Integer> Attacked = new HashMap<String, Integer>();
 			if(meta.hasDisplayName() && meta.hasLore()){
 				if(meta.getLore().size() > 3){
 					List<String> lore = meta.getLore();
-			////bukkit.broadcastMessage("checking bonus + " + lore.get(2));
+			//////Bukkit.broadcastMessage("checking bonus + " + lore.get(2));
 					
 					if(lore.get(2).equalsIgnoreCase("Bonus Effects")){
 						String effect1 = lore.get(2);
-				////bukkit.broadcastMessage("in bonus");
+				//////Bukkit.broadcastMessage("in bonus");
 						int starRank = plugin.getcookingRankLevel(lore.get(1));
 						plugin.setFoodEffects(p, effect1, starRank);
 						
@@ -1520,7 +1546,7 @@ p.getUniqueId().toString()) == false){
         	        	
         	        	 if(plugin.getScore(p) <= 0 ){
         	        		 p.sendMessage(ChatColor.YELLOW + "You have paid for you Crimes You are free to go");
-        	        		 //bukkit.broadcastMessage(p.getName() + " has been released from jail");
+        	        		 ////Bukkit.broadcastMessage(p.getName() + " has been released from jail");
         	        		 
         	        		 p.getServer().getWorld("world").setSpawnLocation(-1459, 74, -236);
         	        		 if(plugin.getConfig().contains("Release")){
@@ -1594,8 +1620,44 @@ p.getUniqueId().toString()) == false){
         	    			}
         	    		}
         	   		}
-        	   	}
-        
+        	
+        	 if(plugin.isGrowableBlock(e.getClickedBlock())){
+     			
+        		 if(p.getItemInHand().hasItemMeta() && p.getItemInHand().getItemMeta().hasDisplayName()){
+     			if( p.getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase(plugin.getfertilizerItem().getItemMeta().getDisplayName())){
+     				//Bukkit.broadcastMessage("has fertalizer");
+     			Location loc = e.getClickedBlock().getLocation();
+         		if(plugin.isPlantOwned(loc)){
+         			//Bukkit.broadcastMessage("has owned");
+         			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + plugin.getPlantLocationID(loc))){
+         				Plants pl = new Plants(plugin, p.getUniqueId().toString(), loc);	
+         			if(!pl.isfertilized()){
+         				e.setCancelled(true);
+         				plugin.takeOne(p, plugin.getfertilizerItem());
+         				pl.setfertilized(true);
+         				int q = pl.getPlantQuailty();
+         				plugin.addExpFarmer(p, .03);
+         				if(q > 4){
+         					
+         				}else{
+         					pl.setPlantQuality(q +1);
+         				}
+         				p.sendMessage(ChatColor.DARK_GREEN + "Plant fertilized!");
+         				int r = plugin.randomNumber(20);
+         				
+         				if(r == 3){
+         					p.sendMessage(ChatColor.ITALIC + "You hands feel warm and smelly");
+         				}
+         			}else{
+         				p.sendMessage(ChatColor.YELLOW + "This is already fertilized");
+         				e.setCancelled(true);
+         					}
+         				}
+         			}
+         		}
+     		}
+        }
+       }
         if( e.getAction() == Action.RIGHT_CLICK_BLOCK ){
         	ItemStack hand = p.getItemInHand();
         	
@@ -1613,10 +1675,10 @@ p.getUniqueId().toString()) == false){
         		String dn = meta.getDisplayName();	
        		 	ArrayList<cropSeed> test = new ArrayList<cropSeed>(Arrays.asList(cropSeed.values()));
        		 	String meh = dn.toUpperCase().replace(" SEEDS", "").replace(" ", "_").replace("SEEDS", "");
-       		 	Bukkit.broadcastMessage(ChatColor.RED + meh + " old " + dn);
+       		 	//Bukkit.broadcastMessage(ChatColor.RED + meh + " old " + dn);
        		 	if(test.toString().contains(meh)){
         			if(plugin.canPlantThis(p, dn)){
-        				//Bukkit.broadcastMessage(ChatColor.GOLD + " a seed type" + meh);
+        				////Bukkit.broadcastMessage(ChatColor.GOLD + " a seed type" + meh);
         					plugin.plantNewSeed(p, e.getClickedBlock(), meh, hand);
         					plugin.addExpFarmer(p, .01);
         					e.setCancelled(false);
@@ -1630,7 +1692,7 @@ p.getUniqueId().toString()) == false){
         			}
         			
         			}else{
-        				//Bukkit.broadcastMessage("not a seed type = " + meh  + "list " + test.toString());
+        				////Bukkit.broadcastMessage("not a seed type = " + meh  + "list " + test.toString());
         				e.setCancelled(true);
         		}		
         	}else{
@@ -1643,13 +1705,16 @@ p.getUniqueId().toString()) == false){
         	else if(plugin.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.AIR){
         		Location loc = e.getClickedBlock().getLocation();
         		if(plugin.isPlantOwned(loc)){
-        			//Bukkit.broadcastMessage("this plant is owned");
+        			////Bukkit.broadcastMessage("this plant is owned");
         			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + plugin.getPlantLocationID(loc))){
         				Plants pl = new Plants(plugin, p.getUniqueId().toString(), loc);
-        				//Bukkit.broadcastMessage("you own this plant");
+        				////Bukkit.broadcastMessage("you own this plant");
         				p.sendMessage(ChatColor.DARK_GREEN + "Plant Type: " + ChatColor.YELLOW + pl.getPlantType().toLowerCase());
         				p.sendMessage(ChatColor.DARK_GREEN + "Is Watered: " + ChatColor.YELLOW + pl.getisWaterd());
+        				p.sendMessage(ChatColor.DARK_GREEN + "Is Healthy: " + ChatColor.YELLOW + pl.isHealthy());
+        				p.sendMessage(ChatColor.DARK_GREEN + "Is fertilized: " + ChatColor.YELLOW + pl.isfertilized());
         				p.sendMessage(ChatColor.DARK_GREEN + "Plant Growth Cycle: " +  ChatColor.YELLOW +pl.getPlantCycle());
+        				
         				//p.sendMessage(ChatColor.GREEN + "this" +);
         				
         			}else{
@@ -1664,48 +1729,20 @@ p.getUniqueId().toString()) == false){
         		if(plugin.isPlantOwned(loc)){
         			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + plugin.getPlantLocationID(loc))){
         				Plants pl = new Plants(plugin, p.getUniqueId().toString(), loc);
-        				if(pl.getisWaterd()){
+        				if(!pl.getisWaterd()){
+        				Bukkit.getWorld("world").playEffect(loc, Effect.POTION_BREAK, 0);
         				pl.setIsWatered(true);
         				plugin.addExpFarmer(p, .01);
+        				
+        				}else{
         				Bukkit.getWorld("world").playEffect(loc, Effect.POTION_BREAK, 0);
         				}
-        				Bukkit.getWorld("world").playEffect(loc, Effect.POTION_BREAK, 0);
-        			}
+        			
         		}else{
             		e.setCancelled(true);
     				p.sendMessage(ChatColor.YELLOW + "Looks like this plant was planted by someone");
         			}
-        		
-        		}else if(plugin.isGrowableBlock(e.getClickedBlock())){
-        			
-        			if( p.getItemInHand() == plugin.getfertilizerItem()){
-        			Location loc = e.getClickedBlock().getLocation();
-            		if(plugin.isPlantOwned(loc)){
-            			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + plugin.getPlantLocationID(loc))){
-            				Plants pl = new Plants(plugin, p.getUniqueId().toString(), loc);	
-            			if(!pl.isfertilized()){	 
-            				plugin.takeOne(p, plugin.getfertilizerItem());
-            				pl.setfertilized(true);
-            				int q =pl.getPlantQuailty();
-            				plugin.addExpFarmer(p, .03);
-            				if(q > 4){
-            					
-            				}else{
-            					pl.setPlantQuality(q +1);
-            				}
-            				p.sendMessage(ChatColor.DARK_GREEN + "Plant fertilized!");
-            				int r = plugin.randomNumber(20);
-            				
-            				if(r == 3){
-            					p.sendMessage(ChatColor.ITALIC + "You hands feel warm and smelly");
-            				}
-            			}else{
-            				p.sendMessage(ChatColor.YELLOW + "This is already fertilized");
-            			}
-            				 
-            				}
-            			}
-            		}
+        		}
         		}
         	}
       	}	

@@ -8,4 +8,6 @@ public interface ExperienceAble  {
 	
 	void removeExp(double removedExp);
 	
+	void rankup(double exp);
+	
 }
