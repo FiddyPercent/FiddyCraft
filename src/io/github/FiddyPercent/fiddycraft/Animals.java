@@ -1,6 +1,7 @@
 package io.github.FiddyPercent.fiddycraft;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -13,6 +14,7 @@ import org.bukkit.entity.Chicken;
 import org.bukkit.entity.Cow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Pig;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Sheep;
 import org.bukkit.inventory.ItemStack;
@@ -32,7 +34,11 @@ public class Animals {
 	private String auuid;
 	private String uuid;
 	private boolean willDie;
+	private int age;
+	private double weight;
+	private boolean isHappy;
 	public final FiddyCraft plugin;
+	private int maxAge = 2;
 	
 
 	public Animals(FiddyCraft plugin, String auuid, String uuid){
@@ -42,16 +48,29 @@ public class Animals {
 		ownerUUID = plugin.getAnimalData().getString("Farmer."+ uuid + ".Animals." +  auuid + ".OwnerID");
 		heartPoints = plugin.getAnimalData().getDouble("Farmer."+ uuid + ".Animals." +  auuid + ".HeartPoints");
 		isWashed = plugin.getAnimalData().getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Washed");
+		isHappy = plugin.getAnimalData().getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Happy");
 		isHealthy = plugin.getAnimalData().getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Healthy");
-		isPet =  plugin.getAnimalData().getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Brushed");
+		isPet =  plugin.getAnimalData().getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".isPet");
 		isHungry = plugin.getAnimalData().getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Hunger");
 		willDie = plugin.getAnimalData().getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".WillDie");
 		allAnimalOwners = plugin.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
+		age =  plugin.getAnimalData().getInt("Farmer."+ uuid + ".Animals." +  auuid + ".Age");
+		weight =  plugin.getAnimalData().getDouble("Farmer."+ uuid + ".Animals." +  auuid + ".Weight");
 		this.auuid = auuid;
 		this.uuid = uuid;
 	}
 	
+	public int getAge(){
+		return age;
+	}
 	
+	public boolean isHappy(){
+		return isHappy;
+	}
+	
+	public double getWeight(){
+		return weight;
+	}
 	public String getOwnerName(){
 		return ownerName;
 	}
@@ -101,6 +120,23 @@ public class Animals {
 		this.setHeartPoints(roundOff);
 	}
 	
+	public void setHappyness(boolean b){
+		 plugin.getAnimalData().set("Farmer."+ uuid + ".Animals." +  auuid + ".Happy", b);
+		 plugin.saveAnimalData();
+	}
+	
+	public void addAge(int number){
+		int n = number + this.getAge();
+		plugin.getAnimalData().set("Farmer."+ uuid + ".Animals." +  auuid + ".Age", n);
+		plugin.saveAnimalData();
+	}
+	
+	public void addWeight(double number){
+		double n = number + this.getWeight();
+		plugin.getAnimalData().set("Farmer."+ uuid + ".Animals." +  auuid + ".Weight", n);
+		plugin.saveAnimalData();
+	}
+	
 	public void setShouldDie(boolean b){
 		plugin.getAnimalData().set("Farmer."+ uuid + ".Animals." +  auuid + ".WillDie", true);
 		plugin.saveAnimalData();
@@ -112,12 +148,12 @@ public class Animals {
 	}
 	
 	public void setIsWashed(boolean b){
-		plugin.getAnimalData().set("Farmer."+ uuid + ".Animals." +  auuid + ".Brushed", b);
+		plugin.getAnimalData().set("Farmer."+ uuid + ".Animals." +  auuid + ".Washed", b);
 		plugin.saveAnimalData();
 	}
 	
 	public void setHealth(boolean b){
-		plugin.getAnimalData().getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".Healthy", b);
+		plugin.getAnimalData().set("Farmer."+ uuid + ".Animals." +  auuid + ".Healthy", b);
 		plugin.saveAnimalData();
 	}
 	
@@ -150,6 +186,14 @@ public class Animals {
 		if(!plugin.getAnimalData().contains("AnimalCoolDown")){
 					return true;
 		}else{
+			if(this.getHunger() == true){
+				p.sendMessage(ChatColor.RED + this.getAnimalName() + " needs to eat first");
+				return false;
+			}else if(this.isHealthy == false){
+				p.sendMessage(ChatColor.RED + this.getAnimalName() + " is too sick");
+			}
+			
+			
 			if(plugin.getAnimalData().contains("AnimalCoolDown." + e.getUniqueId().toString())){
 					int timeLeft =plugin.getAnimalData().getInt("AnimalCoolDown." + e.getUniqueId().toString());
 				if(timeLeft > 10){
@@ -170,10 +214,11 @@ public class Animals {
 	public void petAnimal(Player p , Entity e){
 		animalUtility au = new animalUtility(plugin);
 		if(au.isAnimalOwner(p, e)){
-			if(!this.isPet){
+			this.animalNoise(e, p);
+			if(this.isPet == true){
 				au.playAnimalSound(e, p);
 				p.sendMessage(ChatColor.YELLOW + "You pet " + this.getAnimalName());
-				this.addHeartPoint(.01);
+				this.addHeartPoint(.02);
 				this.setIsPet(false);
 			}else{
 				p.sendMessage(ChatColor.YELLOW + "Looks like "  + this.getAnimalName() +  " has been pet enough.");
@@ -197,10 +242,302 @@ public class Animals {
 		}
 	}
 	
+	public void deathDrop(Player p, Entity e){
+		Bukkit.broadcastMessage("in death drop");
+		if(e instanceof Cow){
+			Bukkit.broadcastMessage("cow");
+			int weight = (int) this.getWeight() / 10 ;
+			int heartPoints = (int) ((int) this.getHeartPoints() * 1.5);
+			int age = this.getAge()/ 10;
+			int meatLoad = weight + age + heartPoints;
+			ItemStack extra = new ItemStack(Material.LEATHER, meatLoad / 2);
+			ItemStack meats = new ItemStack(Material.RAW_BEEF, meatLoad);
+			ItemMeta meta = meats.getItemMeta();
+			ArrayList<String> lore = new ArrayList<String>();
+			ItemMeta meta2 = meats.getItemMeta();
+			ArrayList<String> lore2 = new ArrayList<String>();
+			int hp = (int) this.getHeartPoints();
+			Bukkit.broadcastMessage(this.getWeight() + " weight =  " + weight + " " +this.getHeartPoints() +  " heart points " + heartPoints +" "+ this.getAge()+ " age " + age );
+			Bukkit.broadcastMessage("meats amount " + meatLoad);
+			int rank =(int)  hp/2;
+			Bukkit.broadcastMessage("cow hp " +hp);
+			if(hp < 3){
+				meta.setDisplayName("OK Beef");
+				lore.add("Beef that tastes OK");
+				lore.add(plugin.setCookingRank(rank));
+				meta2.setDisplayName("Low Quality Leather");
+				lore2.add("Not the best Leather");
+				lore2.add(plugin.setCookingRank(rank));
+			}else if(hp > 2 && hp < 6){
+				meta.setDisplayName("Good Beef");
+				lore.add("Beef that tastes Good");
+				lore.add(plugin.setCookingRank(rank));
+				meta2.setDisplayName("Good Quality Leather");
+				lore2.add("Good Leather");
+				lore2.add(plugin.setCookingRank(rank));
+			}else if(hp > 5 && hp <= 9){
+				meta.setDisplayName("Great Beef");
+				lore.add("Beef that tastes Great");
+				lore.add(plugin.setCookingRank(rank));
+				meta2.setDisplayName("Great Quality Leather");
+				lore2.add("Great Quality");
+				lore2.add(plugin.setCookingRank(rank));
+			}else if(hp <= 10){
+				meta.setDisplayName("Legendary Beef");
+				lore.add("Beef that tastes Legendary");
+				lore.add(plugin.setCookingRank(rank));
+				meta2.setDisplayName("Highest Quality Leather");
+				lore2.add("Perfect Quality");
+				lore2.add(plugin.setCookingRank(rank));
+			}
+			Bukkit.broadcastMessage("lore size " + lore.size());
+			meta.setLore(lore);
+			meats.setItemMeta(meta);
+			meta.setLore(lore2);
+			extra.setItemMeta(meta2);
+			p.getWorld().dropItem(e.getLocation(), meats);
+			p.getWorld().dropItem(e.getLocation(), extra);
+		}else if(e instanceof Chicken){
+			int weight = (int) this.getWeight() / 10 ;
+			int heartPoints = (int) ((int) this.getHeartPoints() * 1.5);
+			int age = this.getAge()/ 10;
+			int meatLoad = weight + age + heartPoints;
+			Bukkit.broadcastMessage("meats amount " + meatLoad);
+			ItemStack meats = new ItemStack(Material.RAW_CHICKEN, meatLoad);
+			ItemMeta meta = meats.getItemMeta();
+			ArrayList<String> lore = new ArrayList<String>();
+			int hp = (int) this.getHeartPoints();
+			int rank =(int)  hp/2;
+			if(hp < 3){
+				meta.setDisplayName("OK Chicken");
+				lore.add("Chicken that tastes OK");
+				lore.add(plugin.setCookingRank(rank));
+			}else if(hp > 2 && hp < 6){
+				meta.setDisplayName("Good Chicken");
+				lore.add("Chicken that tastes Good");
+				lore.add(plugin.setCookingRank(rank));
+			}else if(hp > 5 && hp <= 9){
+				meta.setDisplayName("Great Chicken");
+				lore.add("Chicken that tastes Great");
+				lore.add(plugin.setCookingRank(rank));
+			}else if(hp <= 10){
+				meta.setDisplayName("Legendary Chicken");
+				lore.add("Chicken that tastes Legendary");
+				lore.add(plugin.setCookingRank(rank));
+			}
+			meta.setLore(lore);
+			meats.setItemMeta(meta);
+			p.getWorld().dropItem(e.getLocation(), meats);
+		}else if(e instanceof Pig){
+			int weight = (int) this.getWeight() / 10 ;
+			int heartPoints = (int) ((int) this.getHeartPoints() * 2.5);
+			int age = this.getAge()/ 10;
+			int meatLoad = weight + age + heartPoints;
+			Bukkit.broadcastMessage("meats amount " + meatLoad);
+
+			ItemStack meats = new ItemStack(Material.PORK, meatLoad);
+			ItemMeta meta = meats.getItemMeta();
+			ArrayList<String> lore = new ArrayList<String>();
+			int hp = (int) this.getHeartPoints();
+			int rank =(int)  hp/2;
+			if(hp < 3){
+				meta.setDisplayName("OK Pork");
+				lore.add("Pork that tastes OK");
+				lore.add(plugin.setCookingRank(rank));
+			}else if(hp > 2 && hp < 6){
+				meta.setDisplayName("Good Pork");
+				lore.add("Pork that tastes Good");
+				lore.add(plugin.setCookingRank(rank));
+			}else if(hp > 5 && hp <= 9){
+				meta.setDisplayName("Great Pork");
+				lore.add("Pork that tastes Great");
+				lore.add(plugin.setCookingRank(rank));
+			}else if(hp <= 10){
+				meta.setDisplayName("Legendary Pork");
+				lore.add("Pork that tastes Legendary");
+				lore.add(plugin.setCookingRank(rank));
+			}
+			meta.setLore(lore);
+			meats.setItemMeta(meta);
+			
+			p.getWorld().dropItem(e.getLocation(), meats);
+		}
+		
+	}
+	
+	public void animalNoise(Entity e, Player p){
+		String type = e.getType().toString();
+		Location loc = p.getLocation();
+		
+		ArrayList<String> mood = new ArrayList<String>();
+		boolean h = this.isHappy();
+		boolean s = this.isHealthy();
+		
+		if(h == true){
+			mood.add("happy");
+		}else{
+			if(s == false){
+				mood.add("sick");
+			}else{
+				mood.add("mad");
+			}
+		}
+		String m = mood.get(0);
+		
+		if(type.equalsIgnoreCase("Cow")){
+			switch(m){
+			case "happy":
+				Bukkit.getWorld("world").playSound(loc, Sound.COW_IDLE, 100, 1);
+				Bukkit.broadcastMessage("happy");
+				break;
+			case "sick":
+				Bukkit.getWorld("world").playSound(loc, Sound.COW_HURT, 100, -10);
+				Bukkit.broadcastMessage("sick");
+				break;
+			case "mad":
+				Bukkit.getWorld("world").playSound(loc, Sound.COW_HURT, 100, -3);
+				Bukkit.broadcastMessage("mad");
+				break;
+			}
+			
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}else if(type.equalsIgnoreCase("Sheep")){
+			switch(m){
+			case "happy":
+				Bukkit.getWorld("world").playSound(loc, Sound.SHEEP_IDLE, 100, 1);
+				Bukkit.broadcastMessage("happy");
+				break;
+			case "sick":
+				Bukkit.getWorld("world").playSound(loc, Sound.SHEEP_IDLE, 100, -10);
+				Bukkit.broadcastMessage("sick");
+				break;
+			case "mad":
+				Bukkit.getWorld("world").playSound(loc, Sound.SHEEP_IDLE, 100, -3);
+				Bukkit.broadcastMessage("mad");
+				break;
+			}
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}else if(type.equalsIgnoreCase("Pig")){
+			switch(m){
+			case "happy":
+				Bukkit.getWorld("world").playSound(loc, Sound.PIG_IDLE, 100, 1);
+				Bukkit.broadcastMessage("happy");
+				break;
+			case "sick":
+				Bukkit.getWorld("world").playSound(loc, Sound.PIG_DEATH, 100, -10);
+				Bukkit.broadcastMessage("sick");
+				break;
+			case "mad":
+				Bukkit.getWorld("world").playSound(loc, Sound.PIG_DEATH, 100, -3);
+				Bukkit.broadcastMessage("mad");
+				break;
+			}
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}else if(type.equalsIgnoreCase("chicken")){
+			switch(m){
+			case "happy":
+				Bukkit.getWorld("world").playSound(loc, Sound.CHICKEN_IDLE, 100, 1);
+				Bukkit.broadcastMessage("happy");
+				break;
+			case "sick":
+				Bukkit.getWorld("world").playSound(loc, Sound.CHICKEN_HURT, 100, -10);
+				Bukkit.broadcastMessage("sick");
+				break;
+			case "mad":
+				Bukkit.getWorld("world").playSound(loc, Sound.CHICKEN_HURT, 100, -3);
+				Bukkit.broadcastMessage("mad");
+				break;
+			}
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}else if(type.equalsIgnoreCase("Horse")){
+			switch(m){
+			case "happy":
+				Bukkit.getWorld("world").playSound(loc, Sound.HORSE_BREATHE, 100, 1);
+				Bukkit.broadcastMessage("happy");
+				break;
+			case "sick":
+				Bukkit.getWorld("world").playSound(loc, Sound.HORSE_ANGRY, 100, -10);
+				Bukkit.broadcastMessage("sick");
+				break;
+			case "mad":
+				Bukkit.getWorld("world").playSound(loc, Sound.HORSE_ANGRY, 100, -3);
+				Bukkit.broadcastMessage("mad");
+				break;
+			}
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}else if(type.equalsIgnoreCase("Wolf")){
+			switch(m){
+			case "happy":
+				Bukkit.getWorld("world").playSound(loc, Sound.WOLF_BARK, 100, 1);
+				Bukkit.broadcastMessage("happy");
+				break;
+			case "sick":
+				Bukkit.getWorld("world").playSound(loc, Sound.WOLF_HOWL, 50, 1);
+				Bukkit.broadcastMessage("sick");
+				break;
+			case "mad":
+				Bukkit.getWorld("world").playSound(loc, Sound.WOLF_GROWL, 50, 1);
+				Bukkit.broadcastMessage("mad");
+				break;
+			}
+			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
+		}
+		
+	}
+	public void checkIfToOld(){
+		if(this.getAge() < maxAge){
+			this.setShouldDie(true);
+			
+		}
+	}
+	
+	
+	public void neglectDeath(Player p, Entity animal ){
+		if(this.willDie && this.getAge() < 120){
+			p.getWorld().createExplosion(animal.getLocation().getX(), animal.getLocation().getY(), animal.getLocation().getZ(), (float)0, false, false);
+			animal.remove();
+			animalUtility au = new animalUtility(plugin);
+			this.animalNoise(animal, p);
+			this.removeAnimalData();
+			Bukkit.broadcastMessage(ChatColor.RED + p.getName() + " has had an animal die of neglect!");
+			List<Entity> en = p.getNearbyEntities(10, 10, 10);
+			for(Entity se : en){
+			if(au.isAnimal(se)){
+				if(au.isAnimalOwner(p, animal)){
+				Animals news = new Animals(plugin, se.getUniqueId().toString(), p.getUniqueId().toString());
+				news.addHeartPoint(-1);
+				p.sendMessage(news.getAnimalName() + " doesn't look at you the same");
+				}
+			}
+		}
+	}
+}
+	
+	public void oldAgeDeath(Player p, Entity animal ){
+		if(this.willDie == true && this.getAge() > maxAge){
+			p.getWorld().playEffect(animal.getLocation(), Effect.EXTINGUISH, 50);
+			animal.remove();
+			animalUtility au = new animalUtility(plugin);
+			this.animalNoise(animal, p);
+			this.removeAnimalData();
+			Bukkit.broadcastMessage(ChatColor.AQUA + this.getAnimalName() + " has had a full life!");
+			this.deathDrop(p, animal);
+			
+			List<Entity> en = p.getNearbyEntities(10, 10, 10);
+			for(Entity se : en){
+			if(au.isAnimal(se)){
+				if(au.isAnimalOwner(p, animal)){
+				Animals news = new Animals(plugin, se.getUniqueId().toString(), p.getUniqueId().toString());
+				news.addHeartPoint(.1);
+				p.sendMessage(news.getAnimalName() + " thinks back on the good times with " + this.getAnimalName());
+				}
+			}
+		}
+	}
+}
+	
 	public void dropProduce(Player p, Entity animal){
-		String owner = p.getUniqueId().toString();
-		String pet = animal.getUniqueId().toString();
-		double hp = plugin.getAnimalData().getInt("Farmer." + owner + ".Animals." +  pet + ".HeartPoints" );
+		double hp = this.getHeartPoints();
 	//COW
 		if(animal instanceof Cow){
 			int drop = plugin.randomNumber(2);

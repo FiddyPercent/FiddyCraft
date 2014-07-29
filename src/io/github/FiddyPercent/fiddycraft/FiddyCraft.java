@@ -126,6 +126,7 @@ public class FiddyCraft extends JavaPlugin {
     	loadConfig();
     	reloadPlayerInfo();
     	reloadAnimalData();
+    	this.addefault();
     	reloadPlantInfo();
     	this.Recipes();
         this.getLogger().info("FiddyCraft is Enabled");
@@ -374,6 +375,8 @@ public class FiddyCraft extends JavaPlugin {
     	return false;
     	
     }
+    
+    
     
     public String getPlayerPlantAbleList(Player p){
     	FcPlayers fc = new FcPlayers(this, p);
@@ -1136,8 +1139,14 @@ public class FiddyCraft extends JavaPlugin {
 	}
 	
 	public int randomNumber(int total){
+		ArrayList<Integer> ran = new ArrayList<Integer>();
 		int r =  (int) (Math.random() * total) + 1 ; 
-		return r;
+		if( r <= 0){
+		ran.add(1);
+		}else{
+			ran.add(r);
+		}
+		return ran.get(0);
 	}
 	
 	public boolean isSword(ItemStack item){
@@ -1212,67 +1221,94 @@ public class FiddyCraft extends JavaPlugin {
 	        }
 	    }
 
+	    public void addefault(){
+	    	this.getAnimalData().set("Farmer." + "33e271ef-9134-30c9-b624-181e8a3e5810" +".Animals." +"33e271ef-9999-30c9-b624-181e8a3e5810.Name","fake" );
+	    	this.getAnimalData().set("Farmer." + "33e271ef-9134-30c9-b624-181e8a3e5810" +".Animals." +"33e271ef-9999-30c9-b624-181e8a3e5810.Owner","TheFakeFiddy" );
+	    	this.getAnimalData().set("Farmer." + "33e271ef-9134-30c9-b624-181e8a3e5810" +".Animals." +"33e271ef-9999-30c9-b624-181e8a3e5810.OwnerID","5852512" );
+	    	this.getAnimalData().set("Farmer." + "33e271ef-9134-30c9-b624-181e8a3e5810" +".Animals." +"33e271ef-9999-30c9-b624-181e8a3e5810.HeartPoints","10" );
+	    	this.saveAnimalData();
+	    }
 
-//CHECK IF PLAYER IS THE OWNER
-
-	
-
-	public boolean isanimalAbletobePet(String uuid, String auuid){
-		return this.AnimalData.getBoolean("Farmer."+ uuid + ".Animals." +  auuid + ".isPet");
-	}
-
-	public void setanimalAbletobePet(String uuid, String auuid, Boolean b){
-		 this.AnimalData.set("Farmer."+ uuid + ".Animals." +  auuid + ".isPet", b);
-		 this.saveAnimalData();
-	}
-
-
-//ANIMAL FOOD SETTINGS
-
-//CHECK IF ANIMAL
 
 //NEW DAY
 	public void newDay(){
 	long Time = Bukkit.getWorld("world").getTime();
 	if(newday.isEmpty() || newday.get("newday") == false){
 		if(Time > 23000){
-			//Bukkit.broadcastMessage("NEW DAY");
+			Bukkit.broadcastMessage("NEW DAY");
 			Player[] p = Bukkit.getOnlinePlayers();
 			for(Player player : p){
-				if(this.getAnimalData().contains("Farmer." + player.getUniqueId().toString())){
+				if(this.getAnimalData().contains("Farmer." + player.getUniqueId().toString() + ".Animals")){
 				String farmer = player.getUniqueId().toString();	
-		
+				if(this.getAnimalData().getConfigurationSection("Farmer." + farmer + ".Animals").getKeys(false) == null){
+					Bukkit.broadcastMessage("false");
+				}else{
 				Set<String> animals =  this.getAnimalData().getConfigurationSection("Farmer." + farmer + ".Animals").getKeys(false);
 				for(String animal : animals){
 					
-					 Animals a = new Animals(this, farmer, animal);
+					 Animals a = new Animals(this, animal, farmer);
+					 Bukkit.broadcastMessage("adding age " + a.getAge());
+					 a.addAge(1);
+					 a.checkIfToOld();
+					 Bukkit.broadcastMessage("new age " + a.getAge());
 					 
 					 if(a.getHunger() == true){
-						 
-						 if(a.isHealthy()){
-						 int r = this.randomNumber(10);
-						 if(r == 3){
-							 a.setHealth(false);
-							 a.addHeartPoint(- 1);
-							 if(Bukkit.getPlayer(a.getOwnerName()).isOnline()){
-								 Bukkit.getPlayer(a.getOwnerName()).sendMessage(ChatColor.RED + a.getAnimalName() + " is sick!");
-							 	}
+						 Bukkit.broadcastMessage(ChatColor.RED +a.getAnimalName() + " is Hungry");
+						 if(a.isHappy() == true){
+							 Bukkit.broadcastMessage("Was Happy");
+						 int r = this.randomNumber(2);
+						 Bukkit.broadcastMessage("r = " + r);
+						 if(r == 1){
+							 Bukkit.broadcastMessage("Not happy anymore");
+							 a.setHappyness(false);
+							 a.addHeartPoint(- .05);
+							 a.addWeight(- 4);
+							
 							 }
 						 }else{
+							 Bukkit.broadcastMessage("not happy");
+							 if(a.isHealthy() == true){
+								 Bukkit.broadcastMessage("not happy but healthy");
 							 int r = this.randomNumber(5);
-							 if(r == 1){
-								 animalUtility au = new animalUtility(this);
+							 if( r == 3){
+								 Bukkit.broadcastMessage("now is sick");
+								 a.setHealth(false);
+								 if(Bukkit.getPlayer(a.getOwnerName()).isOnline()){
+									 Bukkit.getPlayer(a.getOwnerName()).sendMessage(ChatColor.RED + a.getAnimalName() + " is sick!");
+								 	}
+							 	}
+							 }else{
+							 int r = this.randomNumber(5);
+							 Bukkit.broadcastMessage("Should maybe die " + r);
+							 if(r == 2){
 								 a.setShouldDie(true);
+							 	}
 							 }
 						 }
+					 }else{
+						 if(a.isHealthy() == false){
+							 int r = this.randomNumber(20);
+							 Bukkit.broadcastMessage("Should maybe die " + r);
+							 if(r == 10){
+								 a.setShouldDie(true);
+						 }
 					 }
+					}
 					 
+					 Bukkit.broadcastMessage("owner " + a.getOwnerName());
 					a.setHunger(true);
 					a.setIsWashed(false);
 					a.setIsPet(true);
+					if(a.getIsWashed() && a.getIsPet() == false && a.isHappy()){
+						Bukkit.broadcastMessage( a.getAnimalName() + " is Happy again");
+					a.setHappyness(true);
+					}
+					
+					
 					newday.put("newday", true);
 					}
 				}
+			}
 				if(this.getPlantInfo().contains("Farmer." + player.getUniqueId().toString())){
 					//Bukkit.broadcastMessage("NEW PLANT CYCLE");
 					String farmer = player.getUniqueId().toString();
@@ -1321,14 +1357,6 @@ public class FiddyCraft extends JavaPlugin {
 		}
 	}
 }
-//ANIMAL EAT
-
-//PET ANIMAL
-
-
-//SHOW ANIMAL INFORMATION
-
-//PUBLIC VOID WASH ANIMAL
 
 //CHECK IF FOOD
 	public boolean isFood(ItemStack i){
@@ -2206,6 +2234,8 @@ public class FiddyCraft extends JavaPlugin {
 			
 		}
 	}
+	
+
 //CHECK IF ABLE TO MAKE THIS FOOD
 	public boolean canCraft(ItemStack result){
 //////Bukkit.broadcastMessage("cancraft");

@@ -259,9 +259,39 @@ public class FiddyCraftListener implements Listener{
             		}
             
             	}
- 				
- 			}
-	
+		 
+			Entity e = event.getEntity();
+			
+			Entity ent = event.getEntity();
+		if(ent instanceof LivingEntity){	
+			LivingEntity l = (LivingEntity) ent;
+		if(l.getHealth() <= event.getDamage()){
+			animalUtility au = new animalUtility(plugin);
+			if(au.isAnimal(e)){
+				if(au.checkifHasOwner(e.getUniqueId().toString())){
+					if(event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK){ 
+					String auuid = event.getEntity().getUniqueId().toString();
+					EntityDamageByEntityEvent evnt = (EntityDamageByEntityEvent) event;
+					Entity killer  =   evnt.getDamager();
+					if(killer instanceof Player){
+						Player k = (Player) killer;
+						if(au.isAnimalOwner(k, event.getEntity())){
+							Animals a = new Animals(plugin, auuid, k.getUniqueId().toString());
+							event.setCancelled(true);
+							a.deathDrop(k, event.getEntity());
+							au.removeAnimal(ent);
+							event.getEntity().remove();
+						}else{
+							event.setDamage(0);
+							k.sendMessage(ChatColor.RED + "You can not kill another players animal");
+						}
+					}
+				}
+			}
+		}	
+	}
+ }
+}
 //STOP PLANT GROWTH 
 	@EventHandler
 	public void stopGrow(BlockGrowEvent e){
@@ -283,11 +313,11 @@ public class FiddyCraftListener implements Listener{
 		animalUtility au = new animalUtility(plugin);
 	if(e.getEntity() instanceof Sheep){
 		if(au.isAnimalOwner(p, e.getEntity())){
-			Animals a = new Animals(plugin, p.getUniqueId().toString(), e.getEntity().getUniqueId().toString());
+			 Animals a = new Animals(plugin,  e.getEntity().getUniqueId().toString(), p.getUniqueId().toString());
 			e.setCancelled(true);
 			if(a.canDropProduce(p, e.getEntity())){
 			a.dropProduce(p, e.getEntity());
-			a.addHeartPoint(.01);
+			a.addHeartPoint(.03);
 			}
 		}else{
 			e.setCancelled(true);
@@ -342,13 +372,16 @@ public class FiddyCraftListener implements Listener{
 			if(au.isAnimal(e.getRightClicked()) && (p.getItemInHand()
 					.getType().equals(Material.BUCKET) && e.getRightClicked() instanceof Cow)){
 				if(au.isAnimalOwner(p, e.getRightClicked())){
-					Animals a = new Animals(plugin, p.getUniqueId().toString(), e.getRightClicked().getUniqueId().toString());
+					Bukkit.broadcastMessage("using bucket");
+					 Animals a = new Animals(plugin,  e.getRightClicked().getUniqueId().toString(), p.getUniqueId().toString());
 				if(a.canDropProduce(p, e.getRightClicked())){
+					a.dropProduce(p, e.getRightClicked());
+					Bukkit.broadcastMessage("can drop");
 					e.setCancelled(true);
-					a.canDropProduce(p, e.getRightClicked());
-					a.addHeartPoint(.01);
+					a.addHeartPoint(.03);
 				}else{
 					e.setCancelled(true);
+					Bukkit.broadcastMessage("cant bucket");
 				}
 				}else{
 					e.setCancelled(true);
@@ -359,10 +392,10 @@ public class FiddyCraftListener implements Listener{
 			
 			 if(e.getRightClicked() instanceof Chicken  &&  p.getItemInHand().getType().equals(Material.AIR)){
 				 if(au.isAnimalOwner(p, e.getRightClicked())){
-					 Animals a = new Animals(plugin, p.getUniqueId().toString(), e.getRightClicked().getUniqueId().toString());
+					 Animals a = new Animals(plugin,  e.getRightClicked().getUniqueId().toString(), p.getUniqueId().toString());
 						if(a.canDropProduce(p, e.getRightClicked())){	
 					 a.canDropProduce(p, e.getRightClicked());
-					 a.addHeartPoint(.01);
+					 a.addHeartPoint(.03);
 						}else{
 							e.setCancelled(true);
 						}
@@ -376,7 +409,7 @@ public class FiddyCraftListener implements Listener{
 			 if(p.getItemInHand().getType().equals(Material.PAPER)) {
 				 au.showAnimalInfo(p, e.getRightClicked());
 			 }
-			 Animals a = new Animals(plugin, p.getUniqueId().toString(), e.getRightClicked().getUniqueId().toString());
+			 Animals a = new Animals(plugin,  e.getRightClicked().getUniqueId().toString(), p.getUniqueId().toString());
 			 if ((au.isAnimal(e.getRightClicked()) && (p.getItemInHand()
 						.getType().equals(Material.SPONGE)))) {
 				 a.washAnimal(p, e.getRightClicked());
@@ -623,11 +656,17 @@ public class FiddyCraftListener implements Listener{
 		animalUtility au = new animalUtility(plugin);
 		String entityName = event.getEntityType().toString();
 		Entity e = event.getEntity();
+	
 		if(au.isAnimal(e)){
 			if(au.checkifHasOwner(e.getUniqueId().toString())){
 				au.removeAnimal(e);
-			}
-		}
+				Bukkit.broadcastMessage("has owner");
+					}
+				}
+				
+			
+			
+		
 		
 		
 		if(entityName.equalsIgnoreCase("dog")){

@@ -50,32 +50,62 @@ public class animalUtility{
 			plugin.saveAnimalData();
 		}
 			if(this.canHaveMoreAnimals(p)){
+				if(this.checkIfHasSameName(owner, meta.getDisplayName()) == true){
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Name", meta.getDisplayName());
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Owner", p.getName());
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".OwnerID", owner );
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".HeartPoints", 0 );
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Hunger", true );
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Healthy", true );
+			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Happy", true );
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Washed", false );
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".isPet", true );
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".WillDie", false);
+			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Age", 0);
+			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Weight", 40);
 			plugin.saveAnimalData();
 			p.sendMessage(ChatColor.BLUE + "You now own " + meta.getDisplayName() + "!");
+				}else{
+					p.sendMessage(ChatColor.RED + "You cannot name two animals the same name");
+					LivingEntity an = (LivingEntity)animal;
+					an.setCustomName("");
+					
+				}
 			}else{
 			p.sendMessage(ChatColor.RED + "You Have to many animals you cannot claim anymore");
 		}
 	}
 	
+	public boolean checkIfHasSameName(String uuid, String metaname){
+		Set<String> auuids = plugin.getAnimalData().getConfigurationSection("Farmer."+ uuid + ".Animals").getKeys(false);
+		for(String auuid : auuids){
+			Bukkit.broadcastMessage(ChatColor.GOLD + auuid);
+			String can = plugin.getAnimalData().getString("Farmer."+ uuid + ".Animals." +  auuid + ".Name");
+			if(can.equalsIgnoreCase(metaname)){
+				return true;
+				
+			}
+		}
+		return false;
+	}
+	
 //CHECK IF ANIMAL HAS A OWNER
 	public boolean checkifHasOwner(String uuid){
+		Bukkit.broadcastMessage("in check owner id");
 		ArrayList<String> allAnimals = new ArrayList<String>();
 		if(!plugin.getAnimalData().contains("Farmer")){
+
+			Bukkit.broadcastMessage("ownerid false");
 			return false;
 		}else{
 		Set<String> farmers =  plugin.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
 	//getting the farmers animals
 		for(String farmer : farmers){
-			Set<String> t =  plugin.getAnimalData().getConfigurationSection("Farmer." + farmer + ".Animals.").getKeys(false);
+			Bukkit.broadcastMessage(ChatColor.RED  + "Farmer " + farmer);
+			if(plugin.getAnimalData().get("Farmer." + farmer + ".Animals") == null){
+				break;
+			}
+			Set<String> t =  plugin.getAnimalData().getConfigurationSection("Farmer." + farmer + ".Animals").getKeys(false);
 			for(String FarmAnimals : t){
 				allAnimals.add(FarmAnimals);
 			}
@@ -104,11 +134,13 @@ public class animalUtility{
 			plugin.getAnimalData().set("AnimalCoolDown", "test");
 			plugin.saveAnimalData();
 		}
+		
+	
 		Player[] p = Bukkit.getOnlinePlayers();
 			for(Player player : p){
 				if(plugin.getAnimalData().contains("Farmer." + player.getUniqueId().toString())){
 					String l = player.getUniqueId().toString();	
-					Set<String> t =  plugin.getAnimalData().getConfigurationSection("Farmer." + l + ".Animals.").getKeys(false);
+					Set<String> t =  plugin.getAnimalData().getConfigurationSection("Farmer." + l + ".Animals").getKeys(false);
 				for(String aL : t){
 					
 					if(plugin.getAnimalData().contains("AnimalCoolDown." + aL)){
@@ -160,6 +192,9 @@ public class animalUtility{
 				plugin.getAnimalData().set("Farmer."+ p.getUniqueId().toString() + ".Name", p.getName());
 				plugin.saveAnimalData();
 			}
+		if(!plugin.getAnimalData().contains("Farmer." + p.getUniqueId().toString() + ".Animals")){	
+			return true;
+		}
 			Set<String> t =  plugin.getAnimalData().getConfigurationSection("Farmer." + p.getUniqueId().toString() + ".Animals").getKeys(false);
 			ArrayList<String> animals = new ArrayList<String>();
 			for(String aL : t){
@@ -234,9 +269,12 @@ public class animalUtility{
 	
 //FINDING WHO OWNS THIS ANIAML
 	public String getAnimalOwnerID(String auuid){
+		
 		Set<String> farmers = plugin.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
 		for(String farmer : farmers){
+			Bukkit.broadcastMessage(ChatColor.GOLD + farmer);
 			if(plugin.getAnimalData().contains("Farmer." + farmer +".Animals." + auuid)){
+				Bukkit.broadcastMessage(ChatColor.GOLD +plugin.getAnimalData().getString("Farmer."+ farmer + ".Animals." +  auuid + ".OwnerID"));
 				return plugin.getAnimalData().getString("Farmer."+ farmer + ".Animals." +  auuid + ".OwnerID");
 			}else{
 				return "Unknown";
@@ -273,14 +311,20 @@ public class animalUtility{
 										a.addHeartPoint(.03);
 										a.setHunger(false);
 										p.sendMessage(ChatColor.YELLOW + a.getAnimalName() +" is fed.");
+										a.addWeight(.4);
 										int r = plugin.randomNumber(5);
 									
-										if(r == 3){
+										if(r == 2){
 											Location loc = entity.getLocation();
 											p.getWorld().dropItem(loc, plugin.getfertilizerItem());
 											p.getWorld().playSound(loc, Sound.FALL_BIG, 1, 1);
 										}
 									}
+								if(a.isHealthy() == false){
+									a.neglectDeath(p, entity);
+								}else{
+								a.oldAgeDeath(p, entity);
+								}
 								}
 							}	
 						}
@@ -306,6 +350,9 @@ public class animalUtility{
 	}
 	
 	
+	
+	
+	
 //SHOW BASIC ANIMAL INFO
 	public void showAnimalInfo(Player p, Entity e){
 	if(this.checkifHasOwner(e.getUniqueId().toString())){
@@ -315,9 +362,12 @@ public class animalUtility{
 		p.sendMessage(ChatColor.YELLOW + "Animal Name: "  + ChatColor.GREEN+ a.getAnimalName());
 		p.sendMessage(ChatColor.YELLOW + "Animal Owner: "  + ChatColor.GREEN+ a.getOwnerName());
 		p.sendMessage(ChatColor.YELLOW + "Heart Level: " + ChatColor.GREEN + hp);
-		p.sendMessage(ChatColor.YELLOW + "Is Hungry: " + ChatColor.GREEN + a.getHunger());
 		p.sendMessage(ChatColor.YELLOW + "Is Dirty: "  + ChatColor.GREEN + a.getIsWashed());
+		p.sendMessage(ChatColor.YELLOW + "Is happy: "  + ChatColor.GREEN + a.isHappy());
 		p.sendMessage(ChatColor.YELLOW + "Is lonely: "  + ChatColor.GREEN + a.getIsPet());
+		p.sendMessage(ChatColor.YELLOW + "Is Hungry: " + ChatColor.GREEN + a.getHunger());
+		p.sendMessage(ChatColor.YELLOW + "Is Healthy: "  + ChatColor.GREEN + a.isHealthy());
+		p.sendMessage(ChatColor.YELLOW + "Is Weight: "  + ChatColor.GREEN + a.getWeight());
 		}
 	}
 }
