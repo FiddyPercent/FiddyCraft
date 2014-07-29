@@ -42,15 +42,15 @@ public class animalUtility{
 	}
 	
 //CLAIMING A ANIMAL
-	public void claimAnimal(Player p, Entity animal, ItemMeta meta){
+	public boolean claimAnimal(Player p, Entity animal, ItemMeta meta){
 		String owner = p.getUniqueId().toString();
 		String pet = animal.getUniqueId().toString();
-		if(!plugin.getAnimalData().contains("Farmer." + owner)){
-			plugin.getAnimalData().set("Farmer."+ owner + ".Name", p.getName());
+		if(!plugin.getAnimalData().contains("Farmer." + owner + ".Animals")){
+			plugin.getAnimalData().set("Farmer."+ owner + ".Name", p.getName() + ".Animals");
 			plugin.saveAnimalData();
 		}
 			if(this.canHaveMoreAnimals(p)){
-				if(this.checkIfHasSameName(owner, meta.getDisplayName()) == true){
+				if(this.checkIfHasSameName(owner, meta.getDisplayName())){
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Name", meta.getDisplayName());
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Owner", p.getName());
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".OwnerID", owner );
@@ -65,43 +65,48 @@ public class animalUtility{
 			plugin.getAnimalData().set("Farmer."+ owner + ".Animals." +  pet + ".Weight", 40);
 			plugin.saveAnimalData();
 			p.sendMessage(ChatColor.BLUE + "You now own " + meta.getDisplayName() + "!");
+			return true;
 				}else{
 					p.sendMessage(ChatColor.RED + "You cannot name two animals the same name");
 					LivingEntity an = (LivingEntity)animal;
-					an.setCustomName("");
+					an.setCustomName(null);
+					return false;
 					
 				}
 			}else{
 			p.sendMessage(ChatColor.RED + "You Have to many animals you cannot claim anymore");
+			return false;
 		}
 	}
 	
 	public boolean checkIfHasSameName(String uuid, String metaname){
+		if(plugin.getAnimalData().getString("Farmer."+ uuid + ".Animals") == null){
+			Bukkit.broadcastMessage("NULL");
+			return true;
+		}
 		Set<String> auuids = plugin.getAnimalData().getConfigurationSection("Farmer."+ uuid + ".Animals").getKeys(false);
 		for(String auuid : auuids){
-			Bukkit.broadcastMessage(ChatColor.GOLD + auuid);
 			String can = plugin.getAnimalData().getString("Farmer."+ uuid + ".Animals." +  auuid + ".Name");
+			Bukkit.broadcastMessage(can);
 			if(can.equalsIgnoreCase(metaname)){
-				return true;
+				Bukkit.broadcastMessage("same name bro");
+				return false;
 				
 			}
 		}
-		return false;
+		Bukkit.broadcastMessage("just whatever false");
+		return true;
 	}
 	
 //CHECK IF ANIMAL HAS A OWNER
 	public boolean checkifHasOwner(String uuid){
-		Bukkit.broadcastMessage("in check owner id");
-		ArrayList<String> allAnimals = new ArrayList<String>();
+	ArrayList<String> allAnimals = new ArrayList<String>();
 		if(!plugin.getAnimalData().contains("Farmer")){
-
-			Bukkit.broadcastMessage("ownerid false");
 			return false;
 		}else{
 		Set<String> farmers =  plugin.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
 	//getting the farmers animals
 		for(String farmer : farmers){
-			Bukkit.broadcastMessage(ChatColor.RED  + "Farmer " + farmer);
 			if(plugin.getAnimalData().get("Farmer." + farmer + ".Animals") == null){
 				break;
 			}
@@ -138,7 +143,7 @@ public class animalUtility{
 	
 		Player[] p = Bukkit.getOnlinePlayers();
 			for(Player player : p){
-				if(plugin.getAnimalData().contains("Farmer." + player.getUniqueId().toString())){
+				if(plugin.getAnimalData().contains("Farmer." + player.getUniqueId().toString() + ".Animals")){
 					String l = player.getUniqueId().toString();	
 					Set<String> t =  plugin.getAnimalData().getConfigurationSection("Farmer." + l + ".Animals").getKeys(false);
 				for(String aL : t){
@@ -188,10 +193,12 @@ public class animalUtility{
 		if(plugin.getAnimalData().getString("Farmer") == null){
 			return true;
 		}else{
-			if(!plugin.getAnimalData().contains("Farmer." + p.getUniqueId().toString())){
-				plugin.getAnimalData().set("Farmer."+ p.getUniqueId().toString() + ".Name", p.getName());
+			
+			if(!plugin.getAnimalData().contains("Farmer." + p.getUniqueId().toString() + ".Animals")){
+				plugin.getAnimalData().set("Farmer."+ p.getUniqueId().toString() + ".Name", p.getName() + ".Animals");
 				plugin.saveAnimalData();
 			}
+			
 		if(!plugin.getAnimalData().contains("Farmer." + p.getUniqueId().toString() + ".Animals")){	
 			return true;
 		}
@@ -200,13 +207,44 @@ public class animalUtility{
 			for(String aL : t){
 				animals.add(aL);
 			}
-					if(animals.size() <= 11){
-						return true;
+			FcPlayers fc = new FcPlayers(plugin, p);
+			String job = fc.getPlayerJob();
+				if(job.equalsIgnoreCase("Farmer")){
+				 FcFarmers fcf = new FcFarmers(plugin,p);
+				 String rank = fcf.getRank();
+					if(rank.equalsIgnoreCase("Legendary Farmer")){
+						if(animals.size() <= 12){
+							Bukkit.broadcastMessage("legendary");
+							return true;
+						}else{
+							return false;
+						}
+					}else if(rank.equalsIgnoreCase("Great Farmer")){
+						if(animals.size() <= 8){
+							Bukkit.broadcastMessage("great");
+							return true;
+						}else{
+							return false;
+						}
 					}else{
-						return false;
+						if(animals.size() <= 6){
+							Bukkit.broadcastMessage("normal");
+							return true;
+						}else{
+							return false;
+						}
+						}
+					}else{
+						if(animals.size() <= 4){
+							Bukkit.broadcastMessage("not a farmer");
+							return true;
+						}
+					}
+				}
+		 return true;
 			}
-		}
-	}
+		
+	
 	
 //CHECKING WHAT ANIAMLS EAT WHAT
 	public boolean animalFood(Entity e, Material item){
@@ -272,9 +310,7 @@ public class animalUtility{
 		
 		Set<String> farmers = plugin.getAnimalData().getConfigurationSection("Farmer").getKeys(false);
 		for(String farmer : farmers){
-			Bukkit.broadcastMessage(ChatColor.GOLD + farmer);
 			if(plugin.getAnimalData().contains("Farmer." + farmer +".Animals." + auuid)){
-				Bukkit.broadcastMessage(ChatColor.GOLD +plugin.getAnimalData().getString("Farmer."+ farmer + ".Animals." +  auuid + ".OwnerID"));
 				return plugin.getAnimalData().getString("Farmer."+ farmer + ".Animals." +  auuid + ".OwnerID");
 			}else{
 				return "Unknown";
@@ -348,9 +384,7 @@ public class animalUtility{
 			}
 		return null;
 	}
-	
-	
-	
+
 	
 	
 //SHOW BASIC ANIMAL INFO
@@ -362,7 +396,7 @@ public class animalUtility{
 		p.sendMessage(ChatColor.YELLOW + "Animal Name: "  + ChatColor.GREEN+ a.getAnimalName());
 		p.sendMessage(ChatColor.YELLOW + "Animal Owner: "  + ChatColor.GREEN+ a.getOwnerName());
 		p.sendMessage(ChatColor.YELLOW + "Heart Level: " + ChatColor.GREEN + hp);
-		p.sendMessage(ChatColor.YELLOW + "Is Dirty: "  + ChatColor.GREEN + a.getIsWashed());
+		p.sendMessage(ChatColor.YELLOW + "Is Clean: "  + ChatColor.GREEN + a.getIsWashed());
 		p.sendMessage(ChatColor.YELLOW + "Is happy: "  + ChatColor.GREEN + a.isHappy());
 		p.sendMessage(ChatColor.YELLOW + "Is lonely: "  + ChatColor.GREEN + a.getIsPet());
 		p.sendMessage(ChatColor.YELLOW + "Is Hungry: " + ChatColor.GREEN + a.getHunger());

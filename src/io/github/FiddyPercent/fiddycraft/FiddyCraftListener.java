@@ -364,7 +364,9 @@ public class FiddyCraftListener implements Listener{
 						p.sendMessage(ChatColor.RED + "This animal already has an owner");
 						e.setCancelled(true);
 					}else{
-					au.claimAnimal(p, e.getRightClicked(), meta);
+					if(au.claimAnimal(p, e.getRightClicked(), meta)== false){
+						e.setCancelled(true);
+					}
 					}
 				}
 			}
@@ -420,7 +422,30 @@ public class FiddyCraftListener implements Listener{
 				 a.petAnimal(p, e.getRightClicked());
 			 }
 			}
-	}
+			 
+			 if(au.isAnimal(e.getRightClicked()) && au.isAnimalOwner(p, e.getRightClicked())){
+				 if(p.getItemInHand().getType().equals(Material.POTION)) {
+					 ItemStack hand = p.getItemInHand();
+					 ItemMeta meta = hand.getItemMeta();
+					 
+					 if(meta.hasDisplayName() && meta.getDisplayName().equalsIgnoreCase("Animal Potion")){
+						 Bukkit.broadcastMessage("using potion");
+					 
+						 Entity animal = e.getRightClicked();
+						 String uuid = p.getUniqueId().toString();
+						 String auuid = animal.getUniqueId().toString();
+						 Animals a = new Animals(plugin, auuid, uuid);
+						 if(a.isHealthy() == false){
+							 plugin.takeOne(p, p.getItemInHand());
+							 a.setHealth(true);
+							 a.setHappyness(true);
+							 p.sendMessage(ChatColor.YELLOW + "Looks like " + a.getAnimalName() + " has recoverd from its sickness!");
+							 p.getWorld().playEffect(animal.getLocation(), Effect.MOBSPAWNER_FLAMES, 10);
+						 }
+					 }
+				 }
+			 }
+		}
 	
 	@EventHandler
 	public void entityDamage(EntityDamageByEntityEvent e){

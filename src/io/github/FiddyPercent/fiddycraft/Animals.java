@@ -133,7 +133,8 @@ public class Animals {
 	
 	public void addWeight(double number){
 		double n = number + this.getWeight();
-		plugin.getAnimalData().set("Farmer."+ uuid + ".Animals." +  auuid + ".Weight", n);
+		double roundOff = Math.round(n * 100.0) / 100.0;
+		plugin.getAnimalData().set("Farmer."+ uuid + ".Animals." +  auuid + ".Weight", roundOff);
 		plugin.saveAnimalData();
 	}
 	
@@ -217,11 +218,13 @@ public class Animals {
 			this.animalNoise(e, p);
 			if(this.isPet == true){
 				au.playAnimalSound(e, p);
-				p.sendMessage(ChatColor.YELLOW + "You pet " + this.getAnimalName());
 				this.addHeartPoint(.02);
+				if(e instanceof Pig){
+					this.addHeartPoint(.03);
+				}
 				this.setIsPet(false);
 			}else{
-				p.sendMessage(ChatColor.YELLOW + "Looks like "  + this.getAnimalName() +  " has been pet enough.");
+				
 			}
 		}
 	}
@@ -257,10 +260,7 @@ public class Animals {
 			ItemMeta meta2 = meats.getItemMeta();
 			ArrayList<String> lore2 = new ArrayList<String>();
 			int hp = (int) this.getHeartPoints();
-			Bukkit.broadcastMessage(this.getWeight() + " weight =  " + weight + " " +this.getHeartPoints() +  " heart points " + heartPoints +" "+ this.getAge()+ " age " + age );
-			Bukkit.broadcastMessage("meats amount " + meatLoad);
 			int rank =(int)  hp/2;
-			Bukkit.broadcastMessage("cow hp " +hp);
 			if(hp < 3){
 				meta.setDisplayName("OK Beef");
 				lore.add("Beef that tastes OK");
@@ -290,10 +290,9 @@ public class Animals {
 				lore2.add("Perfect Quality");
 				lore2.add(plugin.setCookingRank(rank));
 			}
-			Bukkit.broadcastMessage("lore size " + lore.size());
 			meta.setLore(lore);
 			meats.setItemMeta(meta);
-			meta.setLore(lore2);
+			meta2.setLore(lore2);
 			extra.setItemMeta(meta2);
 			p.getWorld().dropItem(e.getLocation(), meats);
 			p.getWorld().dropItem(e.getLocation(), extra);
@@ -302,7 +301,7 @@ public class Animals {
 			int heartPoints = (int) ((int) this.getHeartPoints() * 1.5);
 			int age = this.getAge()/ 10;
 			int meatLoad = weight + age + heartPoints;
-			Bukkit.broadcastMessage("meats amount " + meatLoad);
+			
 			ItemStack meats = new ItemStack(Material.RAW_CHICKEN, meatLoad);
 			ItemMeta meta = meats.getItemMeta();
 			ArrayList<String> lore = new ArrayList<String>();
@@ -333,8 +332,7 @@ public class Animals {
 			int heartPoints = (int) ((int) this.getHeartPoints() * 2.5);
 			int age = this.getAge()/ 10;
 			int meatLoad = weight + age + heartPoints;
-			Bukkit.broadcastMessage("meats amount " + meatLoad);
-
+		
 			ItemStack meats = new ItemStack(Material.PORK, meatLoad);
 			ItemMeta meta = meats.getItemMeta();
 			ArrayList<String> lore = new ArrayList<String>();
@@ -388,15 +386,15 @@ public class Animals {
 			switch(m){
 			case "happy":
 				Bukkit.getWorld("world").playSound(loc, Sound.COW_IDLE, 100, 1);
-				Bukkit.broadcastMessage("happy");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.GREEN  + m);
 				break;
 			case "sick":
 				Bukkit.getWorld("world").playSound(loc, Sound.COW_HURT, 100, -10);
-				Bukkit.broadcastMessage("sick");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.DARK_RED  + m);
 				break;
 			case "mad":
 				Bukkit.getWorld("world").playSound(loc, Sound.COW_HURT, 100, -3);
-				Bukkit.broadcastMessage("mad");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.RED  + m);
 				break;
 			}
 			
@@ -405,15 +403,15 @@ public class Animals {
 			switch(m){
 			case "happy":
 				Bukkit.getWorld("world").playSound(loc, Sound.SHEEP_IDLE, 100, 1);
-				Bukkit.broadcastMessage("happy");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.GREEN  + m);
 				break;
 			case "sick":
 				Bukkit.getWorld("world").playSound(loc, Sound.SHEEP_IDLE, 100, -10);
-				Bukkit.broadcastMessage("sick");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.DARK_RED  + m);
 				break;
 			case "mad":
 				Bukkit.getWorld("world").playSound(loc, Sound.SHEEP_IDLE, 100, -3);
-				Bukkit.broadcastMessage("mad");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.RED  + m);
 				break;
 			}
 			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
@@ -421,15 +419,15 @@ public class Animals {
 			switch(m){
 			case "happy":
 				Bukkit.getWorld("world").playSound(loc, Sound.PIG_IDLE, 100, 1);
-				Bukkit.broadcastMessage("happy");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.GREEN  + m);
 				break;
 			case "sick":
 				Bukkit.getWorld("world").playSound(loc, Sound.PIG_DEATH, 100, -10);
-				Bukkit.broadcastMessage("sick");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.DARK_RED  + m);
 				break;
 			case "mad":
 				Bukkit.getWorld("world").playSound(loc, Sound.PIG_DEATH, 100, -3);
-				Bukkit.broadcastMessage("mad");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.RED  + m);
 				break;
 			}
 			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
@@ -437,15 +435,15 @@ public class Animals {
 			switch(m){
 			case "happy":
 				Bukkit.getWorld("world").playSound(loc, Sound.CHICKEN_IDLE, 100, 1);
-				Bukkit.broadcastMessage("happy");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.GREEN  + m);
 				break;
 			case "sick":
 				Bukkit.getWorld("world").playSound(loc, Sound.CHICKEN_HURT, 100, -10);
-				Bukkit.broadcastMessage("sick");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.DARK_RED  + m);
 				break;
 			case "mad":
 				Bukkit.getWorld("world").playSound(loc, Sound.CHICKEN_HURT, 100, -3);
-				Bukkit.broadcastMessage("mad");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.RED  + m);
 				break;
 			}
 			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
@@ -453,15 +451,15 @@ public class Animals {
 			switch(m){
 			case "happy":
 				Bukkit.getWorld("world").playSound(loc, Sound.HORSE_BREATHE, 100, 1);
-				Bukkit.broadcastMessage("happy");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.GREEN  + m);
 				break;
 			case "sick":
 				Bukkit.getWorld("world").playSound(loc, Sound.HORSE_ANGRY, 100, -10);
-				Bukkit.broadcastMessage("sick");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.DARK_RED  + m);
 				break;
 			case "mad":
 				Bukkit.getWorld("world").playSound(loc, Sound.HORSE_ANGRY, 100, -3);
-				Bukkit.broadcastMessage("mad");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.RED  + m);
 				break;
 			}
 			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
@@ -469,15 +467,15 @@ public class Animals {
 			switch(m){
 			case "happy":
 				Bukkit.getWorld("world").playSound(loc, Sound.WOLF_BARK, 100, 1);
-				Bukkit.broadcastMessage("happy");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.GREEN  + m);
 				break;
 			case "sick":
 				Bukkit.getWorld("world").playSound(loc, Sound.WOLF_HOWL, 50, 1);
-				Bukkit.broadcastMessage("sick");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.DARK_RED  + m);
 				break;
 			case "mad":
 				Bukkit.getWorld("world").playSound(loc, Sound.WOLF_GROWL, 50, 1);
-				Bukkit.broadcastMessage("mad");
+				p.sendMessage(ChatColor.GRAY + this.getAnimalName() + " is " + ChatColor.RED  + m);
 				break;
 			}
 			Bukkit.getWorld("world").playEffect(e.getLocation(), Effect.MOBSPAWNER_FLAMES, 5, 5);
@@ -516,7 +514,7 @@ public class Animals {
 	public void oldAgeDeath(Player p, Entity animal ){
 		if(this.willDie == true && this.getAge() > maxAge){
 			p.getWorld().playEffect(animal.getLocation(), Effect.EXTINGUISH, 50);
-			animal.remove();
+			
 			animalUtility au = new animalUtility(plugin);
 			this.animalNoise(animal, p);
 			this.removeAnimalData();
@@ -529,10 +527,25 @@ public class Animals {
 				if(au.isAnimalOwner(p, animal)){
 				Animals news = new Animals(plugin, se.getUniqueId().toString(), p.getUniqueId().toString());
 				news.addHeartPoint(.1);
-				p.sendMessage(news.getAnimalName() + " thinks back on the good times with " + this.getAnimalName());
+				int r = plugin.randomNumber(10);
+				switch(r){
+				case 1:
+					p.sendMessage( ChatColor.GRAY + news.getAnimalName() + " thinks back on the good times with " + this.getAnimalName());
+					break;
+				case 2:
+					p.sendMessage(ChatColor.GRAY + news.getAnimalName() + " is happy " + this.getAnimalName() + " is gone.");
+					break;
+				case 3:
+					p.sendMessage(ChatColor.GRAY + news.getAnimalName() + " is contemplating life ");
+					break;
+				
+				case 4:
+					p.sendMessage(ChatColor.GRAY + news.getAnimalName() + " will miss " + this.getAnimalName());
+					}
 				}
 			}
 		}
+			animal.remove();
 	}
 }
 	
