@@ -1,5 +1,10 @@
 package io.github.FiddyPercent.fiddycraft;
 
+import io.github.FiddyPercent.fiddycraft.Animal.Animals;
+import io.github.FiddyPercent.fiddycraft.Animal.animalUtility;
+import io.github.FiddyPercent.fiddycraft.Plant.PlantUtil;
+import io.github.FiddyPercent.fiddycraft.Plant.Plants;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -132,6 +137,7 @@ public class FiddyCraft extends JavaPlugin {
         this.getLogger().info("FiddyCraft is Enabled");
         getServer().getPluginManager().registerEvents(new FiddyCraftListener(this), this);
         getCommand("vfname").setExecutor(new FiddyCraftCommands(this));
+        getCommand("setJob").setExecutor(new FcFarmerCommands(this));
         getCommand("setJail").setExecutor(new FiddyCraftCommands(this));
         getCommand("Jail").setExecutor(new FiddyCraftCommands(this));
         getCommand("fcreload").setExecutor(new FiddyCraftCommands(this));
@@ -378,52 +384,8 @@ public class FiddyCraft extends JavaPlugin {
     
     
     
-    public String getPlayerPlantAbleList(Player p){
-    	FcPlayers fc = new FcPlayers(this, p);
-    	if(fc.getPlayerJob().equalsIgnoreCase("Farmer")){
-    		FcFarmers fm = new FcFarmers(this, p);
-    		String rank = fm.getRank();
-    		if(rank.equalsIgnoreCase("Farmer")){
-    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:WHEAT:RED_TULIP:ORANGE_TULIP:PINK_TULIP:WHITE_TULIP:DANDELION";
-    	    	String extra = fc.getGrowableList();
-    	    	return base+extra;
-    		}else if(rank.equalsIgnoreCase("Great Farmer")){
-    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:POPPY:ALLIUM:MELON:RED_TULIP:ORANGE_TULIP:PINK_TULIP:WHITE_TULIP:WHEAT";
-    	    	String extra = fc.getGrowableList();
-    	    	return base+extra;
-    		}else if(rank.equalsIgnoreCase("Legendary Farmer")){
-    			String base = "OXEYE_DAISY:AZURE_BLUET:POTATO:CARROT:POPPY:ALLIUM:MELON:PUMPKIN;PEPPER:RED_TULIP:ORANGE_TULIP:PINK_TULIP:WHITE_TULIP:WHEAT:ROSE:BLUE_ORCHID";
-    	    	String extra = fc.getGrowableList();
-    	    	return base+extra;
-    		}else{
-    			String base = "WHEAT:RED_TULIP:ORANGE_TULIP:PINK_TULIP:WHITE_TULIP:DANDELION:";
-    	    	String extra = fc.getGrowableList();
-    	    	return base+extra;
-    		}
-    	}else{
-    	String base = "WHEAT:RED_TULIP:ORANGE_TULIP:PINK_TULIP:WHITE_TULIP:DANDELION:";
-    	String extra = fc.getGrowableList();
-    	return base+extra;
-    	}
-    }
-    
-    public boolean canPlantThis(Player p,String seedName){
-    	
-    	String list = this.getPlayerPlantAbleList(p);
-    	ArrayList<String> l = new ArrayList<String>();
 
-    	String[] li = list.split("~");
-    	for(String i : li){
-    		l.add(i);
-    	}
-    	String sn = seedName.replace(" Seeds", "").replace(" ", "_").toUpperCase();
     
-    	if(l.toString().contains(sn)){
-    		return true;
-    	}else{
-    		return false;
-    	}
-    }
     public void getAnimalCooldown(){
     	 animalUtility au = new animalUtility(this);
     	 au.animalCoolDown();
@@ -451,7 +413,7 @@ public class FiddyCraft extends JavaPlugin {
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Animals", 4);
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".AnimalList", null);
     	this.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Recipe List",null);
-    	this.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Growable List", this.getPlayerPlantAbleList(p));
+    	this.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".BonusGrow List", null );
 		this.getPlayerInfo().set("Players." + p.getUniqueId().toString() + ".Gov Job","None");
     	this.savePlayerInfo();
     }
@@ -466,7 +428,7 @@ public class FiddyCraft extends JavaPlugin {
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString()+ ".Max Animals", 4);
     	this.getPlayerInfo().set("Players." +p.getUniqueId().toString() + ".AnimalList", null);
     	this.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Recipe List",null);
-    	this.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Growable List", this.getPlayerPlantAbleList(p));
+    	this.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".BonusGrow List", null );
 		this.getPlayerInfo().set("Players." + p.getUniqueId().toString() + ".Gov Job","None");
     	this.savePlayerInfo();
     }
@@ -479,21 +441,9 @@ public class FiddyCraft extends JavaPlugin {
 		p.teleport(loc);
     }
     
-    public String getPlantLocationID(Location loc){
-    	int x = (int) loc.getBlockX();
-		int y = (int) loc.getBlockY();
-		int z = (int) loc.getBlockZ();
-		String l = x+"~"+y+"~"+z;
-    	return l;
-    }
+ 
     
-    public Location getFirstPlantLocation(Location loc){
-    	int x = (int) loc.getBlockX();
-		int y = (int) loc.getBlockY() + 1;
-		int z = (int) loc.getBlockZ();
-		Location l = new Location(Bukkit.getWorld("world"), x,y,z);
-    	return l;
-    }
+
     
     public Location getLocationFromString(String locationString){
     	
@@ -508,75 +458,12 @@ public class FiddyCraft extends JavaPlugin {
     	Location loc = new Location(Bukkit.getWorld("world"), split.get(0), split.get(1), split.get(2));
     	return loc;
     }
-    public boolean isPlayerPlantOwner(Player p, Location loc){
-    	if(this.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + this.getPlantLocationID(loc))){
-    		return true;
-    	}else{
-    		return false;
-    	}
-    }
-    public boolean isGrowableBlock(Block b){
-    	Material bl = b.getType();
-    	////Bukkit.broadcastMessage("Block type = " + bl.toString());
-    	if(bl == Material.GRASS || bl == Material.CROPS || bl == Material.LONG_GRASS || bl == Material.DEAD_BUSH 
-    			|| bl == Material.YELLOW_FLOWER || bl == Material.RED_ROSE || bl == Material.WHEAT || bl ==Material.PUMPKIN_STEM
-    			|| bl == Material.MELON_STEM || bl == Material.PUMPKIN || bl == Material.MELON_BLOCK || bl == Material.COCOA||
-    			bl == Material.CARROT || bl == Material.POTATO || bl == Material.SUGAR_CANE_BLOCK || bl == Material.NETHER_WARTS || bl == Material.getMaterial(175) ){
-    		////Bukkit.broadcastMessage("pass");
-    		return true;
-    	}else{
-    		//Bukkit.broadcastMessage("False man not an itme");
-    		return false;
-    	}
-    }
-    public boolean isASeed(ItemStack item){
-    	Material m = item.getType();
-    	if(m == Material.SEEDS || m == Material.PUMPKIN_SEEDS || m == Material.CARROT_ITEM || m == Material.POTATO_ITEM ||
-    			m == Material.MELON_SEEDS){
-    		return true;
-    	}else{
-    		return false;
-    	}
-    }
-    public void plantNewSeed(Player p, Block e, String plantType, ItemStack Seeds){
-    if(!this.getPlantInfo().contains("Farmer")){
-    		this.getPlantInfo().set("Farmer.", p.getUniqueId().toString());
-    		this.savePlantInfo();
-		}
-    	ItemMeta meta = Seeds.getItemMeta();
-    	cropSeed cs = cropSeed.valueOf(plantType);
-    	int cyc = cs.getcycles();
-    	int x = (int) e.getLocation().getBlockX();
-		int y = (int) e.getLocation().getBlockY() +1;
-		int z = (int) e.getLocation().getBlockZ();
-		String l = x+"~"+y+"~"+z;
-    	String ownerUUID = p.getUniqueId().toString();
-		//Bukkit.broadcastMessage("setting plant stuff in config");
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Location" + ".X", x);
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Location" + ".Y", y);
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Location" + ".Z",z);
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Owner Name" , p.getName());
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Type",plantType);
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Watered",false);
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Cycle",cyc);
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Quality", this.getcookingRankLevel(meta.getLore().get(1)));
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Healthy", true);
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Fertilized", false);
-		this.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant EXP", 0);
-		this.savePlantInfo();
-    }
+
+ 
+   
+  
     
-    public ItemStack getfertilizerItem(){
-    	ItemStack fertilized = new ItemStack(Material.DIRT, 1 , (short) 2);
-		ItemMeta meta = fertilized.getItemMeta();
-		meta.setDisplayName("fertilizer");
-		ArrayList<String> lore = new ArrayList<String>();
-		lore.add("Good Old Fresh Steaming Manure");
-		meta.setLore(lore);
-		fertilized.setItemMeta(meta);
-		return fertilized;
-    }
-    
+// 	TODO: find out what the heck this is for.
     public void addExpFarmer(Player p, double add){
     	FcPlayers fcp = new FcPlayers(this, p);
     if(fcp.getPlayerJob().equalsIgnoreCase("Farmer")){	
@@ -585,16 +472,7 @@ public class FiddyCraft extends JavaPlugin {
     	}
    }
     
-    public boolean matchesSeedType(String seedType){
-		String dn = seedType;
-		 ArrayList<cropSeed> test = new ArrayList<cropSeed>(Arrays.asList(cropSeed.values()));
-		 String meh = dn.toUpperCase().replace(" ", "_");
-		 if(test.toString().contains(meh)){
-					return true;
-			}else{
-				return false;
-		}
-    }
+
     
     public String getTimeStamp(){
     	String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm").format(Calendar.getInstance().getTime());
@@ -1107,36 +985,6 @@ public class FiddyCraft extends JavaPlugin {
 	}
 	
 
-	public TreeMap<String, Double> sortHashMap(HashMap<String, Double> map){
-
-       
-        ValueComparator bvc =  new ValueComparator(map);
-        TreeMap<String,Double> sorted_map = new TreeMap<String,Double>(bvc);
-
-
-        
-
-        sorted_map.putAll(map);
-
-       return sorted_map; 
-    }
-	
-	class ValueComparator implements Comparator<String> {
-
-	    Map<String, Double> base;
-	    public ValueComparator(Map<String, Double> base) {
-	        this.base = base;
-	    }
-
-	    // Note: this comparator imposes orderings that are inconsistent with equals.    
-	    public int compare(String a, String b) {
-	        if (base.get(a) >= base.get(b)) {
-	            return -1;
-	        } else {
-	            return 1;
-	        } // returning 0 would merge keys
-	    }
-	}
 	
 	public int randomNumber(int total){
 		ArrayList<Integer> ran = new ArrayList<Integer>();
@@ -1312,10 +1160,11 @@ public class FiddyCraft extends JavaPlugin {
 				if(this.getPlantInfo().contains("Farmer." + player.getUniqueId().toString())){
 					//Bukkit.broadcastMessage("NEW PLANT CYCLE");
 					String farmer = player.getUniqueId().toString();
+					PlantUtil plt = new PlantUtil(this);
 					Set<String> plants =  this.getPlantInfo().getConfigurationSection("Farmer." + farmer + ".Plants").getKeys(false);
 					for(String plant : plants){
 						Plants pt = new Plants(this, farmer, this.getLocationFromString(plant));
-						if(!this.isGrowableBlock(pt.getPlantLocation().getBlock())){
+						if(!plt.isGrowableBlock(pt.getPlantLocation().getBlock())){
 							pt.removePlantInfo();
 							//Bukkit.broadcastMessage("removing plant");
 						}
@@ -1357,6 +1206,14 @@ public class FiddyCraft extends JavaPlugin {
 		}
 	}
 }
+	
+    public String getPlantLocationID(Location loc){
+    	int x = (int) loc.getBlockX();
+		int y = (int) loc.getBlockY();
+		int z = (int) loc.getBlockZ();
+		String l = x+"~"+y+"~"+z;
+    	return l;
+    }
 
 //CHECK IF FOOD
 	public boolean isFood(ItemStack i){

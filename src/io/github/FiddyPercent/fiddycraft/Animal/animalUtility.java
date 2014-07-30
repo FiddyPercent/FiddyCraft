@@ -1,4 +1,9 @@
-package io.github.FiddyPercent.fiddycraft;
+package io.github.FiddyPercent.fiddycraft.Animal;
+
+import io.github.FiddyPercent.fiddycraft.FcFarmers;
+import io.github.FiddyPercent.fiddycraft.FcPlayers;
+import io.github.FiddyPercent.fiddycraft.FiddyCraft;
+import io.github.FiddyPercent.fiddycraft.Plant.PlantUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,20 +86,15 @@ public class animalUtility{
 	
 	public boolean checkIfHasSameName(String uuid, String metaname){
 		if(plugin.getAnimalData().getString("Farmer."+ uuid + ".Animals") == null){
-			Bukkit.broadcastMessage("NULL");
 			return true;
 		}
 		Set<String> auuids = plugin.getAnimalData().getConfigurationSection("Farmer."+ uuid + ".Animals").getKeys(false);
 		for(String auuid : auuids){
 			String can = plugin.getAnimalData().getString("Farmer."+ uuid + ".Animals." +  auuid + ".Name");
-			Bukkit.broadcastMessage(can);
 			if(can.equalsIgnoreCase(metaname)){
-				Bukkit.broadcastMessage("same name bro");
 				return false;
-				
 			}
 		}
-		Bukkit.broadcastMessage("just whatever false");
 		return true;
 	}
 	
@@ -214,21 +214,21 @@ public class animalUtility{
 				 String rank = fcf.getRank();
 					if(rank.equalsIgnoreCase("Legendary Farmer")){
 						if(animals.size() <= 12){
-							Bukkit.broadcastMessage("legendary");
+							Bukkit.broadcastMessage("legendary " + animals.size());
 							return true;
 						}else{
 							return false;
 						}
 					}else if(rank.equalsIgnoreCase("Great Farmer")){
 						if(animals.size() <= 8){
-							Bukkit.broadcastMessage("great");
+							Bukkit.broadcastMessage("great " + animals.size());
 							return true;
 						}else{
 							return false;
 						}
 					}else{
 						if(animals.size() <= 6){
-							Bukkit.broadcastMessage("normal");
+							Bukkit.broadcastMessage("normal "  + animals.size());
 							return true;
 						}else{
 							return false;
@@ -236,7 +236,7 @@ public class animalUtility{
 						}
 					}else{
 						if(animals.size() <= 4){
-							Bukkit.broadcastMessage("not a farmer");
+							Bukkit.broadcastMessage("not a farmer "  + animals.size());
 							return true;
 						}
 					}
@@ -351,8 +351,9 @@ public class animalUtility{
 										int r = plugin.randomNumber(5);
 									
 										if(r == 2){
+											PlantUtil pu = new PlantUtil(plugin);
 											Location loc = entity.getLocation();
-											p.getWorld().dropItem(loc, plugin.getfertilizerItem());
+											p.getWorld().dropItem(loc, pu.getFertilizerItem());
 											p.getWorld().playSound(loc, Sound.FALL_BIG, 1, 1);
 										}
 									}

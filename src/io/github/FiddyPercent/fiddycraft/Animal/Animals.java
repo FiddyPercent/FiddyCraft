@@ -1,4 +1,6 @@
-package io.github.FiddyPercent.fiddycraft;
+package io.github.FiddyPercent.fiddycraft.Animal;
+
+import io.github.FiddyPercent.fiddycraft.FiddyCraft;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +40,7 @@ public class Animals {
 	private double weight;
 	private boolean isHappy;
 	public final FiddyCraft plugin;
-	private int maxAge = 2;
+	private int maxAge = 120;
 	
 
 	public Animals(FiddyCraft plugin, String auuid, String uuid){

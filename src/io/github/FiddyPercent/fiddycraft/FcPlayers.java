@@ -50,7 +50,7 @@ public class FcPlayers {
 		animalList = (ArrayList<?>) plugin.getPlayerInfo().getList("Players." +p.getUniqueId().toString()+ ".Animals");
 		pendingTrial = plugin.getPlayerInfo().getBoolean("Players." +p.getUniqueId().toString()+ ".Pending Trial");
 		recipeList = plugin.getPlayerInfo().getString("Players."+ p.getUniqueId().toString() + ".Recipe List");
-		growableList = plugin.getPlayerInfo().getString("Players."+ p.getUniqueId().toString() + ".Growable List");
+		growableList = plugin.getPlayerInfo().getString("Players."+ p.getUniqueId().toString() + ".BonusGrow List");
 		GovenmentJob = plugin.getPlayerInfo().getString("Players." + p.getUniqueId().toString() + ".Gov Job");
 		listAnimals = plugin.getAnimalData().getConfigurationSection("Farmer." + p.getUniqueId() + ".Animals" ).getKeys(false);
 	}
@@ -181,13 +181,13 @@ public class FcPlayers {
 	public void addToGrowableList(String plant){
 		String old = this.getRecipeList();
 		String newlist = old  + ":" + plant;
-		plugin.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Growable List", newlist);
+		plugin.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".BonusGrow List", newlist);
 		plugin.savePlayerInfo();
 	}
 	public void removeFromGrowableList(String plant){
 		String old = this.getRecipeList();
 		String newlist = old.replace(":"+ plant, "");
-		plugin.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".Growable List", newlist);
+		plugin.getPlayerInfo().set("Players."+ p.getUniqueId().toString() + ".BonusGrow List", newlist);
 		plugin.savePlayerInfo();
 	}
 	public String getGovenmentJob() {

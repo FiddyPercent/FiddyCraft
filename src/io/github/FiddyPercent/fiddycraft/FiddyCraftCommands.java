@@ -1,5 +1,8 @@
 package io.github.FiddyPercent.fiddycraft;
 
+import io.github.FiddyPercent.fiddycraft.Plant.PlantUtil;
+import io.github.FiddyPercent.fiddycraft.Plant.Plants;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -1252,8 +1255,8 @@ public class FiddyCraftCommands implements CommandExecutor {
 			String seedType = args[0];
 			String description = args[1];
 			int rank = Integer.parseInt(args[2]);
-			
-			if(plugin.matchesSeedType(seedType) == false){
+			PlantUtil pu = new PlantUtil(plugin);
+			if(pu.matchesSeedType(seedType) == false){
 				p.sendMessage(ChatColor.RED + "does not match any known seed type");
 				return false;
 			}

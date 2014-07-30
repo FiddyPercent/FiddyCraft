@@ -1,5 +1,11 @@
 package io.github.FiddyPercent.fiddycraft;
 
+import io.github.FiddyPercent.fiddycraft.Animal.Animals;
+import io.github.FiddyPercent.fiddycraft.Animal.animalUtility;
+import io.github.FiddyPercent.fiddycraft.Plant.PlantUtil;
+import io.github.FiddyPercent.fiddycraft.Plant.Plants;
+import io.github.FiddyPercent.fiddycraft.Plant.cropSeed;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -524,10 +530,10 @@ public class FiddyCraftListener implements Listener{
 	public void blockBreak(BlockBreakEvent e){
 		Player p = e.getPlayer();
 		String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH").format(Calendar.getInstance().getTime());
-
-		if(plugin.isGrowableBlock(e.getBlock())){
+		PlantUtil pla = new PlantUtil(plugin);
+		if(pla.isGrowableBlock(e.getBlock())){
 			if(plugin.isPlantOwned(e.getBlock().getLocation())){
-				if(plugin.isPlayerPlantOwner(p, e.getBlock().getLocation())){
+				if(pla.isPlayerPlantOwner(p, e.getBlock().getLocation())){
 					Plants plant = new Plants(plugin, p.getUniqueId().toString(), e.getBlock().getLocation());
 					//Bukkit.broadcastMessage("Removed plant data");
 					
@@ -1540,7 +1546,9 @@ p.getUniqueId().toString()) == false){
         if( e.getAction() == Action.LEFT_CLICK_BLOCK){
         	 Block block = e.getClickedBlock(); 
         	
-        	if(block.getType() == Material.SIGN || block.getType() == Material.SIGN_POST || block.getType() == Material.WALL_SIGN) {
+        	if(block.getType() == Material.SIGN ||
+        			block.getType() == Material.SIGN_POST ||
+        			block.getType() == Material.WALL_SIGN) {
         	    Sign sign = (Sign) e.getClickedBlock().getState();
         	    
         	   if(sign.getLine(0).contains(ChatColor.DARK_RED + "[Labor]")) { 
@@ -1684,20 +1692,21 @@ p.getUniqueId().toString()) == false){
         	    			}
         	    		}
         	   		}
-        	
-        	 if(plugin.isGrowableBlock(e.getClickedBlock())){
+        	PlantUtil pt = new PlantUtil(plugin);
+        	 if(pt.isGrowableBlock(e.getClickedBlock())){
      			
         		 if(p.getItemInHand().hasItemMeta() && p.getItemInHand().getItemMeta().hasDisplayName()){
-     			if( p.getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase(plugin.getfertilizerItem().getItemMeta().getDisplayName())){
-     				//Bukkit.broadcastMessage("has fertalizer");
+     			if( p.getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase(pt.getFertilizerItem().
+     					getItemMeta().getDisplayName())){
      			Location loc = e.getClickedBlock().getLocation();
          		if(plugin.isPlantOwned(loc)){
-         			//Bukkit.broadcastMessage("has owned");
-         			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + plugin.getPlantLocationID(loc))){
+         			
+         			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() +
+         					".Plants." + plugin.getPlantLocationID(loc))){
          				Plants pl = new Plants(plugin, p.getUniqueId().toString(), loc);	
          			if(!pl.isfertilized()){
          				e.setCancelled(true);
-         				plugin.takeOne(p, plugin.getfertilizerItem());
+         				plugin.takeOne(p, pt.getFertilizerItem());
          				pl.setfertilized(true);
          				int q = pl.getPlantQuailty();
          				plugin.addExpFarmer(p, .03);
@@ -1724,9 +1733,10 @@ p.getUniqueId().toString()) == false){
        }
         if( e.getAction() == Action.RIGHT_CLICK_BLOCK ){
         	ItemStack hand = p.getItemInHand();
-        	
+        	PlantUtil pts = new PlantUtil(plugin);
         	if(e.getClickedBlock().getType() == Material.ANVIL){
-        		if(p.getName().equalsIgnoreCase("xxBooneXX") || p.getName().equalsIgnoreCase("nuns") ||  p.getName().equalsIgnoreCase("Fiddy_Percent")){
+        		if(p.getName().equalsIgnoreCase("xxBooneXX") || p.getName().equalsIgnoreCase("nuns") ||
+        				p.getName().equalsIgnoreCase("Fiddy_Percent")){
         		p.sendMessage(ChatColor.YELLOW + "Remember this cannot be used in normal play just mod stuff");
         		}else{
         		p.sendMessage(ChatColor.YELLOW + "Hmm I cant use this anymore");
@@ -1739,34 +1749,34 @@ p.getUniqueId().toString()) == false){
         		String dn = meta.getDisplayName();	
        		 	ArrayList<cropSeed> test = new ArrayList<cropSeed>(Arrays.asList(cropSeed.values()));
        		 	String meh = dn.toUpperCase().replace(" SEEDS", "").replace(" ", "_").replace("SEEDS", "");
-       		 	//Bukkit.broadcastMessage(ChatColor.RED + meh + " old " + dn);
+       		 	
        		 	if(test.toString().contains(meh)){
-        			if(plugin.canPlantThis(p, dn)){
-        				////Bukkit.broadcastMessage(ChatColor.GOLD + " a seed type" + meh);
-        					plugin.plantNewSeed(p, e.getClickedBlock(), meh, hand);
+        			if(pts.canPlantThis(p, dn)){
+        				
+        					pts.plantNewSeed(p, e.getClickedBlock(), meh, hand);
         					plugin.addExpFarmer(p, .01);
         					e.setCancelled(false);
-        					Plants pt = new Plants(plugin, p.getUniqueId().toString(), plugin.getFirstPlantLocation(e.getClickedBlock().getLocation()));
+        					Plants pt = new Plants(plugin, p.getUniqueId().toString(), pts.getFirstPlantLocation(e.getClickedBlock().getLocation()));
         					pt.setFirstPlanting();
         			}else{
         				e.setCancelled(true);
         				p.sendMessage(ChatColor.RED + "You cannot plant this type of seed yet.");
-        				p.sendMessage("You can plant " + plugin.getPlayerPlantAbleList(p).split("~"));
+        				p.sendMessage("You can plant " + pts.getPlayerPlantAbleList(p).split("~"));
         				
         			}
         			
         			}else{
-        				////Bukkit.broadcastMessage("not a seed type = " + meh  + "list " + test.toString());
+        				
         				e.setCancelled(true);
         		}		
         	}else{
-        		if(plugin.isASeed(p.getItemInHand())){
+        		if(pts.isASeed(p.getItemInHand())){
         		e.setCancelled(true);
         			}
         		}
         	}
         	
-        	else if(plugin.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.AIR){
+        	else if(pts.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.AIR){
         		Location loc = e.getClickedBlock().getLocation();
         		if(plugin.isPlantOwned(loc)){
         			////Bukkit.broadcastMessage("this plant is owned");
@@ -1788,7 +1798,7 @@ p.getUniqueId().toString()) == false){
         		
         	}
         	
-        	else if(plugin.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.getMaterial(373)){
+        	else if(pts.isGrowableBlock(e.getClickedBlock()) && p.getItemInHand().getType() == Material.getMaterial(373)){
         		Location loc = e.getClickedBlock().getLocation();
         		if(plugin.isPlantOwned(loc)){
         			if(plugin.getPlantInfo().contains("Farmer." + p.getUniqueId().toString() + ".Plants." + plugin.getPlantLocationID(loc))){

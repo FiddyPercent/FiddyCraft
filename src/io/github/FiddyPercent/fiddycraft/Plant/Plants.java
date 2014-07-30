@@ -1,4 +1,6 @@
-package io.github.FiddyPercent.fiddycraft;
+package io.github.FiddyPercent.fiddycraft.Plant;
+
+import io.github.FiddyPercent.fiddycraft.FiddyCraft;
 
 import java.util.ArrayList;
 
@@ -25,7 +27,9 @@ public class Plants  {
 	private Boolean isFertilized;
 	private int plantExp;
 
+
 	public Plants(FiddyCraft plugin, String uuid,Location loc){
+		
 		this.plugin = plugin;
 		plantExp = plugin.getPlantInfo().getInt("Farmer."+ uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Plant EXP");
 		plantType = plugin.getPlantInfo().getString("Farmer."+ uuid + ".Plants." + plugin.getPlantLocationID(loc) + ".Plant Type");               
@@ -64,25 +68,31 @@ public class Plants  {
 		return isHealthy;
 	}
 	public void setfertilized(boolean b){
+	
+	
 		plugin.getPlantInfo().set("Farmer." +ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Fertilized", b);
 		plugin.savePlantInfo();
 	}
 	public void setHealth(boolean b){
+	
 		plugin.getPlantInfo().set("Farmer." +ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Healthy", b);
 		plugin.savePlantInfo();
 	}
 	
 	public void setPlantType(String type){
+	
 		plugin.getPlantInfo().set("Farmer."+ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Plant Type", type.toUpperCase());
 		plugin.savePlantInfo();
 	}
 
 	public void setIsWatered(boolean b){
+	
 		plugin.getPlantInfo().set("Farmer."+ ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Watered", b );
 		plugin.savePlantInfo();
 	}
 	
 	public void setPlantCycle(int pcl){
+	
 		if(pcl <= 0){
 			plugin.getPlantInfo().set("Farmer." +ownerUUID+ ".Plants." +  plugin.getPlantLocationID(plantLocation) + ".Plant Cycle", 1);
 		}else{
@@ -92,6 +102,7 @@ public class Plants  {
 	}
 	
 	public void setPlantQuality(int q){
+	
 		if(q < 0){
 			plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Plant Quality", 0);
 		}else{
@@ -125,8 +136,8 @@ public class Plants  {
 		//Bukkit.broadcastMessage("plant cycle = " +cy + " array size = " + pnt.size() + " arraysize - cy " + cycle);
 		String state = pnt.get(cycle);
 		Block b = Bukkit.getWorld("world").getBlockAt(this.getPlantLocation());
-		//Bukkit.broadcastMessage("Chaning state");
-		Location loc = plugin.getFirstPlantLocation(this.getPlantLocation());
+		PlantUtil plant = new PlantUtil(plugin);
+		Location loc = plant.getFirstPlantLocation(this.getPlantLocation());
 		Block topblock = Bukkit.getWorld("world").getBlockAt(loc);
 		double x =  pnt.size() / 100;
 		switch(state){
@@ -314,6 +325,7 @@ public class Plants  {
 		this.removePlantInfo();
 	}
 	public void removePlantInfo(){
+	
 		plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation), null); 
 	}
 	public String getCropCycleString( ){
@@ -456,6 +468,7 @@ public class Plants  {
 	}
 
 	public void setPlantExp(int exp) {
+	
 		plugin.getPlantInfo().set("Farmer."+ ownerUUID + ".Plants." + plugin.getPlantLocationID(plantLocation) + ".Plant EXP", exp);
 		plugin.savePlantInfo();
 	}

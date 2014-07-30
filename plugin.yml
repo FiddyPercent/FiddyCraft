@@ -165,3 +165,7 @@ commands:
       description: sets the info for a seed
       usage: /creatSeed DisplayName, discription, ranknumber  
       permission: 
+    setJob:
+      description: sets a players Job
+      usage: /setjob player job  
+      permission: 

@@ -1,4 +1,4 @@
-package io.github.FiddyPercent.fiddycraft;
+package io.github.FiddyPercent.fiddycraft.Plant;
 
 public enum cropSeed {
 
