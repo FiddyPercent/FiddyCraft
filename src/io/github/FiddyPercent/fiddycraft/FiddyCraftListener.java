@@ -1019,7 +1019,7 @@ public class FiddyCraftListener implements Listener{
 						
 					}
 				}
-		if(plugin.canCraft(result) == false){
+		if(plugin.cantCraft(result) == false){
 			//////Bukkit.broadcastMessage("method cancraft");
 			 e.setResult(plugin.getFailedDish());
 				}
@@ -1030,42 +1030,22 @@ public class FiddyCraftListener implements Listener{
 	public void crafting(PrepareItemCraftEvent e){
 		Player p = (Player)e.getViewers().get(0);
 		ItemStack[] items = e.getInventory().getContents();
+		ArrayList<ItemStack> correct = new ArrayList<ItemStack>();
+			for(ItemStack i : items){
+				correct.add(i);
+			}
+		 correct.remove(0);
 		ItemStack result = e.getRecipe().getResult();
-		ArrayList<Boolean> trueOnce = new ArrayList<Boolean>();
-		HashMap<String,ArrayList<String>> playerCraft = new HashMap<String,ArrayList<String>>();
-		ArrayList<String> displayName = new ArrayList<String>();
-		if(result.hasItemMeta()){
-			HashMap<String, Integer> foodRank = new HashMap<String, Integer>();
-			HashMap<String, Integer> foodTotal = new HashMap<String, Integer>();
-			ItemMeta rmeta = result.getItemMeta();
-			if(rmeta.hasDisplayName()){
-				if(plugin.isRecipe(rmeta.getDisplayName())){
-					for(ItemStack i : items){
-					
-					plugin.starRankSetup(trueOnce, foodRank, displayName, i, playerCraft, result, p, foodTotal);
-					}
-							if(plugin.hasIngredents(playerCraft, rmeta.getDisplayName(), p.getName()) == false && trueOnce.isEmpty()){
-								 e.getInventory().setItem(0,plugin.getFailedDish());
-								}else{
-									 e.getInventory().setItem(0, plugin.getDish(foodRank, foodTotal, result));
-										}
-									}	
-								}
-							}
-
-		ItemStack[] allItems = e.getInventory().getContents();
-		ArrayList<Boolean> trueOnce2 = new ArrayList<Boolean>();
-		for(ItemStack is : allItems){
-			if(plugin.isSpice(is)){
-				trueOnce2.add(true);
-			}
-			if(trueOnce2.contains(true)){
-			}
+		Recipe r = new Recipe(plugin);
+		ItemStack fail = new ItemStack(Material.SKULL);
+		ItemStack rc = r.recipeCheck(correct);
+		if(!rc.isSimilar(fail)){
+			Bukkit.broadcastMessage(ChatColor.RED + "is not a skull item + " +rc.toString() );
+			e.getInventory().setItem(0,rc);
+		}else{
 			
 		}
-		
-		if(plugin.canCraft(result) == false){
-	//////Bukkit.broadcastMessage("method cancraft");
+		if(plugin.cantCraft(result) == false){
 			e.getInventory().setItem(0, plugin.getFailedDish());
 		}
 	}

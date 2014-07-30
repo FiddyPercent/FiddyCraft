@@ -2,6 +2,7 @@ package io.github.FiddyPercent.fiddycraft;
 
 import io.github.FiddyPercent.fiddycraft.Animal.Animals;
 import io.github.FiddyPercent.fiddycraft.Animal.animalUtility;
+import io.github.FiddyPercent.fiddycraft.Jobs.FcFarmers;
 import io.github.FiddyPercent.fiddycraft.Plant.PlantUtil;
 import io.github.FiddyPercent.fiddycraft.Plant.Plants;
 
@@ -1251,26 +1252,27 @@ public class FiddyCraft extends JavaPlugin {
 	
 //COOKING RECIPES
 		public void  Recipes(){
-	        this.dehydratedMeat();
-	        this.MushroomSoup();
-	        this.hotMilk();
-	        this.boiledEgg();
-	        this.sweetMilk();
-	        this.flour();
-	        this.hotRawChicken();
-	        this.spiceyChicken();
-	        this.breadDough();
-	        this.sweetBreadDough();
-	        this.butter();
-	        this.normalChicken();
-	        this.normalBread();
-	        this.PreparedFish();
-	        this.PreparedPorkChop();
-	        this.PreparedSteak();
-	        this.grilledfish();
-	        this.steak();
-	        this.porkchop();
-	        this.PreparedChicken();
+			RecipeBook rb = new RecipeBook(this);
+	        rb.dehydratedMeat();
+	        rb.MushroomSoup();
+	        rb.hotMilk();
+	        rb.boiledEgg();
+	        rb.sweetMilk();
+	        rb.flour();
+	        rb.hotRawChicken();
+	        rb.spiceyChicken();
+	        rb.breadDough();
+	        rb.sweetBreadDough();
+	        rb.butter();
+	        rb.normalChicken();
+	        rb.normalBread();
+	        rb.PreparedFish();
+	        rb.PreparedPorkChop();
+	        rb.PreparedSteak();
+	        rb.grilledfish();
+	        rb.steak();
+	        rb.porkchop();
+	        rb.PreparedChicken();
 	        
 		}
 //COOKING RECIPE NAMES
@@ -1622,304 +1624,7 @@ public class FiddyCraft extends JavaPlugin {
 				return 0;
 			}
 		}
-//HOT SWEET MILK
-	public void sweetMilk(){
-	    ItemStack item = new ItemStack(Material.MILK_BUCKET);
-        ItemMeta imeta = item.getItemMeta();
-        ArrayList<String> Lore = new ArrayList<String>();
-        imeta.setDisplayName("Sweet Milk");
-        Lore.add("Sweetened Milk, may cause diabetes");
-        imeta.setLore(Lore);
-        item.setItemMeta(imeta);
-        ShapedRecipe sweetMilk = new ShapedRecipe(new ItemStack(item));
-        sweetMilk.shape("S","M");
-        sweetMilk.setIngredient('S', Material.SUGAR);
-        sweetMilk.setIngredient('M', Material.MILK_BUCKET);
-        getServer().addRecipe(sweetMilk);
-	}
-	
-//FLOUR
-	public void flour() {
-		 ItemStack item = new ItemStack(Material.SUGAR);
-		 ItemMeta imeta = item.getItemMeta();
-	       ArrayList<String> Lore = new ArrayList<String>();
-	       Lore.add("Flour for baking");
-	       imeta.setDisplayName("Flour");
-	       imeta.setLore(Lore);
-	       item.setItemMeta(imeta);
-	       
-		ShapelessRecipe flour = new ShapelessRecipe(item);
-		flour.addIngredient(Material.WHEAT);
-		Bukkit.addRecipe(flour);
-		}
-	
-//SPICEY RAW CHICKEN
-	public void hotRawChicken() {
-		 ItemStack item = new ItemStack(Material.RAW_CHICKEN);
-		 ItemMeta imeta = item.getItemMeta();
-	       ArrayList<String> Lore = new ArrayList<String>();
-	       Lore.add("Raw Spicey Chicken");
-	       imeta.setDisplayName("Raw Spicey Chicken");
-	       imeta.setLore(Lore);
-	       item.setItemMeta(imeta);
-	       
-		ShapelessRecipe hotRawChicken = new ShapelessRecipe(item);
-		hotRawChicken.addIngredient(Material.NETHER_STALK);
-		hotRawChicken.addIngredient(Material.PUMPKIN_SEEDS);
-		hotRawChicken.addIngredient(Material.MELON_SEEDS);
-		hotRawChicken.addIngredient(Material.RAW_CHICKEN);
-		Bukkit.addRecipe(hotRawChicken);
-		}
-//STEAK
-	public void PreparedSteak() {
-		 ItemStack item = new ItemStack(Material.RAW_BEEF);
-		 ItemMeta imeta = item.getItemMeta();
-	       ArrayList<String> Lore = new ArrayList<String>();
-	       Lore.add("Ready for Cooking");
-	       imeta.setDisplayName("Prepared Steak");
-	       imeta.setLore(Lore);
-	       item.setItemMeta(imeta);
-	       
-		ShapelessRecipe PreparedSteak = new ShapelessRecipe(item);
-		PreparedSteak.addIngredient(Material.PUMPKIN_SEEDS);
-		PreparedSteak.addIngredient(Material.MELON_SEEDS);
-		PreparedSteak.addIngredient(Material.RAW_BEEF);
-		Bukkit.addRecipe(PreparedSteak);
-		}
-//PORK CHOP
-	public void PreparedPorkChop() {
-		 ItemStack item = new ItemStack(Material.PORK);
-		 ItemMeta imeta = item.getItemMeta();
-	       ArrayList<String> Lore = new ArrayList<String>();
-	       Lore.add("Ready for Cooking");
-	       imeta.setDisplayName("Prepared Pork Chop");
-	       imeta.setLore(Lore);
-	       item.setItemMeta(imeta);
-		ShapelessRecipe PreparedPorkChop = new ShapelessRecipe(item);
-		PreparedPorkChop.addIngredient(Material.PUMPKIN_SEEDS);
-		PreparedPorkChop.addIngredient(Material.MELON_SEEDS);
-		PreparedPorkChop.addIngredient(Material.PORK);
-		Bukkit.addRecipe(PreparedPorkChop);
-		}
-//PREPAIRED FISH
-	public void PreparedFish() {
-		 ItemStack item = new ItemStack(Material.RAW_FISH);
-		 ItemMeta imeta = item.getItemMeta();
-	       ArrayList<String> Lore = new ArrayList<String>();
-	       Lore.add("Ready for Cooking");
-	       imeta.setDisplayName("Prepared Fish");
-	       imeta.setLore(Lore);
-	       item.setItemMeta(imeta);
-	       
-		ShapelessRecipe PreparedFish = new ShapelessRecipe(item);
-		PreparedFish.addIngredient(Material.PUMPKIN_SEEDS);
-		PreparedFish.addIngredient(Material.MELON_SEEDS);
-		PreparedFish.addIngredient(Material.RAW_FISH);
-		Bukkit.addRecipe(PreparedFish);
-		}
-	
-	public void PreparedChicken() {
-		 ItemStack item = new ItemStack(Material.RAW_CHICKEN);
-		 ItemMeta imeta = item.getItemMeta();
-	       ArrayList<String> Lore = new ArrayList<String>();
-	       Lore.add("Ready for Cooking");
-	       imeta.setDisplayName("Prepared Chicken");
-	       imeta.setLore(Lore);
-	       item.setItemMeta(imeta);
-	       
-		ShapelessRecipe PreparedFish = new ShapelessRecipe(item);
-		PreparedFish.addIngredient(Material.PUMPKIN_SEEDS);
-		PreparedFish.addIngredient(Material.MELON_SEEDS);
-		PreparedFish.addIngredient(Material.RAW_CHICKEN);
-		Bukkit.addRecipe(PreparedFish);
-		}
-//BREAD DOUGH
-	public void breadDough() {
-		 ItemStack item = new ItemStack(Material.INK_SACK, 1, (short) 9);
-		 ItemMeta imeta = item.getItemMeta();
-	       ArrayList<String> Lore = new ArrayList<String>();
-	       Lore.add("Bread Dough for making bread");
-	       imeta.setDisplayName("Bread milDough");
-	       imeta.setLore(Lore);
-	       item.setItemMeta(imeta);
-	       
-		ShapelessRecipe breadDough = new ShapelessRecipe(item);
-		breadDough.addIngredient(Material.PUMPKIN_SEEDS);
-		breadDough.addIngredient(Material.SUGAR);
-		breadDough.addIngredient(Material.SUGAR);
-		breadDough.addIngredient(Material.MILK_BUCKET);
-		breadDough.addIngredient(Material.EGG);
-		
-		Bukkit.addRecipe(breadDough);
-		}
-//BUTTER
-	public void butter() {
-		 ItemStack item = new ItemStack(Material.INK_SACK, 1,  (short) 11);
-		 ItemMeta imeta = item.getItemMeta();
-	       ArrayList<String> Lore = new ArrayList<String>();
-	       Lore.add("Butter made from milk");
-	       imeta.setDisplayName("Butter");
-	       imeta.setLore(Lore);
-	       item.setItemMeta(imeta);
-	       
-		ShapelessRecipe Butter = new ShapelessRecipe(item);
-		Butter.addIngredient(Material.PUMPKIN_SEEDS);
-		Butter.addIngredient(Material.MILK_BUCKET);
-		Bukkit.addRecipe(Butter);
-		}
-//SWEET BREAD DOUGH
-	public void sweetBreadDough() {
-		 ItemStack item = new ItemStack(Material.INK_SACK, 1,  (short) 13);
-		 ItemMeta imeta = item.getItemMeta();
-	       ArrayList<String> Lore = new ArrayList<String>();
-	       Lore.add("Bread Dough for making bread");
-	       imeta.setDisplayName("Sweet Bread Dough");
-	       imeta.setLore(Lore);
-	       item.setItemMeta(imeta);
-	       
-		ShapelessRecipe breadDough = new ShapelessRecipe(item);
-		breadDough.addIngredient(Material.PUMPKIN_SEEDS);
-		breadDough.addIngredient(Material.SUGAR);
-		breadDough.addIngredient(Material.SUGAR);
-		breadDough.addIngredient(Material.SUGAR);
-		breadDough.addIngredient(Material.MILK_BUCKET);
-		breadDough.addIngredient(Material.EGG);
-		
-		Bukkit.addRecipe(breadDough);
-		}
 
-	@SuppressWarnings("deprecation")
-	public void  sweetlBread(){
-		ItemStack BoiledEgg = new ItemStack(Material.BREAD);
-		ItemMeta meta = BoiledEgg.getItemMeta();
-		ArrayList<String> Lore = new ArrayList<String>();
-		meta.setDisplayName("Baked Bread");
-		Lore.add("Bread, thats about it");
-		meta.setLore(Lore);
-		BoiledEgg.setItemMeta(meta);
-		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(BoiledEgg), Material.INK_SACK, 9));
-	}
-	
-	@SuppressWarnings("deprecation")
-	public void  normalBread(){
-		ItemStack BoiledEgg = new ItemStack(Material.BREAD);
-		ItemMeta meta = BoiledEgg.getItemMeta();
-		ArrayList<String> Lore = new ArrayList<String>();
-		meta.setDisplayName("Baked Bread");
-		Lore.add("Bread, thats about it");
-		meta.setLore(Lore);
-		BoiledEgg.setItemMeta(meta);
-		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(BoiledEgg), Material.INK_SACK, 9));
-	}
-	
-//BPOILED EGG
-	public void  boiledEgg(){
-		ItemStack BoiledEgg = new ItemStack(Material.EGG);
-		ItemMeta meta = BoiledEgg.getItemMeta();
-		ArrayList<String> Lore = new ArrayList<String>();
-		meta.setDisplayName("Boiled Egg");
-		Lore.add("An egg boiled in water");
-		meta.setLore(Lore);
-		BoiledEgg.setItemMeta(meta);
-		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(BoiledEgg), Material.EGG));
-	}
-//HOT MILK
-	public void  hotMilk(){
-		ItemStack HotMilk = new ItemStack(Material.MILK_BUCKET);
-		ItemMeta meta = HotMilk.getItemMeta();
-		ArrayList<String> Lore = new ArrayList<String>();
-		meta.setDisplayName("Hot Milk");
-		Lore.add("Milk that has been heated");
-		meta.setLore(Lore);
-		HotMilk.setItemMeta(meta);
-		this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(HotMilk), Material.MILK_BUCKET));
-		
-	}
-	
-//BROTH POWDER
-	public void dehydratedMeat(){
-		   ItemStack Broth = new ItemStack(Material.INK_SACK, 1 , (short) 3);
-	        ItemMeta broth = Broth.getItemMeta();
-	        ArrayList<String> Lore = new ArrayList<String>();
-	        Lore.add("Home made broth powder");
-	        broth.setLore(Lore);
-	        broth.setDisplayName("Broth Powder");
-	        Broth.setItemMeta(broth);
-	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(Broth), Material.COOKED_CHICKEN));
-	}
-//SPICEY CHICKEN
-	public void spiceyChicken(){
-		   ItemStack item = new ItemStack(Material.COOKED_CHICKEN);
-	        ItemMeta meta = item.getItemMeta();
-	        ArrayList<String> Lore = new ArrayList<String>();
-	        Lore.add("Spicey Chicken careful its hot");
-	        meta.setLore(Lore);
-	        meta.setDisplayName("Spicey Chicken");
-	        item.setItemMeta(meta);
-	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(item), Material.RAW_CHICKEN));
-	}
-//NORMAL CHICKEN
-	public void normalChicken(){
-		   ItemStack item = new ItemStack(Material.COOKED_CHICKEN);
-	        ItemMeta meta = item.getItemMeta();
-	        ArrayList<String> Lore = new ArrayList<String>();
-	        Lore.add("Chicken, everyone loves chicken");
-	        meta.setLore(Lore);
-	        meta.setDisplayName("Baked Chicken");
-	        item.setItemMeta(meta);
-	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(item), Material.RAW_CHICKEN));
-	}
-	
-	public void steak(){
-		   ItemStack item = new ItemStack(Material.COOKED_BEEF);
-	        ItemMeta meta = item.getItemMeta();
-	        ArrayList<String> Lore = new ArrayList<String>();
-	        Lore.add("Steak, mmmm meaty");
-	        meta.setLore(Lore);
-	        meta.setDisplayName("Steak");
-	        item.setItemMeta(meta);
-	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(item), Material.RAW_BEEF));
-	}
-
-	public void porkchop(){
-		   ItemStack item = new ItemStack(Material.GRILLED_PORK);
-	        ItemMeta meta = item.getItemMeta();
-	        ArrayList<String> Lore = new ArrayList<String>();
-	        Lore.add("Pork in the big city");
-	        meta.setLore(Lore);
-	        meta.setDisplayName("Pork Chop");
-	        item.setItemMeta(meta);
-	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(item), Material.PORK));
-	}
-	public void grilledfish(){
-		   ItemStack item = new ItemStack(Material.COOKED_FISH);
-	        ItemMeta meta = item.getItemMeta();
-	        ArrayList<String> Lore = new ArrayList<String>();
-	        Lore.add("Smells fishy");
-	        meta.setLore(Lore);
-	        meta.setDisplayName("Baked Fish");
-	        item.setItemMeta(meta);
-	        this.getServer().addRecipe(new FurnaceRecipe(new ItemStack(item), Material.RAW_FISH));
-	}
-	
-//MUSHROOM SOUP
-	@SuppressWarnings("deprecation")
-	public void MushroomSoup(){
-        ItemStack MushRoomSoup = new ItemStack(Material.MUSHROOM_SOUP);
-        ItemMeta imeta = MushRoomSoup.getItemMeta();
-        ArrayList<String> Lore = new ArrayList<String>();
-        imeta.setDisplayName("Mushroom Soup");
-        Lore.add("Home made mushroom soup");
-        imeta.setLore(Lore);
-        MushRoomSoup.setItemMeta(imeta);
-        ShapedRecipe msoup = new ShapedRecipe(new ItemStack(MushRoomSoup));
-        msoup.shape(" B ","MWM"," K ");
-        msoup.setIngredient('M', Material.BROWN_MUSHROOM);
-        msoup.setIngredient('B', Material.INK_SACK, 3);
-        msoup.setIngredient('W', Material.WATER_BUCKET);
-        msoup.setIngredient('K', Material.BOWL);
-        getServer().addRecipe(msoup);
-	}
 //SET COOKING RANK
 	public String setCookingRank(int number){
 		int r = number;
@@ -2037,6 +1742,86 @@ public class FiddyCraft extends JavaPlugin {
 		}
 	}
 }
+	
+	public boolean cantCraft(ItemStack result){
+		ArrayList<Material> noCraft = new ArrayList<Material>();
+		noCraft.add(Material.MUSHROOM_SOUP);
+		noCraft.add(Material.BREAD);
+		noCraft.add(Material.BAKED_POTATO);
+		noCraft.add(Material.PUMPKIN_PIE);
+		noCraft.add(Material.GOLDEN_APPLE);
+		noCraft.add(Material.COOKIE);
+		noCraft.add(Material.COOKED_BEEF);
+		noCraft.add(Material.COOKED_CHICKEN);
+		noCraft.add(Material.COOKED_FISH);
+		noCraft.add(Material.GRILLED_PORK);
+	    noCraft.add(Material.CAKE);
+		Material r = result.getType();
+		if(noCraft.contains(r) && result.hasItemMeta() == false && !result.getItemMeta().hasDisplayName()){
+			return false;
+		}else{
+		
+			return true;
+		}
+	}
+	
+	public ArrayList<String> setFoodBuff(ItemStack mainIngredent, String itemName, int rank){
+		Material item = mainIngredent.getType();
+		ItemMeta meta = mainIngredent.getItemMeta();
+		ArrayList<String> b = new ArrayList<String>();
+		String in = itemName;
+		////Bukkit.broadcastMessage(ChatColor.GOLD + itemName);
+		if(in != null){
+		if(in.contains("Spicey")){
+			b.add("Heat Tolerance");
+			}
+		if(in.contains("Sweet")){
+			b.add("Jumpy");
+			}
+		if(in.contains("Salty")){
+			b.add("Saturation");
+			}
+		if(in.contains("Sour")){
+			b.contains("Night Eyes");
+			}
+		if(in.contains("Bitter")){
+			b.add("Healing");
+			}
+		if(in.contains("Miners")){
+			b.add("Miners Bonus");
+			}
+	//MEAT
+		if(item == Material.COOKED_BEEF || item == Material.COOKED_CHICKEN ||item == Material.COOKED_FISH){
+			b.add("Strength");
+		}
+	//SOUP	
+		if(item == Material.MUSHROOM_SOUP && mainIngredent.hasItemMeta() && meta.hasDisplayName()){
+			if(meta.getDisplayName().equalsIgnoreCase("Mushroom Soup")){
+				b.add("Health");
+			}else{
+				b.add("Regeneration");
+			}
+		}
+	//SWEETS
+		if(item == Material.COOKIE || item == Material.CAKE || item == Material.PUMPKIN_PIE){
+			b.add("Speed");
+		}
+	//MILK
+		if(item == Material.MILK_BUCKET){
+			b.add("Strong Bones");
+		}
+	//VEGGIES
+		if(item == Material.BAKED_POTATO || item == Material.GOLDEN_CARROT){
+			b.add("Health");
+		}
+		}
+		
+		if(b.isEmpty()){
+			b.add( "None");
+		}
+		
+		return b;
+		}
 //ADDING FOOD EFFECTS
 	public void setFoodEffects(Player p,String effect, int starRank){
 		
@@ -2094,91 +1879,8 @@ public class FiddyCraft extends JavaPlugin {
 	
 
 //CHECK IF ABLE TO MAKE THIS FOOD
-	public boolean canCraft(ItemStack result){
-//////Bukkit.broadcastMessage("cancraft");
-		ArrayList<Material> noCraft = new ArrayList<Material>();
-		noCraft.add(Material.MUSHROOM_SOUP);
-		noCraft.add(Material.BREAD);
-		noCraft.add(Material.BAKED_POTATO);
-		noCraft.add(Material.PUMPKIN_PIE);
-		noCraft.add(Material.GOLDEN_APPLE);
-		noCraft.add(Material.COOKIE);
-		noCraft.add(Material.COOKED_BEEF);
-		noCraft.add(Material.COOKED_CHICKEN);
-		noCraft.add(Material.COOKED_FISH);
-		noCraft.add(Material.GRILLED_PORK);
-	    noCraft.add(Material.CAKE);
-		Material r = result.getType();
-		if(noCraft.contains(r) && result.hasItemMeta() == false && !result.getItemMeta().hasDisplayName()){
-			
-			return false;
-		}else{
-		
-			return true;
-		}
-	}
+
 
 //SET FOOD BUFF
-		public ArrayList<String> setFoodBuff(ItemStack mainIngredent, String itemName, int rank){
-		Material item = mainIngredent.getType();
-		ItemMeta meta = mainIngredent.getItemMeta();
-		ArrayList<String> b = new ArrayList<String>();
-		String in = itemName;
-		////Bukkit.broadcastMessage(ChatColor.GOLD + itemName);
-		if(in != null){
-		if(in.contains("Spicey")){
-			b.add("Heat Tolerance");
-		}
-		
-		if(in.contains("Sweet")){
-			b.add("Jumpy");
-		}
-		
-		if(in.contains("Salty")){
-			b.add("Saturation");
-		}
-		
-		if(in.contains("Sour")){
-			b.contains("Night Eyes");
-		}
-		
-		if(in.contains("Bitter")){
-			b.add("Healing");
-		}
-		
-		if(in.contains("Miners")){
-			b.add("Miners Bonus");
-		}
-	//MEAT
-		if(item == Material.COOKED_BEEF || item == Material.COOKED_CHICKEN ||item == Material.COOKED_FISH){
-			b.add("Strength");
-		}
-	//SOUP	
-		if(item == Material.MUSHROOM_SOUP && mainIngredent.hasItemMeta() && meta.hasDisplayName()){
-			if(meta.getDisplayName().equalsIgnoreCase("Mushroom Soup")){
-				b.add("Health");
-			}else{
-				b.add("Regeneration");
-			}
-		}
-	//SWEETS
-		if(item == Material.COOKIE || item == Material.CAKE || item == Material.PUMPKIN_PIE){
-			b.add("Speed");
-		}
-	//MILK
-		if(item == Material.MILK_BUCKET){
-			b.add("Strong Bones");
-		}
-	//VEGGIES
-		if(item == Material.BAKED_POTATO || item == Material.GOLDEN_CARROT){
-			b.add("Health");
-		}
-		}
-		
-		if(b.isEmpty()){
-			b.add( "None");
-		}
-		
-		return b;
-		}
+	
 	}

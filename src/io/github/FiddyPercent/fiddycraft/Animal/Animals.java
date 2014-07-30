@@ -603,7 +603,7 @@ public class Animals {
 			}
 			
 			if(hp <= 1){
-				meta.setDisplayName("Ugly Egg");
+				meta.setDisplayName("Small Egg");
 				eggLore.add("A warped egg not very good looking");
 				eggLore.add("X");
 			}else if(hp >= 2 && hp < 5){
@@ -611,15 +611,15 @@ public class Animals {
 				eggLore.add("A normal looking egg");
 				eggLore.add("*");
 			}else if(hp >= 5 && hp < 6){
-				meta.setDisplayName("Good Egg");
+				meta.setDisplayName("Medium Egg");
 				eggLore.add("A good sized egg");
 				eggLore.add("**");
 			}else if(hp >= 7 && hp < 9){
-				meta.setDisplayName("High Quality Egg");
+				meta.setDisplayName("Large Egg");
 				eggLore.add("A very good quality large egg");
 				eggLore.add("***");
 			}else{
-				meta.setDisplayName("Golden Golden");
+				meta.setDisplayName("Golden Egg");
 				eggLore.add("A rare Golden Egg the highest quality of egg");
 				eggLore.add("****");
 			}

@@ -1,5 +1,10 @@
-package io.github.FiddyPercent.fiddycraft;
+package io.github.FiddyPercent.fiddycraft.Jobs;
 
+import io.github.FiddyPercent.fiddycraft.FcPlayers;
+import io.github.FiddyPercent.fiddycraft.FiddyCraft;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -25,6 +30,10 @@ public class FcFarmers extends FcPlayers implements ExperienceAble {
 		return Rank;
 	}
 	
+	public List<String> getRanks(){
+		List<String> ranks = Arrays.asList("Farmer","Great Farmer", "Legendary Farmer");
+		return ranks;
+	}
 	public void setFarmerRank(String rank){
 		plugin.getPlayerInfo().set("Players." + p.getUniqueId().toString() +".Farmer Rank", rank);
 		
@@ -54,8 +63,6 @@ public class FcFarmers extends FcPlayers implements ExperienceAble {
 	public Set<String> getAllFarmers(){
 		return allFarmers;
 	}
-
-	
 	
 	@Override
 	public double getCurrentExp() {

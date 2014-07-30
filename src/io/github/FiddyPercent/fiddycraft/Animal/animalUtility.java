@@ -1,8 +1,8 @@
 package io.github.FiddyPercent.fiddycraft.Animal;
 
-import io.github.FiddyPercent.fiddycraft.FcFarmers;
 import io.github.FiddyPercent.fiddycraft.FcPlayers;
 import io.github.FiddyPercent.fiddycraft.FiddyCraft;
+import io.github.FiddyPercent.fiddycraft.Jobs.FcFarmers;
 import io.github.FiddyPercent.fiddycraft.Plant.PlantUtil;
 
 import java.util.ArrayList;
