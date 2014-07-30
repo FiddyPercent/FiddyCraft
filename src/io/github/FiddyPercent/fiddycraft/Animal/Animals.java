@@ -1,6 +1,7 @@
 package io.github.FiddyPercent.fiddycraft.Animal;
 
 import io.github.FiddyPercent.fiddycraft.FiddyCraft;
+import io.github.FiddyPercent.fiddycraft.Recipe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -249,6 +250,7 @@ public class Animals {
 	
 	public void deathDrop(Player p, Entity e){
 		Bukkit.broadcastMessage("in death drop");
+		Recipe r = new Recipe(plugin);
 		if(e instanceof Cow){
 			Bukkit.broadcastMessage("cow");
 			int weight = (int) this.getWeight() / 10 ;
@@ -266,31 +268,31 @@ public class Animals {
 			if(hp < 3){
 				meta.setDisplayName("OK Beef");
 				lore.add("Beef that tastes OK");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 				meta2.setDisplayName("Low Quality Leather");
 				lore2.add("Not the best Leather");
-				lore2.add(plugin.setCookingRank(rank));
+				lore2.add(r.setItemRank(rank));
 			}else if(hp > 2 && hp < 6){
 				meta.setDisplayName("Good Beef");
 				lore.add("Beef that tastes Good");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 				meta2.setDisplayName("Good Quality Leather");
 				lore2.add("Good Leather");
-				lore2.add(plugin.setCookingRank(rank));
+				lore2.add(r.setItemRank(rank));
 			}else if(hp > 5 && hp <= 9){
 				meta.setDisplayName("Great Beef");
 				lore.add("Beef that tastes Great");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 				meta2.setDisplayName("Great Quality Leather");
 				lore2.add("Great Quality");
-				lore2.add(plugin.setCookingRank(rank));
+				lore2.add(r.setItemRank(rank));
 			}else if(hp <= 10){
 				meta.setDisplayName("Legendary Beef");
 				lore.add("Beef that tastes Legendary");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 				meta2.setDisplayName("Highest Quality Leather");
 				lore2.add("Perfect Quality");
-				lore2.add(plugin.setCookingRank(rank));
+				lore2.add(r.setItemRank(rank));
 			}
 			meta.setLore(lore);
 			meats.setItemMeta(meta);
@@ -312,19 +314,19 @@ public class Animals {
 			if(hp < 3){
 				meta.setDisplayName("OK Chicken");
 				lore.add("Chicken that tastes OK");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 			}else if(hp > 2 && hp < 6){
 				meta.setDisplayName("Good Chicken");
 				lore.add("Chicken that tastes Good");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 			}else if(hp > 5 && hp <= 9){
 				meta.setDisplayName("Great Chicken");
 				lore.add("Chicken that tastes Great");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 			}else if(hp <= 10){
 				meta.setDisplayName("Legendary Chicken");
 				lore.add("Chicken that tastes Legendary");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 			}
 			meta.setLore(lore);
 			meats.setItemMeta(meta);
@@ -343,19 +345,19 @@ public class Animals {
 			if(hp < 3){
 				meta.setDisplayName("OK Pork");
 				lore.add("Pork that tastes OK");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 			}else if(hp > 2 && hp < 6){
 				meta.setDisplayName("Good Pork");
 				lore.add("Pork that tastes Good");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 			}else if(hp > 5 && hp <= 9){
 				meta.setDisplayName("Great Pork");
 				lore.add("Pork that tastes Great");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 			}else if(hp <= 10){
 				meta.setDisplayName("Legendary Pork");
 				lore.add("Pork that tastes Legendary");
-				lore.add(plugin.setCookingRank(rank));
+				lore.add(r.setItemRank(rank));
 			}
 			meta.setLore(lore);
 			meats.setItemMeta(meta);

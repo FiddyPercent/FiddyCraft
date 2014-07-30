@@ -1090,37 +1090,37 @@ public class FiddyCraft extends JavaPlugin {
 				if(this.getAnimalData().contains("Farmer." + player.getUniqueId().toString() + ".Animals")){
 				String farmer = player.getUniqueId().toString();	
 				if(this.getAnimalData().getConfigurationSection("Farmer." + farmer + ".Animals").getKeys(false) == null){
-					Bukkit.broadcastMessage("false");
+					//bukkit.broadcastMessage("false");
 				}else{
 				Set<String> animals =  this.getAnimalData().getConfigurationSection("Farmer." + farmer + ".Animals").getKeys(false);
 				for(String animal : animals){
 					
 					 Animals a = new Animals(this, animal, farmer);
-					 Bukkit.broadcastMessage("adding age " + a.getAge());
+					 //bukkit.broadcastMessage("adding age " + a.getAge());
 					 a.addAge(1);
 					 a.checkIfToOld();
-					 Bukkit.broadcastMessage("new age " + a.getAge());
+					 //bukkit.broadcastMessage("new age " + a.getAge());
 					 
 					 if(a.getHunger() == true){
-						 Bukkit.broadcastMessage(ChatColor.RED +a.getAnimalName() + " is Hungry");
+						 //bukkit.broadcastMessage(ChatColor.RED +a.getAnimalName() + " is Hungry");
 						 if(a.isHappy() == true){
-							 Bukkit.broadcastMessage("Was Happy");
+							 //bukkit.broadcastMessage("Was Happy");
 						 int r = this.randomNumber(2);
-						 Bukkit.broadcastMessage("r = " + r);
+						 //bukkit.broadcastMessage("r = " + r);
 						 if(r == 1){
-							 Bukkit.broadcastMessage("Not happy anymore");
+							 //bukkit.broadcastMessage("Not happy anymore");
 							 a.setHappyness(false);
 							 a.addHeartPoint(- .05);
 							 a.addWeight(- 4);
 							
 							 }
 						 }else{
-							 Bukkit.broadcastMessage("not happy");
+							 //bukkit.broadcastMessage("not happy");
 							 if(a.isHealthy() == true){
-								 Bukkit.broadcastMessage("not happy but healthy");
+								 //bukkit.broadcastMessage("not happy but healthy");
 							 int r = this.randomNumber(5);
 							 if( r == 3){
-								 Bukkit.broadcastMessage("now is sick");
+								 //bukkit.broadcastMessage("now is sick");
 								 a.setHealth(false);
 								 if(Bukkit.getPlayer(a.getOwnerName()).isOnline()){
 									 Bukkit.getPlayer(a.getOwnerName()).sendMessage(ChatColor.RED + a.getAnimalName() + " is sick!");
@@ -1128,7 +1128,7 @@ public class FiddyCraft extends JavaPlugin {
 							 	}
 							 }else{
 							 int r = this.randomNumber(5);
-							 Bukkit.broadcastMessage("Should maybe die " + r);
+							 //bukkit.broadcastMessage("Should maybe die " + r);
 							 if(r == 2){
 								 a.setShouldDie(true);
 							 	}
@@ -1137,19 +1137,19 @@ public class FiddyCraft extends JavaPlugin {
 					 }else{
 						 if(a.isHealthy() == false){
 							 int r = this.randomNumber(20);
-							 Bukkit.broadcastMessage("Should maybe die " + r);
+							 //bukkit.broadcastMessage("Should maybe die " + r);
 							 if(r == 10){
 								 a.setShouldDie(true);
 						 }
 					 }
 					}
 					 
-					 Bukkit.broadcastMessage("owner " + a.getOwnerName());
+					 //bukkit.broadcastMessage("owner " + a.getOwnerName());
 					a.setHunger(true);
 					a.setIsWashed(false);
 					a.setIsPet(true);
 					if(a.getIsWashed() && a.getIsPet() == false && a.isHappy()){
-						Bukkit.broadcastMessage( a.getAnimalName() + " is Happy again");
+						//bukkit.broadcastMessage( a.getAnimalName() + " is Happy again");
 					a.setHappyness(true);
 					}
 					
@@ -1241,14 +1241,8 @@ public class FiddyCraft extends JavaPlugin {
 	}
 	
 //NON FOOD ITEM CHCEK
-	public boolean isaNonFoodItem(Material item){
-		Material i = item;
-		if(i == Material.WATER_BUCKET || i == Material.BOWL || i == Material.POTION){
-			return true;
-		}else{
-			return false;
-		}
-	}
+
+	
 	
 //COOKING RECIPES
 		public void  Recipes(){
@@ -1609,139 +1603,27 @@ public class FiddyCraft extends JavaPlugin {
 		
 
 //COOKING RANK STARS TO INTS
-		public int getcookingRankLevel(String rank){
-			String r = rank;
-			
-			if(r.equalsIgnoreCase("*")){
-				return 1;
-			}else if(r.equalsIgnoreCase("**")){
-				return 2;
-			}else if(r.equalsIgnoreCase("***")){
-				return 3;
-			}else if(r.equalsIgnoreCase("****")){
-				return 4;
-			}else{
-				return 0;
-			}
-		}
+
 
 //SET COOKING RANK
-	public String setCookingRank(int number){
-		int r = number;
-//////Bukkit.broadcastMessage("setting cooking rank");
-		if(r == 1){
-			return "*";
-		}else if(r == 2){
-	//////Bukkit.broadcastMessage("2" + " rank " + number);
-			return "**";
-		}else if(r == 3){
-			return "***";
-		}else if(r >= 4){
-			return "****";
-		}else{
-	//////Bukkit.broadcastMessage("else" + " rank " + number);
-			return "X";
-		}
-	}
+
 //FAILED DISH
 	public ItemStack getFailedDish(){
 		 ItemStack failedDish = new ItemStack(Material.ROTTEN_FLESH);
 		 ItemMeta meta = failedDish.getItemMeta();
-		 String rankStar = this.setCookingRank(0);
+		 String rankStar = "*";
 		 ArrayList<String> Lore = new ArrayList<String>();
 		 Lore.add("Proof of bad cooking");
 		 Lore.add(rankStar);
 		 Lore.add("Bonus Effects");
-		 ArrayList<String> b = this.setFoodBuff(failedDish, meta.getDisplayName(), 0 );
-		 b.get(0);
-		 Lore.add(b.get(0));
-		 if(b.size() > 1){
-			 Lore.add(b.get(1));
-			 
-			 if(b.size() > 2){
-				 Lore.add(b.get(2));
-			 }
-		 }
+		
+		 
 		 meta.setDisplayName("Failed Dish");
 		 meta.setLore(Lore);
 		 failedDish.setItemMeta(meta);
 		return failedDish;
 	}
-//SETTIN THE DISH
-	public ItemStack getDish(HashMap<String, Integer> foodRank, HashMap<String, Integer> foodTotal, ItemStack result){
-		ItemMeta rmeta = result.getItemMeta();
-		 int totalItems = foodTotal.get(rmeta.getDisplayName());
-		 int newrank = (int) foodRank.get(rmeta.getDisplayName()) / totalItems;
-		 String rankStar = this.setCookingRank(newrank);
-		 ArrayList<String> Lore = new ArrayList<String>();
-		 ItemStack newitem = result;
-		 ItemMeta nimeta = newitem.getItemMeta();
-		 Lore.add(rmeta.getLore().get(0));
-		 Lore.add(rankStar);
-		 Lore.add("Bonus Effects");
-		 ArrayList<String> b = this.setFoodBuff(result, rmeta.getDisplayName(), newrank);
-		 b.get(0);
-		 Lore.add(b.get(0));
-		 if(b.size() > 1){
-			 Lore.add(b.get(1));
-			 
-			 if(b.size() > 2){
-				 Lore.add(b.get(2));
-			 }
-		 }
-		 nimeta.setDisplayName(rmeta.getDisplayName());
-		 nimeta.setLore(Lore);
-		 newitem.setItemMeta(nimeta);
-		 return newitem;
-	}
-//SETTIN RANKS AND CRAP
-	public void starRankSetup(ArrayList<Boolean> trueOnce,HashMap<String, Integer> foodRank, ArrayList<String> displayName, ItemStack i, HashMap<String,ArrayList<String>> playerCraft, ItemStack result, Player p, HashMap<String, Integer> foodTotal){
-		ItemMeta rmeta = result.getItemMeta();
-	
-		if(i.hasItemMeta() && i.getItemMeta().hasDisplayName()){
-			displayName.add(i.getItemMeta().getDisplayName());
-			playerCraft.put(p.getName(), displayName);
-		if(displayName.contains(rmeta.getDisplayName())){
-			displayName.remove(rmeta.getDisplayName());
-		}
-		trueOnce.add(true);
-		if(i.getItemMeta().hasLore()){
-			if(i.getItemMeta().getLore().size() > 1){
-				String ranking = i.getItemMeta().getLore().get(1);
-				int rlevel = this.getcookingRankLevel(ranking);
-			if(foodTotal.isEmpty()){
-					foodTotal.put(rmeta.getDisplayName(), 1);
-				}else{
-				 int old = foodTotal.get(rmeta.getDisplayName());
-				 foodTotal.put(rmeta.getDisplayName(), old + 1);
-				}
-			 if(foodRank.isEmpty()){
-			 	}else{
-				 int oldLevel = foodRank.get(rmeta.getDisplayName());
-				 int newlevel = oldLevel + rlevel;
-				 foodRank.put(rmeta.getDisplayName(), newlevel);
-			 	}
-	}else{
-		if(this.isaNonFoodItem(i.getType()) == false){
-			int rlevel = 0;
-			 if(foodTotal.isEmpty()){
-				 foodTotal.put(rmeta.getDisplayName(), 1);
-			 }else{
-				 int old = foodTotal.get(rmeta.getDisplayName());
-				 foodTotal.put(rmeta.getDisplayName(), old + 1);
-			 }
-			 if(foodRank.isEmpty()){
-				 foodRank.put(rmeta.getDisplayName(), rlevel);
-			 }else{
-				 int oldLevel = foodRank.get(rmeta.getDisplayName());
-				 int newlevel = oldLevel + rlevel;
-			 foodRank.put(rmeta.getDisplayName(), newlevel);
-			 		}
-				}
-			}
-		}
-	}
-}
+
 	
 	public boolean cantCraft(ItemStack result){
 		ArrayList<Material> noCraft = new ArrayList<Material>();
@@ -1765,118 +1647,8 @@ public class FiddyCraft extends JavaPlugin {
 		}
 	}
 	
-	public ArrayList<String> setFoodBuff(ItemStack mainIngredent, String itemName, int rank){
-		Material item = mainIngredent.getType();
-		ItemMeta meta = mainIngredent.getItemMeta();
-		ArrayList<String> b = new ArrayList<String>();
-		String in = itemName;
-		////Bukkit.broadcastMessage(ChatColor.GOLD + itemName);
-		if(in != null){
-		if(in.contains("Spicey")){
-			b.add("Heat Tolerance");
-			}
-		if(in.contains("Sweet")){
-			b.add("Jumpy");
-			}
-		if(in.contains("Salty")){
-			b.add("Saturation");
-			}
-		if(in.contains("Sour")){
-			b.contains("Night Eyes");
-			}
-		if(in.contains("Bitter")){
-			b.add("Healing");
-			}
-		if(in.contains("Miners")){
-			b.add("Miners Bonus");
-			}
-	//MEAT
-		if(item == Material.COOKED_BEEF || item == Material.COOKED_CHICKEN ||item == Material.COOKED_FISH){
-			b.add("Strength");
-		}
-	//SOUP	
-		if(item == Material.MUSHROOM_SOUP && mainIngredent.hasItemMeta() && meta.hasDisplayName()){
-			if(meta.getDisplayName().equalsIgnoreCase("Mushroom Soup")){
-				b.add("Health");
-			}else{
-				b.add("Regeneration");
-			}
-		}
-	//SWEETS
-		if(item == Material.COOKIE || item == Material.CAKE || item == Material.PUMPKIN_PIE){
-			b.add("Speed");
-		}
-	//MILK
-		if(item == Material.MILK_BUCKET){
-			b.add("Strong Bones");
-		}
-	//VEGGIES
-		if(item == Material.BAKED_POTATO || item == Material.GOLDEN_CARROT){
-			b.add("Health");
-		}
-		}
-		
-		if(b.isEmpty()){
-			b.add( "None");
-		}
-		
-		return b;
-		}
+
 //ADDING FOOD EFFECTS
-	public void setFoodEffects(Player p,String effect, int starRank){
-		
-		int level = (int) starRank - 1;
-		int time = starRank * 800;
-		Bukkit.broadcastMessage("level = " + level + "time = " + time);
-//////Bukkit.broadcastMessage("in food effects + effect " + effect);
-		if(effect.equalsIgnoreCase("Strength") && level != 0){
-			p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, time, level));
-			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.RED + "Stronger!");
-		}
-		
-		if(effect.equalsIgnoreCase("Health") && level != 0){
-			p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, time, level));
-			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.DARK_GREEN + "Healther!");
-		}
-		if(effect.equalsIgnoreCase("Regeneration") && level != 0){
-			p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, time, level));
-			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Like new!");
-		}
-		if(effect.equalsIgnoreCase("Speed") && level != 0){
-			p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, time, level));
-			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Fast!");
-		}
-		
-		if(effect.equalsIgnoreCase("Heat Tolerance") && level != 0){
-			p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, time, level));
-			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.RED + "One with Fire!");
-		}
-		if(effect.equalsIgnoreCase("Jumpy") && level != 0){
-			p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, time, level));
-			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Like your bouncing off the walls!");
-		}
-		if(effect.equalsIgnoreCase("Saturation") && level != 0){
-			p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, time, level));
-			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.YELLOW + "Full!");
-		}
-		if(effect.equalsIgnoreCase("Healing") && level != 0){
-			p.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, time, level));
-			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Restored!");
-		}
-		if(effect.equalsIgnoreCase("Miners Bonus") && level != 0){
-			p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, time, level));
-			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.YELLOW + "Like Mining!");
-		}
-		if(effect.equalsIgnoreCase("Strong Bones") && level != 0){
-			p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, time, level));
-			p.sendMessage(ChatColor.GRAY + "You feel " + ChatColor.GREEN + "Tough!");
-		}
-		
-		if(effect.equalsIgnoreCase("None")){
-			
-		}
-	}
-	
 
 //CHECK IF ABLE TO MAKE THIS FOOD
 

@@ -2,6 +2,7 @@ package io.github.FiddyPercent.fiddycraft.Plant;
 
 import io.github.FiddyPercent.fiddycraft.FcPlayers;
 import io.github.FiddyPercent.fiddycraft.FiddyCraft;
+import io.github.FiddyPercent.fiddycraft.Recipe;
 import io.github.FiddyPercent.fiddycraft.Jobs.FcFarmers;
 
 import java.util.ArrayList;
@@ -151,6 +152,7 @@ public class PlantUtil {
         	plugin.getPlantInfo().set("Farmer.", p.getUniqueId().toString());
         	plugin.savePlantInfo();
     		}
+        	Recipe r = new Recipe(plugin);
         	ItemMeta meta = Seeds.getItemMeta();
         	cropSeed cs = cropSeed.valueOf(plantType);
         	int cyc = cs.getcycles();
@@ -166,7 +168,7 @@ public class PlantUtil {
         	plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Type",plantType);
         	plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Watered",false);
         	plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Cycle",cyc);
-        	plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Quality", plugin.getcookingRankLevel(meta.getLore().get(1)));
+        	plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant Quality", r.getItemRankLevel(meta.getLore().get(1)));
         	plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Healthy", true);
     		plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Fertilized", false);
     		plugin.getPlantInfo().set("Farmer." + ownerUUID + ".Plants." + l + ".Plant EXP", 0);

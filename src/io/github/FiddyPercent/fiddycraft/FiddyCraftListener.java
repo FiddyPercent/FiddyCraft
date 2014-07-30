@@ -528,6 +528,7 @@ public class FiddyCraftListener implements Listener{
 	
 	@EventHandler
 	public void blockBreak(BlockBreakEvent e){
+		Recipe rr = new Recipe(plugin);
 		Player p = e.getPlayer();
 		String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH").format(Calendar.getInstance().getTime());
 		PlantUtil pla = new PlantUtil(plugin);
@@ -575,7 +576,7 @@ public class FiddyCraftListener implements Listener{
 					ArrayList<String> lore = new ArrayList<String>();
 					meta.setDisplayName("Salt");
 					lore.add("Salt makes everything taste better");
-					lore.add(plugin.setCookingRank(plugin.randomNumber(4)));
+					lore.add(rr.setItemRank(plugin.randomNumber(4)));
 					meta.setLore(lore);
 					salt.setItemMeta(meta);
 					p.getWorld().dropItem(e.getBlock().getLocation(), salt);
@@ -963,64 +964,18 @@ public class FiddyCraftListener implements Listener{
 	public void onSmelt(FurnaceSmeltEvent e){
 		ItemStack result = e.getResult();
 		ItemStack source = e.getSource();
-		ItemMeta smeta = source.getItemMeta();
-		ItemMeta rmeta = result.getItemMeta();
-		HashMap<String,ArrayList<String>> playerCraft = new HashMap<String,ArrayList<String>>();
-		ArrayList<String> dn = new ArrayList<String>();
-		playerCraft.put(e.getBlock().getLocation().toString(), dn);
-		if(result.hasItemMeta()){
-			if(plugin.isRecipe(rmeta.getDisplayName())){
-				HashMap<String, Integer> foodRank = new HashMap<String, Integer>();
-				if(source.hasItemMeta() && source.getItemMeta().hasDisplayName()){
-					dn.add(smeta.getDisplayName());
-				}
-				if(plugin.hasFurnaceIngredents(smeta.getDisplayName(), rmeta.getDisplayName())){
-					////Bukkit.broadcastMessage("good dish");
-					if(smeta.hasLore() && smeta.getLore().size() > 1){
-					 int rlevel = plugin.getcookingRankLevel(smeta.getLore().get(1));
-					 foodRank.put(rmeta.getDisplayName(), rlevel);
-					}else{
-						foodRank.put(rmeta.getDisplayName(), 0);
-					}
-
-					 int newrank = (int) foodRank.get(rmeta.getDisplayName());
-					 String rankStar = plugin.setCookingRank(newrank);
-					 ArrayList<String> Lore = new ArrayList<String>();
-					 ItemStack newitem = result;
-					 ItemMeta nimeta = newitem.getItemMeta();
-					 Lore.add(rmeta.getLore().get(0));
-					 Lore.add(rankStar);
-					 Lore.add("Bonus Effects");
-					 ArrayList<String> b = plugin.setFoodBuff(result, rmeta.getDisplayName(), newrank);
-					 Lore.add(b.get(0));
-					 if(b.size() > 1){
-						 Lore.add(b.get(1));
-						 
-						 if(b.size() > 2){
-							 Lore.add(b.get(2));
-						 }
-					 }
-					 nimeta.setDisplayName(rmeta.getDisplayName());
-					 nimeta.setLore(Lore);
-					 newitem.setItemMeta(nimeta);
-					 e.setResult(newitem);
-				}else{
-					////Bukkit.broadcastMessage("failed dish");
-					if(smeta.hasLore() && smeta.getLore().size() > 1){
-					 int rlevel = plugin.getcookingRankLevel(smeta.getLore().get(1));
-					 foodRank.put(rmeta.getDisplayName(), rlevel);
-					}else{
-						 int rlevel = 0;
-						 foodRank.put(rmeta.getDisplayName(), rlevel);
-					}
-					 e.setResult(plugin.getFailedDish());
-						}
-					}else{
-						
-					}
-				}
+		Recipe r = new Recipe(plugin);
+		ArrayList<ItemStack> s = new ArrayList<ItemStack>();
+		s.add(source);
+		r.recipeCheck(s);
+		ItemStack fail = new ItemStack(Material.SKULL);
+		ItemStack rc = r.recipeCheck(s);
+		if(!rc.isSimilar(fail)){
+			e.setResult(rc);
+		}else{
+			
+		}
 		if(plugin.cantCraft(result) == false){
-			//////Bukkit.broadcastMessage("method cancraft");
 			 e.setResult(plugin.getFailedDish());
 				}
 			}
@@ -1040,7 +995,6 @@ public class FiddyCraftListener implements Listener{
 		ItemStack fail = new ItemStack(Material.SKULL);
 		ItemStack rc = r.recipeCheck(correct);
 		if(!rc.isSimilar(fail)){
-			Bukkit.broadcastMessage(ChatColor.RED + "is not a skull item + " +rc.toString() );
 			e.getInventory().setItem(0,rc);
 		}else{
 			
@@ -1335,23 +1289,19 @@ public class FiddyCraftListener implements Listener{
 			
 			if(meta.hasDisplayName() && meta.hasLore()){
 				if(meta.getLore().size() > 3){
+					Recipe r = new Recipe(plugin);
 					List<String> lore = meta.getLore();
-			//////Bukkit.broadcastMessage("checking bonus + " + lore.get(2));
-					
 					if(lore.get(2).equalsIgnoreCase("Bonus Effects")){
-						String effect1 = lore.get(2);
-				//////Bukkit.broadcastMessage("in bonus");
-						int starRank = plugin.getcookingRankLevel(lore.get(1));
-						plugin.setFoodEffects(p, effect1, starRank);
-						
-						if(lore.size() == 4){
-							String effect2 = lore.get(3);
-							plugin.setFoodEffects(p, effect2, starRank);
-						}
-						
+						String effect1 = lore.get(3);
+						int starRank = r.getItemRankLevel(lore.get(1));
+						r.setFoodEffects(p, effect1, starRank);
 						if(lore.size() == 5){
-							String effect3 = lore.get(4);
-							plugin.setFoodEffects(p, effect3, starRank);
+							String effect2 = lore.get(4);
+							r.setFoodEffects(p, effect2, starRank);
+						}
+						if(lore.size() == 6){
+							String effect3 = lore.get(5);
+							r.setFoodEffects(p, effect3, starRank);
 						}
 						
 					}

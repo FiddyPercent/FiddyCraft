@@ -1,6 +1,7 @@
 package io.github.FiddyPercent.fiddycraft.Plant;
 
 import io.github.FiddyPercent.fiddycraft.FiddyCraft;
+import io.github.FiddyPercent.fiddycraft.Recipe;
 
 import java.util.ArrayList;
 
@@ -291,7 +292,8 @@ public class Plants  {
 	ItemStack goods = this.getPlantItemStack();
 	ItemMeta meta = goods.getItemMeta();
 	ArrayList<String> lore = new ArrayList<String>();
-	String rank = plugin.setCookingRank(this.getPlantQuailty());
+	Recipe r = new Recipe(plugin);
+	String rank = r.setItemRank(this.getPlantQuailty());
 	lore.add(rank);
 	meta.setLore(lore);
 	goods.setItemMeta(meta);

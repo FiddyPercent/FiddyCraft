@@ -20,13 +20,7 @@ public class RecipeBook {
 	}
 	
 	public void flour() {
-		 ItemStack item = new ItemStack(Material.SUGAR);
-		 ItemMeta imeta = item.getItemMeta();
-	       ArrayList<String> Lore = new ArrayList<String>();
-	       Lore.add("Flour for baking");
-	       imeta.setDisplayName("Flour");
-	       imeta.setLore(Lore);
-	       item.setItemMeta(imeta);
+		 ItemStack item = new ItemStack(Material.ROTTEN_FLESH);
 		ShapelessRecipe flour = new ShapelessRecipe(item);
 		flour.addIngredient(Material.WHEAT);
 		Bukkit.addRecipe(flour);

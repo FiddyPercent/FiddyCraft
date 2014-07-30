@@ -1262,12 +1262,13 @@ public class FiddyCraftCommands implements CommandExecutor {
 				return false;
 			}
 			//Bukkit.broadcastMessage("working");
+			Recipe r = new Recipe(plugin);
 			ItemStack seed = new ItemStack(p.getItemInHand().getType());
 			ItemMeta meta = seed.getItemMeta();
 			ArrayList<String> lore = new ArrayList<String>();
 			meta.setDisplayName(seedType + " Seeds");
 			lore.add("Growth Seasons: " +  description);
-			lore.add(plugin.setCookingRank(rank));
+			lore.add(r.setItemRank(rank));
 			meta.setLore(lore);
 			seed.setItemMeta(meta);
 			p.setItemInHand(seed);
